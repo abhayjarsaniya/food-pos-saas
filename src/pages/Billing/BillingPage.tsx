@@ -4,7 +4,7 @@ import { useBilling } from '../../contexts/BillingContext';
 import { getCategories, getMenuItems } from '../../services/business/businessService';
 import { getTables, calculateTableStatuses } from '../../services/tables/tableService';
 import { getOrders } from '../../services/orders/orderService';
-import { Category, MenuItem, Order, PaymentMethod, PaymentStatus, RestaurantTable, TableWithStatus } from '../../types';
+import { Category, MenuItem, MenuItemVariant, Order, PaymentMethod, PaymentStatus, RestaurantTable, TableWithStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { shareBillToWhatsApp } from '../../services/whatsapp/whatsappService';
 import { downloadReceiptPdf } from '../../services/pdf/receiptGenerator';
@@ -111,6 +111,36 @@ export const BillingPage: React.FC = () => {
   const [customTables, setCustomTables] = useState<RestaurantTable[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+
+  // Variant & MRP Selection State
+  const [selectedItemForVariant, setSelectedItemForVariant] = useState<MenuItem | null>(null);
+  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const [selectedItemForMrp, setSelectedItemForMrp] = useState<MenuItem | null>(null);
+  const [isMrpModalOpen, setIsMrpModalOpen] = useState(false);
+  const [mrpPriceInput, setMrpPriceInput] = useState('');
+
+  const handleItemClick = (item: MenuItem) => {
+    if (!item.isActive || item.isAvailable === false) {
+      alert('This item is currently disabled and cannot be added to bills.');
+      return;
+    }
+    if (item.isPromotional && item.confirmationStatus === 'Needs Owner Confirmation' && !item.isActive) {
+      alert('This anniversary promotional combo requires owner confirmation before live billing.');
+      return;
+    }
+    if (item.priceType === 'mrp') {
+      setSelectedItemForMrp(item);
+      setMrpPriceInput('');
+      setIsMrpModalOpen(true);
+      return;
+    }
+    if (item.variants && item.variants.length > 0) {
+      setSelectedItemForVariant(item);
+      setIsVariantModalOpen(true);
+      return;
+    }
+    addItem(item);
+  };
 
   const quickExtraSuggestions = [
     { name: 'Extra Butter', price: 20 },
@@ -450,7 +480,7 @@ export const BillingPage: React.FC = () => {
                 return (
                   <div
                     key={item.id}
-                    onClick={() => addItem(item)}
+                    onClick={() => handleItemClick(item)}
                     className={`p-3 bg-white border rounded-2xl flex flex-col justify-between transition-all select-none cursor-pointer relative shadow-2xs hover:shadow-xs active:scale-[0.98] ${
                       qtyInBill > 0 ? 'border-zinc-900 ring-1 ring-zinc-900' : 'border-zinc-200/80 hover:border-zinc-300'
                     }`}
@@ -472,11 +502,26 @@ export const BillingPage: React.FC = () => {
                       <h3 className="text-xs font-bold text-zinc-900 line-clamp-2">
                         {item.name}
                       </h3>
+                      {item.variants && item.variants.length > 0 && (
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                          {item.variants.filter((v) => v.isAvailable).length} Variants
+                        </span>
+                      )}
+                      {item.priceType === 'mrp' && (
+                        <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                          MRP
+                        </span>
+                      )}
+                      {item.isPromotional && (
+                        <span className="text-[9px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                          Promo Combo
+                        </span>
+                      )}
                     </div>
 
                     <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-zinc-100">
                       <span className="text-xs font-bold text-zinc-950 font-mono">
-                        {formatCurrency(item.price)}
+                        {item.priceType === 'mrp' ? 'MRP' : formatCurrency(item.price)}
                       </span>
                       {qtyInBill > 0 ? (
                         <div
@@ -1370,6 +1415,127 @@ export const BillingPage: React.FC = () => {
                 })}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* VARIANT SELECTION MODAL */}
+      {isVariantModalOpen && selectedItemForVariant && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div>
+                <h3 className="font-bold text-base text-zinc-900">
+                  {selectedItemForVariant.name}
+                </h3>
+                <p className="text-xs text-zinc-500">Select Price Variant</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsVariantModalOpen(false);
+                  setSelectedItemForVariant(null);
+                }}
+                className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 py-1">
+              {selectedItemForVariant.variants?.map((variant) => {
+                const isAvailable = variant.isAvailable;
+                const priceInRupees = variant.price > 1000 ? variant.price / 100 : variant.price;
+
+                return (
+                  <button
+                    key={variant.variantId}
+                    type="button"
+                    disabled={!isAvailable}
+                    onClick={() => {
+                      addItem(selectedItemForVariant, variant);
+                      setIsVariantModalOpen(false);
+                      setSelectedItemForVariant(null);
+                    }}
+                    className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                      isAvailable
+                        ? 'bg-zinc-50 hover:bg-zinc-900 hover:text-white border-zinc-200 hover:border-zinc-900 cursor-pointer shadow-2xs group'
+                        : 'bg-zinc-100/60 border-zinc-200/60 text-zinc-400 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">
+                      {variant.name}
+                    </span>
+                    <span className="font-mono font-bold text-sm">
+                      {isAvailable ? formatCurrency(priceInRupees) : 'Not Listed'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MRP MANUAL PRICE ENTRY MODAL */}
+      {isMrpModalOpen && selectedItemForMrp && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div>
+                <h3 className="font-bold text-base text-zinc-900">
+                  {selectedItemForMrp.name}
+                </h3>
+                <p className="text-xs text-zinc-500">Enter MRP Price at Billing</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMrpModalOpen(false);
+                  setSelectedItemForMrp(null);
+                }}
+                className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const priceNum = parseFloat(mrpPriceInput);
+                if (!isNaN(priceNum) && priceNum > 0) {
+                  addItem(selectedItemForMrp, undefined, priceNum);
+                  setIsMrpModalOpen(false);
+                  setSelectedItemForMrp(null);
+                }
+              }}
+              className="space-y-4 pt-1"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
+                  MRP Price (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="1"
+                  required
+                  autoFocus
+                  value={mrpPriceInput}
+                  onChange={(e) => setMrpPriceInput(e.target.value)}
+                  placeholder="e.g. 20 or 40"
+                  className="w-full px-4 py-3 text-base font-mono font-bold bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm rounded-xl transition-colors shadow-sm"
+              >
+                Add to Bill
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -161,18 +161,36 @@ export interface Category {
   isActive: boolean;
 }
 
+export interface MenuItemVariant {
+  variantId: string;
+  name: string;
+  price: number; // Stored in paise (e.g. 15000 = ₹150) or rupees
+  currency?: string;
+  isAvailable: boolean;
+}
+
 export interface MenuItem {
   id: string;
   businessId: string;
   name: string;
+  normalizedName?: string;
   price: number;
+  basePrice?: number;
+  priceType?: 'fixed' | 'variant' | 'mrp';
+  variants?: MenuItemVariant[];
   categoryId: string;
   categoryName: string;
+  description?: string;
   imageUrl?: string;
   gstRate?: number; // optional custom GST rate
   isVeg?: boolean;
   isActive: boolean;
+  isAvailable?: boolean;
+  isPromotional?: boolean;
+  confirmationStatus?: 'Needs Owner Confirmation' | 'Confirmed' | 'Active';
   sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface OrderItem {
@@ -185,6 +203,8 @@ export interface OrderItem {
   lineTotal: number;
   isCustom?: boolean;
   isVeg?: boolean;
+  variantId?: string;
+  variantName?: string;
 }
 
 export interface TaxCalculationResult {

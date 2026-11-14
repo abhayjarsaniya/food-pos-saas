@@ -100,6 +100,31 @@ const STATIC_LOGIN_IDENTITIES: Record<string, ResolvedStaffIdentity> = {
     canCollectPayment: true,
     status: 'ACTIVE',
   },
+  princeowner: {
+    loginId: 'princeowner',
+    email: 'princebhajipav16@gmail.com',
+    businessId: 'biz_prince_pavbhaji_01',
+    role: 'OWNER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  princepavbhaji: {
+    loginId: 'princepavbhaji',
+    email: 'princebhajipav16@gmail.com',
+    businessId: 'biz_prince_pavbhaji_01',
+    role: 'OWNER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  princecashier: {
+    loginId: 'princecashier',
+    email: 'cashier01@royalbistro.foodpos.app',
+    businessId: 'biz_prince_pavbhaji_01',
+    memberId: 'mem_prince_cashier_01',
+    role: 'CASHIER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
 };
 
 /**

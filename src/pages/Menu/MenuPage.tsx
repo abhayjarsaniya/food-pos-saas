@@ -373,9 +373,41 @@ export const MenuPage: React.FC = () => {
                     {item.categoryName} {item.gstRate ? `• GST ${item.gstRate}%` : ''}
                   </p>
 
-                  <div className="text-base font-bold text-zinc-950 font-mono mt-1.5">
-                    {formatCurrency(item.price)}
-                  </div>
+                  {item.variants && item.variants.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {item.variants.map((v) => {
+                        const priceInRupees = v.price > 1000 ? v.price / 100 : v.price;
+                        return (
+                          <span
+                            key={v.variantId}
+                            className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${
+                              v.isAvailable
+                                ? 'bg-zinc-100 text-zinc-800'
+                                : 'bg-zinc-50 text-zinc-400 line-through'
+                            }`}
+                          >
+                            {v.name}: {v.isAvailable ? formatCurrency(priceInRupees) : 'N/A'}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : item.priceType === 'mrp' ? (
+                    <div className="text-xs text-amber-700 font-semibold mt-1.5">
+                      MRP (Configurable at billing)
+                    </div>
+                  ) : (
+                    <div className="text-base font-bold text-zinc-950 font-mono mt-1.5">
+                      {formatCurrency(item.price)}
+                    </div>
+                  )}
+
+                  {item.isPromotional && (
+                    <div className="mt-1">
+                      <span className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-full inline-block">
+                        {item.confirmationStatus || 'Needs Owner Confirmation'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1">

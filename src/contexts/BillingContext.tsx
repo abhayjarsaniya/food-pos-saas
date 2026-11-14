@@ -4,6 +4,7 @@ import {
   CustomerInfo, 
   DiscountType, 
   MenuItem, 
+  MenuItemVariant,
   Order, 
   OrderItem, 
   OrderType, 
@@ -35,7 +36,7 @@ interface BillingContextType {
   editingOrderId: string | null;
 
   // Actions
-  addItem: (item: MenuItem) => void;
+  addItem: (item: MenuItem, selectedVariant?: MenuItemVariant, customPrice?: number) => void;
   addCustomItem: (name: string, price: number, quantity?: number, gstRate?: number) => void;
   updateItemQuantity: (itemId: string, delta: number) => void;
   setItemQuantity: (itemId: string, quantity: number) => void;
@@ -132,9 +133,39 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return Math.max(0, round2(calculationSummary.grandTotal - (amountPaid || 0)));
   }, [paymentStatus, calculationSummary.grandTotal, amountPaid]);
 
-  const addItem = (menuItem: MenuItem) => {
+  const addItem = (menuItem: MenuItem, selectedVariant?: MenuItemVariant, customPrice?: number) => {
+    // If item is inactive or unavailable, reject adding
+    if (!menuItem.isActive || menuItem.isAvailable === false) {
+      alert('This item is currently disabled and cannot be added to bills.');
+      return;
+    }
+    if (menuItem.isPromotional && menuItem.confirmationStatus === 'Needs Owner Confirmation' && !menuItem.isActive) {
+      alert('This promotional combo item requires owner confirmation before live billing.');
+      return;
+    }
+
+    // Determine unit price
+    let effectivePrice = menuItem.price;
+    let displayName = menuItem.name;
+    const variantId = selectedVariant?.variantId;
+    const variantName = selectedVariant?.name;
+
+    if (selectedVariant) {
+      // Handle paise conversion if stored as integer paise (e.g. 15000 -> 150)
+      const rawPrice = selectedVariant.price;
+      effectivePrice = rawPrice > 1000 ? rawPrice / 100 : rawPrice;
+      displayName = `${menuItem.name} (${selectedVariant.name})`;
+    } else if (customPrice !== undefined) {
+      effectivePrice = customPrice;
+    } else if (menuItem.price > 1000) {
+      // In case stored in paise
+      effectivePrice = menuItem.price / 100;
+    }
+
+    const uniqueLineId = selectedVariant ? `${menuItem.id}_${selectedVariant.variantId}` : menuItem.id;
+
     setItems((prev) => {
-      const existingIndex = prev.findIndex((i) => i.itemId === menuItem.id);
+      const existingIndex = prev.findIndex((i) => i.itemId === uniqueLineId);
       if (existingIndex >= 0) {
         const updated = [...prev];
         const current = updated[existingIndex];
@@ -148,15 +179,17 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } else {
         const gstRate = menuItem.gstRate ?? settings.tax.defaultGstRate;
         const newItem: OrderItem = {
-          itemId: menuItem.id,
-          name: menuItem.name,
+          itemId: uniqueLineId,
+          name: displayName,
           quantity: 1,
-          unitPrice: menuItem.price,
-          originalPrice: menuItem.price,
+          unitPrice: effectivePrice,
+          originalPrice: effectivePrice,
           gstRate: gstRate,
-          lineTotal: calculateItemTotal(menuItem.price, 1),
+          lineTotal: calculateItemTotal(effectivePrice, 1),
           isVeg: menuItem.isVeg,
           isCustom: false,
+          variantId,
+          variantName,
         };
         return [...prev, newItem];
       }
