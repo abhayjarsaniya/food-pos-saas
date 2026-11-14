@@ -21,9 +21,13 @@ import { TableManagementPage } from './pages/Tables/TableManagementPage';
 import { LoginPage } from './pages/Login/LoginPage';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
 
+// Multi-Portal Login Components
+import { SuperAdminLoginPage } from './pages/Auth/SuperAdminLoginPage';
+import { ShopOwnerLoginPage } from './pages/Auth/ShopOwnerLoginPage';
+import { MemberLoginPage } from './pages/Auth/MemberLoginPage';
+
 // Super Admin Components
 import { AdminLayout } from './pages/Admin/AdminLayout';
-import { AdminLoginPage } from './pages/Admin/AdminLoginPage';
 import { AdminOverviewPage } from './pages/Admin/AdminOverviewPage';
 import { AdminShopsPage } from './pages/Admin/AdminShopsPage';
 import { AdminCreateShopPage } from './pages/Admin/AdminCreateShopPage';
@@ -86,7 +90,10 @@ export const AppContent: React.FC = () => {
       <Routes>
         {/* Public Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/login" element={<SuperAdminLoginPage />} />
+        <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
+        <Route path="/shop/login" element={<ShopOwnerLoginPage />} />
+        <Route path="/member/login" element={<MemberLoginPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
 
         {/* Super Admin Routes */}

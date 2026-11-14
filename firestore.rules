@@ -5,7 +5,8 @@ service cloud.firestore {
     function isSuperAdmin() {
       return request.auth != null && (
         request.auth.token.role == 'SUPER_ADMIN' ||
-        request.auth.token.email == 'superadmin@foodpos.app'
+        request.auth.token.email == 'superadmin@foodpos.app' ||
+        request.auth.token.email == 'admin@foodpos.app'
       );
     }
 

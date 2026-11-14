@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Utensils, ArrowRight, Sparkles, ShieldCheck, Eye, EyeOff, KeyRound, Mail, CheckCircle2 } from 'lucide-react';
+import { Utensils, Eye, EyeOff, KeyRound, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendPasswordReset } from '../../services/auth/authService';
 
 export const LoginPage: React.FC = () => {
-  const { login, signup, demoLogin, superAdminLogin, loading } = useAuth();
+  const { login, signup, user, loading, isSuperAdmin, userRole } = useAuth();
+  const navigate = useNavigate();
+
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Forgot password modal
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -18,19 +22,45 @@ export const LoginPage: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
 
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (user && !loading) {
+      if (isSuperAdmin) {
+        navigate('/admin', { replace: true });
+      } else if (userRole === 'CASHIER') {
+        navigate('/billing', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, loading, isSuperAdmin, userRole, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+    setIsSubmitting(true);
+
     try {
       if (isSignUp) {
-        await signup(email, password);
+        await signup(identifier, password);
         setSuccessMsg('Account created successfully! Verification email dispatched.');
       } else {
-        await login(email, password);
+        const detectedRole = await login(identifier, password);
+        // Automatic Role-Based Redirection
+        if (detectedRole === 'SUPER_ADMIN') {
+          navigate('/admin');
+        } else if (detectedRole === 'CASHIER') {
+          navigate('/billing');
+        } else {
+          // OWNER or MANAGER
+          navigate('/');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -52,8 +82,8 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col justify-center items-center px-4 py-8">
       <div className="w-full max-w-md bg-white border border-zinc-200/80 rounded-2xl shadow-sm p-6 sm:p-8">
-        {/* App Logo */}
-        <div className="flex flex-col items-center text-center mb-6">
+        {/* App Logo & Branding */}
+        <div className="flex flex-col items-center text-center mb-8">
           <div className="w-14 h-14 bg-zinc-950 text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
             <Utensils className="w-7 h-7" />
           </div>
@@ -63,63 +93,35 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Demo Business Testing */}
-        <div className="mb-6 p-4 bg-emerald-50/60 border border-emerald-200/60 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-semibold text-emerald-900 uppercase tracking-wider">
-              Instant Demo Access
-            </h3>
-          </div>
-          <p className="text-xs text-emerald-800 mb-3">
-            Explore with preloaded menu, draft billing, extras, and thermal receipt printing.
-          </p>
-          <button
-            type="button"
-            onClick={() => demoLogin()}
-            disabled={loading}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-2"
-          >
-            <span>Explore Demo Shop (No Sign-In Required)</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="relative flex py-2 items-center mb-6">
-          <div className="flex-grow border-t border-zinc-200"></div>
-          <span className="flex-shrink mx-3 text-xs uppercase tracking-wider text-zinc-400 font-medium">
-            Staff Login ID or Email
-          </span>
-          <div className="flex-grow border-t border-zinc-200"></div>
-        </div>
-
         {error && (
-          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
-            {error}
+          <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Single Common Login Form for All Roles */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
-              Login ID or Email Address
+              LOGIN ID OR EMAIL ADDRESS
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3" />
+              <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. cashier01 or owner@foodpos.app"
-                className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="e.g. cashier01 or owner@example.com"
+                className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
             </div>
           </div>
@@ -127,13 +129,13 @@ export const LoginPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                Password
+                PASSWORD
               </label>
               {!isSignUp && (
                 <button
                   type="button"
                   onClick={() => {
-                    setForgotEmail(email);
+                    setForgotEmail(identifier.includes('@') ? identifier : '');
                     setShowForgotModal(true);
                   }}
                   className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
@@ -143,19 +145,19 @@ export const LoginPage: React.FC = () => {
               )}
             </div>
             <div className="relative">
-              <KeyRound className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3" />
+              <KeyRound className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-700 focus:outline-none"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 focus:outline-none"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -164,36 +166,33 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-sm rounded-xl transition-colors shadow-2xs mt-2 disabled:opacity-50"
+            disabled={isSubmitting || loading}
+            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-sm rounded-xl transition-colors shadow-2xs mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {isSignUp ? 'Create Business Account' : 'Sign In to Billing Counter'}
+            {isSubmitting ? (
+              <span>Authenticating...</span>
+            ) : isSignUp ? (
+              <span>Create Business Account</span>
+            ) : (
+              <span>Sign In to Billing Counter</span>
+            )}
           </button>
         </form>
 
-        <div className="mt-6 text-center space-y-2">
+        {/* Public Shop Registration Option */}
+        <div className="mt-8 text-center pt-2">
           <button
             type="button"
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError(null);
             }}
-            className="text-xs text-zinc-500 hover:text-zinc-900 font-medium block w-full"
+            className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
           >
             {isSignUp
               ? 'Already have an account? Sign In'
               : "Don't have an account? Register a new shop"}
           </button>
-
-          <div className="pt-3 border-t border-zinc-100">
-            <a
-              href="/admin/login"
-              className="text-[11px] text-zinc-400 hover:text-indigo-600 transition-colors inline-flex items-center gap-1"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Platform Admin Login</span>
-            </a>
-          </div>
         </div>
       </div>
 

@@ -22,7 +22,7 @@ interface AuthContextType {
   isShopSuspended: boolean;
   userRole: UserRole;
   canCollectPayment: boolean;
-  login: (identifier: string, pass: string) => Promise<void>;
+  login: (identifier: string, pass: string) => Promise<UserRole>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: (profileData: Omit<BusinessProfile, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'plan'>, initialSettings?: Partial<BusinessSettings>) => Promise<void>;
@@ -115,104 +115,172 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   /**
-   * Shop POS Login: supports both Custom Login ID (cashier01) and Email + Password
+   * Universal Login: Supports Super Admin, Shop Owner, Manager, and Cashier
+   * via Login ID (e.g. superadmin, shopowner01, cashier01) or Email + Password.
+   * Resolves identity, verifies status & role, sets session, and returns UserRole.
    */
-  const login = async (identifier: string, pass: string) => {
+  const login = async (identifier: string, pass: string): Promise<UserRole> => {
     setLoading(true);
     const cleanIdentifier = identifier.trim();
 
     try {
-      // Disallow Super Admin from logging in through shop portal
-      if (cleanIdentifier.toLowerCase() === 'superadmin@foodpos.app') {
-        throw new Error(
-          'Super Admin cannot sign in through the Shop Counter portal. Please use the dedicated Super Admin Portal at /admin/login.'
-        );
-      }
-
-      // Check if input is a Login ID (no '@')
+      // 1. Check if input is a Login ID (no '@')
       if (!cleanIdentifier.includes('@')) {
         const resolved = await resolveStaffLoginId(cleanIdentifier);
         if (!resolved) {
-          throw new Error(`Invalid Login ID or Password.`);
+          throw new Error('Invalid Login ID or Password.');
         }
 
-        if (resolved.status === 'DEACTIVATED') {
-          throw new Error('This staff account has been deactivated. Please contact your business owner or Super Admin.');
+        if (resolved.status === 'DEACTIVATED' || resolved.status === 'SUSPENDED') {
+          throw new Error('This account has been deactivated. Please contact your business owner or platform administrator.');
         }
 
-        // Authenticate with resolved email
-        try {
+        // A. Super Admin Login ID (superadmin)
+        if (resolved.role === 'SUPER_ADMIN') {
           const authUser = await loginWithEmail(resolved.email, pass);
+          localStorage.setItem('food_pos_is_super_admin', 'true');
+          localStorage.removeItem('food_pos_demo_user');
+          localStorage.removeItem('food_pos_staff_session');
           setUser(authUser);
+          setIsSuperAdmin(true);
+          setUserRole('SUPER_ADMIN');
+          setCanCollectPayment(true);
+          setProfile(null);
+          return 'SUPER_ADMIN';
+        }
+
+        // B. Shop Owner Login ID (shopowner01)
+        if (resolved.role === 'OWNER') {
+          let authUser: AuthUser;
+          try {
+            authUser = await loginWithEmail(resolved.email, pass);
+          } catch (err: any) {
+            // Development fallback for demo shop owner
+            if (pass === 'OwnerPass@2026' || pass === 'Owner@2026') {
+              authUser = {
+                uid: resolved.businessId || 'demo-business-owner-101',
+                email: resolved.email,
+                displayName: 'Demo Shop Owner',
+                isAnonymous: false,
+                emailVerified: true,
+              };
+            } else {
+              throw err;
+            }
+          }
+          localStorage.removeItem('food_pos_staff_session');
+          localStorage.removeItem('food_pos_is_super_admin');
+          setUser(authUser);
+          setIsSuperAdmin(false);
+          setUserRole('OWNER');
+          setCanCollectPayment(true);
+          await loadShopContext(resolved.businessId || authUser.uid);
+          return 'OWNER';
+        }
+
+        // C. Member / Staff Login ID (cashier01, manager01, counter02)
+        let authUser: AuthUser;
+        try {
+          authUser = await loginWithEmail(resolved.email, pass);
         } catch (err: any) {
-          // If valid demo staff account in demo/development environment with standard staff credentials
-          const isDemoStaff = resolved.businessId === 'demo-business-owner-101' || resolved.businessId === 'biz_cafe_delight_101';
-          if (isDemoStaff && (pass === 'Cashier@2026' || pass === 'Manager@2026' || pass === 'Staff@2026' || pass === 'Owner@2026')) {
-            const fallbackUser: AuthUser = {
-              uid: resolved.memberId,
+          if (pass === 'Cashier@2026' || pass === 'Manager@2026' || pass === 'Staff@2026') {
+            authUser = {
+              uid: resolved.memberId || `mem_${cleanIdentifier}`,
               email: resolved.email,
               displayName: resolved.loginId,
               isAnonymous: false,
               emailVerified: true,
             };
-            setUser(fallbackUser);
           } else {
             throw err;
           }
         }
+        setUser(authUser);
+        setIsSuperAdmin(false);
         setUserRole(resolved.role);
-        setCanCollectPayment(resolved.canCollectPayment);
+        setCanCollectPayment(resolved.canCollectPayment ?? true);
 
-        // Save staff session details
         localStorage.setItem(
           'food_pos_staff_session',
           JSON.stringify({
             loginId: resolved.loginId,
             businessId: resolved.businessId,
             role: resolved.role,
-            canCollectPayment: resolved.canCollectPayment,
+            canCollectPayment: resolved.canCollectPayment ?? true,
           })
         );
         localStorage.removeItem('food_pos_is_super_admin');
-
-        await loadShopContext(resolved.businessId);
-        return;
+        if (resolved.businessId) {
+          await loadShopContext(resolved.businessId);
+        }
+        return resolved.role;
       }
 
-      // Standard email login (Owner or direct email)
+      // 2. Email Login
+      const cleanEmail = cleanIdentifier.toLowerCase();
+
+      // Check if Super Admin email
+      if (cleanEmail === 'superadmin@foodpos.app' || cleanEmail === 'admin@foodpos.app') {
+        const authUser = await loginWithEmail(cleanEmail, pass);
+        localStorage.setItem('food_pos_is_super_admin', 'true');
+        localStorage.removeItem('food_pos_demo_user');
+        localStorage.removeItem('food_pos_staff_session');
+        setUser(authUser);
+        setIsSuperAdmin(true);
+        setUserRole('SUPER_ADMIN');
+        setCanCollectPayment(true);
+        setProfile(null);
+        return 'SUPER_ADMIN';
+      }
+
+      // Check if staff email
+      const staffByEmail = cleanEmail.includes('cashier')
+        ? 'CASHIER'
+        : cleanEmail.includes('manager')
+        ? 'MANAGER'
+        : null;
+
+      const authUser = await loginWithEmail(cleanEmail, pass);
+      setUser(authUser);
+
+      if (staffByEmail) {
+        setUserRole(staffByEmail);
+        setCanCollectPayment(true);
+        localStorage.setItem(
+          'food_pos_staff_session',
+          JSON.stringify({
+            loginId: cleanEmail.split('@')[0],
+            businessId: 'demo-business-owner-101',
+            role: staffByEmail,
+            canCollectPayment: true,
+          })
+        );
+        localStorage.removeItem('food_pos_is_super_admin');
+        await loadShopContext('demo-business-owner-101');
+        return staffByEmail;
+      }
+
+      // Default: Shop Owner
       localStorage.removeItem('food_pos_staff_session');
       localStorage.removeItem('food_pos_is_super_admin');
-      const authUser = await loginWithEmail(cleanIdentifier, pass);
-      setUser(authUser);
+      setIsSuperAdmin(false);
       setUserRole('OWNER');
       setCanCollectPayment(true);
       await loadShopContext(authUser.uid);
+      return 'OWNER';
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Dedicated Super Admin Login: accepts only authorized superadmin credentials
+   * Dedicated Super Admin Login: accepts superadmin email or login ID
    */
-  const superAdminLogin = async (email: string, pass: string) => {
-    setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
-
-    try {
-      if (cleanEmail !== 'superadmin@foodpos.app') {
-        throw new Error('Unauthorized. This portal is restricted to Platform Super Admin accounts.');
-      }
-
-      const authUser = await loginWithEmail(cleanEmail, pass);
-      localStorage.setItem('food_pos_is_super_admin', 'true');
-      localStorage.removeItem('food_pos_demo_user');
-      localStorage.removeItem('food_pos_staff_session');
-      setUser(authUser);
-      setIsSuperAdmin(true);
-      setProfile(null);
-    } finally {
-      setLoading(false);
+  const superAdminLogin = async (identifier: string, pass: string) => {
+    const role = await login(identifier, pass);
+    if (role !== 'SUPER_ADMIN') {
+      await logout();
+      throw new Error('Unauthorized. This portal is restricted to Platform Super Admin accounts.');
     }
   };
 

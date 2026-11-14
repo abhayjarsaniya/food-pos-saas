@@ -11,7 +11,7 @@ export type BusinessCategory =
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED';
 export type AccessPlan = 'trial' | 'starter' | 'pro' | 'enterprise';
 
-export type UserRole = 'OWNER' | 'MANAGER' | 'CASHIER';
+export type UserRole = 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER';
 
 export interface BusinessMember {
   id: string; // memberId or uid

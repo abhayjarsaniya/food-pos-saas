@@ -50,15 +50,61 @@ export interface CreateTeamMemberParams {
 export interface ResolvedStaffIdentity {
   loginId: string;
   email: string;
-  businessId: string;
-  memberId: string;
+  businessId?: string;
+  memberId?: string;
   role: UserRole;
-  canCollectPayment: boolean;
-  status: 'ACTIVE' | 'DEACTIVATED' | 'INVITED';
+  canCollectPayment?: boolean;
+  status: 'ACTIVE' | 'DEACTIVATED' | 'INVITED' | 'SUSPENDED';
 }
 
+const STATIC_LOGIN_IDENTITIES: Record<string, ResolvedStaffIdentity> = {
+  superadmin: {
+    loginId: 'superadmin',
+    email: 'superadmin@foodpos.app',
+    role: 'SUPER_ADMIN',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  shopowner01: {
+    loginId: 'shopowner01',
+    email: 'owner@foodpos.app',
+    businessId: 'demo-business-owner-101',
+    role: 'OWNER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  cashier01: {
+    loginId: 'cashier01',
+    email: 'cashier01@royalbistro.foodpos.app',
+    businessId: 'demo-business-owner-101',
+    memberId: 'mem_cashier_01',
+    role: 'CASHIER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  manager01: {
+    loginId: 'manager01',
+    email: 'manager01@royalbistro.foodpos.app',
+    businessId: 'demo-business-owner-101',
+    memberId: 'mem_manager_01',
+    role: 'MANAGER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  counter02: {
+    loginId: 'counter02',
+    email: 'counter02@royalbistro.foodpos.app',
+    businessId: 'demo-business-owner-101',
+    memberId: 'mem_cashier_02',
+    role: 'CASHIER',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+};
+
 /**
- * Resolves a staff Login ID (e.g. "cashier01") to its authenticated email and permissions
+ * Resolves a staff or admin Login ID (e.g. "cashier01", "superadmin", "shopowner01")
+ * to its authenticated email and permissions
  */
 export async function resolveStaffLoginId(loginId: string): Promise<ResolvedStaffIdentity | null> {
   const cleanId = loginId.trim().toLowerCase();
@@ -72,6 +118,11 @@ export async function resolveStaffLoginId(loginId: string): Promise<ResolvedStaf
     }
   } catch (err) {
     console.warn('Could not query loginIds from cloud Firestore:', err);
+  }
+
+  // Check static registered credentials
+  if (STATIC_LOGIN_IDENTITIES[cleanId]) {
+    return STATIC_LOGIN_IDENTITIES[cleanId];
   }
 
   // Check local fallback
