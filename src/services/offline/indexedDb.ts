@@ -167,12 +167,14 @@ export async function cacheCategoriesToIndexedDB(categories: Category[]): Promis
   await tx.done;
 }
 
-export async function getCategoriesFromIndexedDB(): Promise<Category[]> {
+export async function getCategoriesFromIndexedDB(businessId?: string): Promise<Category[]> {
   if (!isIndexedDBAvailable) {
-    return Array.from(inMemoryStore.categories.values());
+    const list = Array.from(inMemoryStore.categories.values());
+    return businessId ? list.filter(c => c.businessId === businessId) : list;
   }
   const db = await getOfflineDB();
-  return db.getAll('categories');
+  const all = await db.getAll('categories');
+  return businessId ? all.filter(c => c.businessId === businessId) : all;
 }
 
 export async function cacheMenuItemsToIndexedDB(items: MenuItem[]): Promise<void> {
@@ -192,12 +194,14 @@ export async function cacheMenuItemsToIndexedDB(items: MenuItem[]): Promise<void
   await tx.done;
 }
 
-export async function getMenuItemsFromIndexedDB(): Promise<MenuItem[]> {
+export async function getMenuItemsFromIndexedDB(businessId?: string): Promise<MenuItem[]> {
   if (!isIndexedDBAvailable) {
-    return Array.from(inMemoryStore.menuItems.values());
+    const list = Array.from(inMemoryStore.menuItems.values());
+    return businessId ? list.filter(i => i.businessId === businessId) : list;
   }
   const db = await getOfflineDB();
-  return db.getAll('menuItems');
+  const all = await db.getAll('menuItems');
+  return businessId ? all.filter(i => i.businessId === businessId) : all;
 }
 
 export async function cacheProfileToIndexedDB(profile: BusinessProfile): Promise<void> {
@@ -209,14 +213,41 @@ export async function cacheProfileToIndexedDB(profile: BusinessProfile): Promise
   await db.put('profile', profile);
 }
 
-export async function getProfileFromIndexedDB(): Promise<BusinessProfile | undefined> {
+export async function getProfileFromIndexedDB(businessId?: string): Promise<BusinessProfile | undefined> {
   if (!isIndexedDBAvailable) {
     const list = Array.from(inMemoryStore.profile.values());
+    if (businessId) return list.find(p => p.id === businessId);
     return list[0];
   }
   const db = await getOfflineDB();
+  if (businessId) {
+    const item = await db.get('profile', businessId);
+    if (item) return item;
+  }
   const all = await db.getAll('profile');
+  if (businessId) {
+    return all.find(p => p.id === businessId);
+  }
   return all[0];
+}
+
+export async function clearLocalShopCache(): Promise<void> {
+  if (!isIndexedDBAvailable) {
+    inMemoryStore.categories.clear();
+    inMemoryStore.menuItems.clear();
+    inMemoryStore.profile.clear();
+    return;
+  }
+  try {
+    const db = await getOfflineDB();
+    const tx = db.transaction(['categories', 'menuItems', 'profile'], 'readwrite');
+    await tx.objectStore('categories').clear();
+    await tx.objectStore('menuItems').clear();
+    await tx.objectStore('profile').clear();
+    await tx.done;
+  } catch (err) {
+    console.warn('Error clearing offline shop cache:', err);
+  }
 }
 
 export async function cacheSettingsToIndexedDB(settings: BusinessSettings): Promise<void> {

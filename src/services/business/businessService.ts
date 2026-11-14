@@ -65,7 +65,7 @@ export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
 /**
  * Wraps a promise with a timeout to avoid hanging if network/Firestore stream hangs
  */
-function withTimeout<T>(promise: Promise<T>, ms = 1500): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -80,21 +80,40 @@ function isDemo(_businessId: string): boolean {
 
 export async function getBusinessProfile(businessId: string): Promise<BusinessProfile | null> {
   try {
-    const profSubRef = doc(db, 'businesses', businessId, 'profile', 'current');
-    let snap = await withTimeout(getDoc(profSubRef));
+    const topRef = doc(db, 'businesses', businessId);
+    let snap = await withTimeout(getDoc(topRef), 8000);
+    if (!snap.exists()) {
+      const profSubRef = doc(db, 'businesses', businessId, 'profile', 'current');
+      snap = await withTimeout(getDoc(profSubRef), 5000);
+    }
     if (!snap.exists()) {
       const metaRef = doc(db, 'businesses', businessId, 'meta', 'profile');
-      snap = await withTimeout(getDoc(metaRef));
+      snap = await withTimeout(getDoc(metaRef), 5000);
     }
     if (snap.exists()) {
-      const data = snap.data() as BusinessProfile;
+      const rawData = snap.data();
+      const data: BusinessProfile = {
+        id: businessId,
+        name: rawData.businessName || rawData.name || 'Prince Pavbhaji',
+        ownerName: rawData.ownerName || 'Prince Pavbhaji Owner',
+        ownerEmail: rawData.ownerEmail || rawData.email || 'princebhajipav16@gmail.com',
+        phone: rawData.phone || '+91 6355 432 020',
+        category: (rawData.category as any) || 'Restaurant & Dining',
+        address: rawData.address || '',
+        currency: rawData.currency || 'INR',
+        currencySymbol: rawData.currencySymbol || '₹',
+        status: rawData.status || 'ACTIVE',
+        plan: rawData.plan || 'LIFETIME',
+        createdAt: rawData.createdAt || new Date().toISOString(),
+        updatedAt: rawData.updatedAt || new Date().toISOString(),
+      };
       await cacheProfileToIndexedDB(data);
       return data;
     }
   } catch (err) {
     console.warn('Failed or timed out loading profile from Firestore, checking offline DB:', err);
   }
-  const cached = await getProfileFromIndexedDB();
+  const cached = await getProfileFromIndexedDB(businessId);
   return cached || null;
 }
 
@@ -160,19 +179,19 @@ export async function saveBusinessSettings(businessId: string, settings: Busines
 
 // Categories
 export async function getCategories(businessId: string): Promise<Category[]> {
-  if (!isDemo(businessId)) {
-    try {
-      const colRef = collection(db, 'businesses', businessId, 'categories');
-      const q = query(colRef, orderBy('sortOrder', 'asc'));
-      const snap = await withTimeout(getDocs(q));
+  try {
+    const colRef = collection(db, 'businesses', businessId, 'categories');
+    const q = query(colRef, orderBy('sortOrder', 'asc'));
+    const snap = await withTimeout(getDocs(q), 8000);
+    if (!snap.empty) {
       const list: Category[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
       await cacheCategoriesToIndexedDB(list);
       return list;
-    } catch (err) {
-      console.warn('Categories from cloud failed or timed out, loading offline:', err);
     }
+  } catch (err) {
+    console.warn('Categories from cloud failed or timed out, loading offline:', err);
   }
-  return getCategoriesFromIndexedDB();
+  return getCategoriesFromIndexedDB(businessId);
 }
 
 export async function addCategory(businessId: string, name: string, sortOrder: number): Promise<Category> {
@@ -231,19 +250,19 @@ export async function deleteCategory(businessId: string, categoryId: string): Pr
 
 // Menu Items
 export async function getMenuItems(businessId: string): Promise<MenuItem[]> {
-  if (!isDemo(businessId)) {
-    try {
-      const colRef = collection(db, 'businesses', businessId, 'menuItems');
-      const q = query(colRef, orderBy('sortOrder', 'asc'));
-      const snap = await withTimeout(getDocs(q));
+  try {
+    const colRef = collection(db, 'businesses', businessId, 'menuItems');
+    const q = query(colRef, orderBy('sortOrder', 'asc'));
+    const snap = await withTimeout(getDocs(q), 8000);
+    if (!snap.empty) {
       const list: MenuItem[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
       await cacheMenuItemsToIndexedDB(list);
       return list;
-    } catch (err) {
-      console.warn('MenuItems from cloud failed or timed out, loading offline:', err);
     }
+  } catch (err) {
+    console.warn('MenuItems from cloud failed or timed out, loading offline:', err);
   }
-  return getMenuItemsFromIndexedDB();
+  return getMenuItemsFromIndexedDB(businessId);
 }
 
 export async function addMenuItem(businessId: string, item: Omit<MenuItem, 'id'>): Promise<MenuItem> {
