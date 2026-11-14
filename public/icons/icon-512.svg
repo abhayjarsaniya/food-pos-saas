@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#09090b"/>
+  <rect x="120" y="110" width="272" height="292" rx="20" fill="#18181b" stroke="#27272a" stroke-width="8"/>
+  <rect x="156" y="160" width="200" height="20" rx="10" fill="#fafafa"/>
+  <rect x="156" y="206" width="140" height="18" rx="9" fill="#a1a1aa"/>
+  <rect x="156" y="248" width="170" height="18" rx="9" fill="#a1a1aa"/>
+  <!-- Status dot -->
+  <circle cx="340" cy="330" r="16" fill="#16a34a"/>
+  <!-- Checkmark -->
+  <path d="M162 334l22 22 44-44" stroke="#22c55e" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

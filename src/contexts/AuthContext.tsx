@@ -1,0 +1,400 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AuthUser, loginWithEmail, logoutUser, signupWithEmail, subscribeToAuth } from '../services/auth/authService';
+import { BusinessFeatures, BusinessProfile, BusinessSettings, DEFAULT_BUSINESS_FEATURES, UserRole } from '../types';
+import { 
+  DEFAULT_BUSINESS_SETTINGS, 
+  getBusinessProfile, 
+  getBusinessSettings, 
+  saveBusinessProfile, 
+  saveBusinessSettings 
+} from '../services/business/businessService';
+import { getBusinessFeatures } from '../services/features/featureService';
+import { resolveStaffLoginId } from '../services/members/memberService';
+
+interface AuthContextType {
+  user: AuthUser | null;
+  profile: BusinessProfile | null;
+  settings: BusinessSettings;
+  features: BusinessFeatures;
+  loading: boolean;
+  isOnboarded: boolean;
+  isSuperAdmin: boolean;
+  isShopSuspended: boolean;
+  userRole: UserRole;
+  canCollectPayment: boolean;
+  login: (identifier: string, pass: string) => Promise<void>;
+  signup: (email: string, pass: string) => Promise<void>;
+  logout: () => Promise<void>;
+  completeOnboarding: (profileData: Omit<BusinessProfile, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'plan'>, initialSettings?: Partial<BusinessSettings>) => Promise<void>;
+  updateProfile: (profileData: Partial<BusinessProfile>) => Promise<void>;
+  updateSettings: (settingsData: Partial<BusinessSettings>) => Promise<void>;
+  demoLogin: () => Promise<void>;
+  superAdminLogin: (email: string, pass: string) => Promise<void>;
+  refreshFeatures: () => Promise<void>;
+  switchShop: (businessId: string) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const [settings, setSettings] = useState<BusinessSettings>(DEFAULT_BUSINESS_SETTINGS);
+  const [features, setFeatures] = useState<BusinessFeatures>(DEFAULT_BUSINESS_FEATURES);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
+
+  const [userRole, setUserRole] = useState<UserRole>('OWNER');
+  const [canCollectPayment, setCanCollectPayment] = useState<boolean>(true);
+
+  const loadShopContext = async (targetBusinessId: string) => {
+    try {
+      const [prof, sett, feat] = await Promise.all([
+        getBusinessProfile(targetBusinessId),
+        getBusinessSettings(targetBusinessId),
+        getBusinessFeatures(targetBusinessId),
+      ]);
+      if (prof) setProfile(prof);
+      if (sett) setSettings(sett);
+      if (feat) setFeatures(feat);
+    } catch (err) {
+      console.warn('Error fetching shop context:', err);
+    }
+  };
+
+  const refreshFeatures = async () => {
+    if (profile?.id) {
+      const feat = await getBusinessFeatures(profile.id);
+      setFeatures(feat);
+    }
+  };
+
+  // Initialize Auth Listener
+  useEffect(() => {
+    const unsubscribe = subscribeToAuth(async (authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        const isAdmin = authUser.email === 'superadmin@foodpos.app' || localStorage.getItem('food_pos_is_super_admin') === 'true';
+        setIsSuperAdmin(isAdmin);
+
+        // Retrieve active staff session info if present
+        const staffMetaRaw = localStorage.getItem('food_pos_staff_session');
+        if (staffMetaRaw) {
+          try {
+            const staffMeta = JSON.parse(staffMetaRaw);
+            setUserRole(staffMeta.role || 'CASHIER');
+            setCanCollectPayment(staffMeta.canCollectPayment ?? true);
+            await loadShopContext(staffMeta.businessId);
+            setLoading(false);
+            return;
+          } catch {}
+        }
+
+        if (!isAdmin) {
+          await loadShopContext(authUser.uid);
+        }
+      } else {
+        const adminFlag = localStorage.getItem('food_pos_is_super_admin') === 'true';
+        setIsSuperAdmin(adminFlag);
+
+        const savedDemo = localStorage.getItem('food_pos_demo_user');
+        if (savedDemo) {
+          try {
+            const parsed = JSON.parse(savedDemo);
+            setUser(parsed.user);
+            await loadShopContext(parsed.user.uid);
+          } catch {}
+        } else {
+          setProfile(null);
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  /**
+   * Shop POS Login: supports both Custom Login ID (cashier01) and Email + Password
+   */
+  const login = async (identifier: string, pass: string) => {
+    setLoading(true);
+    const cleanIdentifier = identifier.trim();
+
+    try {
+      // Disallow Super Admin from logging in through shop portal
+      if (cleanIdentifier.toLowerCase() === 'superadmin@foodpos.app') {
+        throw new Error(
+          'Super Admin cannot sign in through the Shop Counter portal. Please use the dedicated Super Admin Portal at /admin/login.'
+        );
+      }
+
+      // Check if input is a Login ID (no '@')
+      if (!cleanIdentifier.includes('@')) {
+        const resolved = await resolveStaffLoginId(cleanIdentifier);
+        if (!resolved) {
+          throw new Error(`Invalid Login ID or Password.`);
+        }
+
+        if (resolved.status === 'DEACTIVATED') {
+          throw new Error('This staff account has been deactivated. Please contact your business owner or Super Admin.');
+        }
+
+        // Authenticate with resolved email
+        try {
+          const authUser = await loginWithEmail(resolved.email, pass);
+          setUser(authUser);
+        } catch (err: any) {
+          // If valid demo staff account in demo/development environment with standard staff credentials
+          const isDemoStaff = resolved.businessId === 'demo-business-owner-101' || resolved.businessId === 'biz_cafe_delight_101';
+          if (isDemoStaff && (pass === 'Cashier@2026' || pass === 'Manager@2026' || pass === 'Staff@2026' || pass === 'Owner@2026')) {
+            const fallbackUser: AuthUser = {
+              uid: resolved.memberId,
+              email: resolved.email,
+              displayName: resolved.loginId,
+              isAnonymous: false,
+              emailVerified: true,
+            };
+            setUser(fallbackUser);
+          } else {
+            throw err;
+          }
+        }
+        setUserRole(resolved.role);
+        setCanCollectPayment(resolved.canCollectPayment);
+
+        // Save staff session details
+        localStorage.setItem(
+          'food_pos_staff_session',
+          JSON.stringify({
+            loginId: resolved.loginId,
+            businessId: resolved.businessId,
+            role: resolved.role,
+            canCollectPayment: resolved.canCollectPayment,
+          })
+        );
+        localStorage.removeItem('food_pos_is_super_admin');
+
+        await loadShopContext(resolved.businessId);
+        return;
+      }
+
+      // Standard email login (Owner or direct email)
+      localStorage.removeItem('food_pos_staff_session');
+      localStorage.removeItem('food_pos_is_super_admin');
+      const authUser = await loginWithEmail(cleanIdentifier, pass);
+      setUser(authUser);
+      setUserRole('OWNER');
+      setCanCollectPayment(true);
+      await loadShopContext(authUser.uid);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Dedicated Super Admin Login: accepts only authorized superadmin credentials
+   */
+  const superAdminLogin = async (email: string, pass: string) => {
+    setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      if (cleanEmail !== 'superadmin@foodpos.app') {
+        throw new Error('Unauthorized. This portal is restricted to Platform Super Admin accounts.');
+      }
+
+      const authUser = await loginWithEmail(cleanEmail, pass);
+      localStorage.setItem('food_pos_is_super_admin', 'true');
+      localStorage.removeItem('food_pos_demo_user');
+      localStorage.removeItem('food_pos_staff_session');
+      setUser(authUser);
+      setIsSuperAdmin(true);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (email: string, pass: string) => {
+    setLoading(true);
+    try {
+      await signupWithEmail(email, pass);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    localStorage.removeItem('food_pos_demo_user');
+    localStorage.removeItem('food_pos_is_super_admin');
+    localStorage.removeItem('food_pos_staff_session');
+    await logoutUser();
+    setUser(null);
+    setProfile(null);
+    setIsSuperAdmin(false);
+    setUserRole('OWNER');
+    setCanCollectPayment(true);
+  };
+
+  const demoLogin = async () => {
+    setLoading(true);
+    const demoId = 'demo-business-owner-101';
+    const demoUser: AuthUser = {
+      uid: demoId,
+      email: 'owner@foodpos.app',
+      displayName: 'Chef Jenish',
+      isAnonymous: false,
+      emailVerified: true,
+    };
+    localStorage.removeItem('food_pos_is_super_admin');
+    localStorage.removeItem('food_pos_staff_session');
+    localStorage.setItem('food_pos_demo_user', JSON.stringify({ user: demoUser }));
+    setUser(demoUser);
+    setIsSuperAdmin(false);
+    setUserRole('OWNER');
+    setCanCollectPayment(true);
+
+    let prof = await getBusinessProfile(demoId);
+    if (!prof) {
+      prof = {
+        id: demoId,
+        name: 'The Royal Bistro & Cafe',
+        ownerName: 'Jenish Kanani',
+        ownerEmail: 'owner@foodpos.app',
+        phone: '9876543210',
+        category: 'cafe',
+        address: '506 Sahajanand Trade Center, Opp. High Court, Ahmedabad',
+        currency: 'INR',
+        currencySymbol: '₹',
+        status: 'ACTIVE',
+        plan: 'pro',
+        planExpiresAt: new Date(Date.now() + 60 * 24 * 3600 * 1000).toISOString(),
+        isDemo: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await saveBusinessProfile(prof);
+      await saveBusinessSettings(demoId, DEFAULT_BUSINESS_SETTINGS);
+    }
+    setProfile(prof);
+    setSettings(DEFAULT_BUSINESS_SETTINGS);
+    const feat = await getBusinessFeatures(demoId);
+    setFeatures(feat);
+    setLoading(false);
+  };
+
+  const switchShop = async (businessId: string) => {
+    setLoading(true);
+    try {
+      await loadShopContext(businessId);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeOnboarding = async (
+    profileData: Omit<BusinessProfile, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'plan'>,
+    initialSettings?: Partial<BusinessSettings>
+  ) => {
+    if (!user) throw new Error('Must be logged in to onboard business');
+    const now = new Date().toISOString();
+    const newProfile: BusinessProfile = {
+      ...profileData,
+      id: user.uid,
+      status: 'ACTIVE',
+      plan: 'trial',
+      planExpiresAt: new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString(),
+      currency: profileData.currency || 'INR',
+      currencySymbol: '₹',
+      createdAt: now,
+      updatedAt: now,
+    };
+    await saveBusinessProfile(newProfile);
+
+    const mergedSettings: BusinessSettings = {
+      ...DEFAULT_BUSINESS_SETTINGS,
+      ...initialSettings,
+      tax: {
+        ...DEFAULT_BUSINESS_SETTINGS.tax,
+        ...(initialSettings?.tax || {}),
+      },
+    };
+    await saveBusinessSettings(user.uid, mergedSettings);
+
+    setProfile(newProfile);
+    setSettings(mergedSettings);
+    const feat = await getBusinessFeatures(user.uid);
+    setFeatures(feat);
+  };
+
+  const updateProfile = async (updates: Partial<BusinessProfile>) => {
+    if (!profile) return;
+    const updated: BusinessProfile = {
+      ...profile,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    await saveBusinessProfile(updated);
+    setProfile(updated);
+  };
+
+  const updateSettings = async (updates: Partial<BusinessSettings>) => {
+    if (!user) return;
+    const updated: BusinessSettings = {
+      ...settings,
+      ...updates,
+      tax: {
+        ...settings.tax,
+        ...(updates.tax || {}),
+      },
+      receipt: {
+        ...settings.receipt,
+        ...(updates.receipt || {}),
+      },
+      billing: {
+        ...settings.billing,
+        ...(updates.billing || {}),
+      },
+    };
+    await saveBusinessSettings(user.uid, updated);
+    setSettings(updated);
+  };
+
+  const isShopSuspended = profile?.status === 'SUSPENDED';
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        settings,
+        features,
+        loading,
+        isOnboarded: !!profile,
+        isSuperAdmin,
+        isShopSuspended,
+        userRole,
+        canCollectPayment,
+        login,
+        signup,
+        logout,
+        completeOnboarding,
+        updateProfile,
+        updateSettings,
+        demoLogin,
+        superAdminLogin,
+        refreshFeatures,
+        switchShop,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+};
