@@ -7,12 +7,13 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  orderBy 
+  orderBy,
+  onSnapshot 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Order, RestaurantTable, TableStatus, TableWithStatus } from '../../types';
 
-function withTimeout<T>(promise: Promise<T>, ms = 2000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -93,6 +94,45 @@ export async function getTables(businessId: string): Promise<RestaurantTable[]> 
   } catch {}
 
   return initialized;
+}
+
+/**
+ * Real-time listener for tables using Firestore onSnapshot
+ */
+export function subscribeToTables(
+  businessId: string,
+  onUpdate: (tables: RestaurantTable[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  // First emit local cache if present
+  const local = getLocalTables(businessId);
+  if (local.length > 0) {
+    onUpdate(local);
+  }
+
+  const colRef = collection(db, 'businesses', businessId, 'tables');
+  const q = query(colRef, orderBy('sortOrder', 'asc'));
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snap) => {
+      if (!snap.empty) {
+        const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as RestaurantTable[];
+        saveLocalTables(businessId, list);
+        onUpdate(list);
+      } else {
+        // Fallback to local or initialized
+        getTables(businessId).then(onUpdate).catch(() => {});
+      }
+    },
+    (err) => {
+      console.warn('subscribeToTables listener error, falling back to local cache:', err);
+      if (onError) onError(err);
+      getTables(businessId).then(onUpdate).catch(() => {});
+    }
+  );
+
+  return unsubscribe;
 }
 
 /**
@@ -276,28 +316,26 @@ export async function reorderTables(
 /**
  * Calculates real-time table status (AVAILABLE, OCCUPIED, PAYMENT_PENDING) based on current orders.
  * Rules:
- * - If no active orders -> AVAILABLE
- * - If active order has status OPEN and paymentStatus PAID -> OCCUPIED
- * - If active order has paymentStatus UNPAID or PARTIAL -> PAYMENT_PENDING
- * - When all orders are COMPLETED and PAID (or CANCELLED/VOIDED) -> Released (AVAILABLE)
+ * - Table occupancy is derived ONLY from active dining orders: (status === 'OPEN' || status === 'DRAFT').
+ * - When an order is COMPLETED, CANCELLED, or VOIDED, the guests have left the table; the table is released (AVAILABLE).
+ * - If occupying orders have paymentStatus UNPAID or PARTIAL -> PAYMENT_PENDING.
+ * - If occupying orders have paymentStatus PAID -> OCCUPIED.
  */
 export function calculateTableStatuses(
   tables: RestaurantTable[],
   orders: Order[]
 ): TableWithStatus[] {
   return tables.map(table => {
-    // Find active orders linked to this table
+    // Find active orders currently occupying this table
     const activeOrders = orders.filter(o => {
-      if (o.status === 'CANCELLED' || o.status === 'VOIDED') return false;
+      // Must be an active dining order occupying the table
+      const isOccupying = o.status === 'OPEN' || o.status === 'DRAFT';
+      if (!isOccupying) return false;
 
       const isLinked = o.tableId === table.id || 
                        (o.tableName && o.tableName.trim().toLowerCase() === table.name.trim().toLowerCase()) ||
                        (o.tableNumber && o.tableNumber.trim().toLowerCase() === table.name.trim().toLowerCase());
-      if (!isLinked) return false;
-
-      // It is active if it's OPEN, or COMPLETED but payment is still UNPAID or PARTIAL
-      const isStillActive = o.status === 'OPEN' || o.paymentStatus === 'UNPAID' || o.paymentStatus === 'PARTIAL';
-      return isStillActive;
+      return isLinked;
     });
 
     let status: TableStatus = 'AVAILABLE';

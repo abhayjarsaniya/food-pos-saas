@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOrders, markOrderReceived, recordOrderPayment } from '../../services/orders/orderService';
+import { getOrders, subscribeToOrders, markOrderReceived, recordOrderPayment } from '../../services/orders/orderService';
 import { Order, PaymentMethod, PaymentStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -30,7 +30,7 @@ export const PendingPaymentsPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNPAID' | 'PARTIAL' | 'PAID'>('UNPAID');
+  const [statusFilter, setStatusFilter] = useState<'PENDING' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'ALL'>('PENDING');
   const [tableFilter, setTableFilter] = useState<string>('ALL');
 
   // Receive Payment Modal State
@@ -46,21 +46,29 @@ export const PendingPaymentsPage: React.FC = () => {
   const [confirmQuickOrderId, setConfirmQuickOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.id) {
-      loadOrders();
-    }
+    if (!profile?.id) return;
+    setLoading(true);
+    const unsubscribe = subscribeToOrders(
+      profile.id,
+      (data) => {
+        setOrders(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.warn('Real-time pending orders error:', err);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, [profile?.id]);
 
   const loadOrders = async () => {
     if (!profile?.id) return;
-    setLoading(true);
     try {
       const data = await getOrders(profile.id);
       setOrders(data);
     } catch (err) {
       console.warn('Error loading orders:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -77,6 +85,7 @@ export const PendingPaymentsPage: React.FC = () => {
       if (o.status === 'VOIDED' || o.status === 'CANCELLED') return false;
 
       // Filter by status
+      if (statusFilter === 'PENDING' && o.paymentStatus === 'PAID') return false;
       if (statusFilter === 'UNPAID' && o.paymentStatus !== 'UNPAID') return false;
       if (statusFilter === 'PARTIAL' && o.paymentStatus !== 'PARTIAL' && o.paymentStatus !== 'PARTIALLY_PAID') return false;
       if (statusFilter === 'PAID' && o.paymentStatus !== 'PAID') return false;
@@ -220,7 +229,7 @@ export const PendingPaymentsPage: React.FC = () => {
 
           {/* Status Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm">
-            {(['UNPAID', 'PARTIAL', 'PAID', 'ALL'] as const).map((st) => (
+            {(['PENDING', 'UNPAID', 'PARTIAL', 'PAID', 'ALL'] as const).map((st) => (
               <button
                 key={st}
                 type="button"
@@ -231,7 +240,15 @@ export const PendingPaymentsPage: React.FC = () => {
                     : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                 }`}
               >
-                {st === 'UNPAID' ? 'Pending Dues' : st === 'PARTIAL' ? 'Partially Paid' : st === 'PAID' ? 'Fully Paid' : 'All Orders'}
+                {st === 'PENDING'
+                  ? 'All Pending Dues'
+                  : st === 'UNPAID'
+                  ? 'Unpaid'
+                  : st === 'PARTIAL'
+                  ? 'Partially Paid'
+                  : st === 'PAID'
+                  ? 'Fully Paid'
+                  : 'All Orders'}
               </button>
             ))}
           </div>

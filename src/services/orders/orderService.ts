@@ -2,11 +2,13 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDoc,
   runTransaction, 
   setDoc, 
   updateDoc, 
   query, 
-  orderBy 
+  orderBy,
+  onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Order, OrderPayment, OrderStatus, PaymentMethod, PaymentStatus } from '../../types';
@@ -18,7 +20,7 @@ import {
 } from '../offline/indexedDb';
 import { round2 } from '../../utils/calculations';
 
-function withTimeout<T>(promise: Promise<T>, ms = 2000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -64,7 +66,7 @@ export async function getNextBillNumber(businessId: string): Promise<string> {
 
         return `${prefix}${currentNumber}`;
       }),
-      2000
+      3000
     );
 
     return nextNum;
@@ -78,7 +80,7 @@ export async function getNextBillNumber(businessId: string): Promise<string> {
 }
 
 /**
- * Saves a bill (Draft or Open & Unpaid) both locally in IndexedDB and to Firestore
+ * Saves a bill (Draft, Open & Unpaid, or Paid) both to Firestore and IndexedDB
  */
 export async function createOrder(
   businessId: string, 
@@ -87,6 +89,20 @@ export async function createOrder(
   const billNumber = await getNextBillNumber(businessId);
   const now = new Date().toISOString();
   const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+  const grandTotal = round2(orderData.grandTotal || 0);
+  const amountPaid = round2(orderData.amountPaid || 0);
+  const balanceDue = Math.max(0, round2(grandTotal - amountPaid));
+
+  // Determine exact statuses
+  let paymentStatus: PaymentStatus = 'UNPAID';
+  if (amountPaid >= grandTotal && grandTotal > 0) {
+    paymentStatus = 'PAID';
+  } else if (amountPaid > 0) {
+    paymentStatus = 'PARTIAL';
+  }
+
+  let status: OrderStatus = orderData.status || (paymentStatus === 'PAID' ? 'COMPLETED' : 'OPEN');
 
   const order: Order = {
     ...orderData,
@@ -99,29 +115,56 @@ export async function createOrder(
     orderType: orderData.orderType || 'DINE_IN',
     extras: orderData.extras || [],
     payments: orderData.payments || [],
-    status: orderData.status || 'OPEN',
-    paymentStatus: orderData.paymentStatus || 'UNPAID',
-    amountPaid: orderData.amountPaid ?? 0,
-    balanceDue: orderData.balanceDue ?? orderData.grandTotal,
+    status,
+    paymentStatus,
+    amountPaid,
+    balanceDue,
+    grandTotal,
     createdAt: now,
     updatedAt: now,
     syncedWithCloud: false,
   };
 
-  // 1. Immediately persist to local IndexedDB for zero latency & offline guarantee
+  // If initial payment was made upfront, add payment record
+  if (amountPaid > 0) {
+    const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const initialPayment: OrderPayment = {
+      id: paymentId,
+      orderId,
+      businessId,
+      amount: amountPaid,
+      paymentMethod: orderData.paymentMethod || 'CASH',
+      receivedBy: orderData.createdBy || 'cashier',
+      receivedByName: orderData.createdByName || 'Counter Cashier',
+      receivedAt: now,
+      notes: 'Initial payment recorded at bill creation',
+    };
+    order.payments = [initialPayment];
+  }
+
+  // 1. Immediately cache to local IndexedDB for zero latency & offline resilience
   await saveOrderToIndexedDB(order);
 
-  // 2. Try syncing to Firestore if not demo and online
+  // 2. Persist to Firestore: businesses/{businessId}/orders/{orderId}
   if (!isDemo(businessId)) {
     try {
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
       await withTimeout(
         setDoc(orderDocRef, {
           ...order,
+          orderId,
           syncedWithCloud: true,
         }),
-        2000
+        8000
       );
+
+      // If initial payment exists, save subcollection document
+      if (order.payments && order.payments.length > 0) {
+        const payment = order.payments[0];
+        const payRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', payment.id);
+        await setDoc(payRef, payment).catch(() => {});
+      }
+
       await markOrderSyncedInIndexedDB(orderId);
       order.syncedWithCloud = true;
     } catch (err) {
@@ -129,12 +172,62 @@ export async function createOrder(
       order.syncedWithCloud = false;
     }
   } else {
-    // Demo orders are marked synced locally
     await markOrderSyncedInIndexedDB(orderId);
     order.syncedWithCloud = true;
   }
 
   return order;
+}
+
+/**
+ * Real-time listener for all orders of a business.
+ * Updates immediately when any order is created, modified, or payment is recorded.
+ */
+export function subscribeToOrders(
+  businessId: string,
+  callback: (orders: Order[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  if (!businessId) {
+    callback([]);
+    return () => {};
+  }
+
+  const colRef = collection(db, 'businesses', businessId, 'orders');
+  const q = query(colRef, orderBy('createdAt', 'desc'));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const cloudOrders: Order[] = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          orderId: docSnap.id,
+          ...(data as any),
+          syncedWithCloud: true,
+        };
+      });
+
+      // Synchronize into IndexedDB cache in background
+      for (const ord of cloudOrders) {
+        saveOrderToIndexedDB(ord).catch(() => {});
+      }
+
+      callback(cloudOrders);
+    },
+    (err) => {
+      console.warn('Firestore orders onSnapshot failed or timed out, reading local fallback:', err);
+      if (onError) onError(err);
+      getOrdersFromIndexedDB().then((local) => {
+        callback(
+          local
+            .filter((o) => !o.businessId || o.businessId === businessId)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        );
+      });
+    }
+  );
 }
 
 /**
@@ -145,11 +238,16 @@ export async function getOrders(businessId: string): Promise<Order[]> {
     try {
       const colRef = collection(db, 'businesses', businessId, 'orders');
       const q = query(colRef, orderBy('createdAt', 'desc'));
-      const snap = await withTimeout(getDocs(q), 2000);
-      const cloudOrders: Order[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+      const snap = await withTimeout(getDocs(q), 6000);
+      const cloudOrders: Order[] = snap.docs.map(d => ({ 
+        id: d.id, 
+        orderId: d.id, 
+        ...(d.data() as any), 
+        syncedWithCloud: true 
+      }));
 
       for (const ord of cloudOrders) {
-        await saveOrderToIndexedDB({ ...ord, syncedWithCloud: true });
+        await saveOrderToIndexedDB(ord);
       }
       return cloudOrders;
     } catch (err) {
@@ -163,7 +261,8 @@ export async function getOrders(businessId: string): Promise<Order[]> {
 }
 
 /**
- * Record a payment against an order (supports full or partial payments)
+ * Record a payment against an order (supports full or partial payments).
+ * Atomically updates order balance and writes to payments subcollection.
  */
 export async function recordOrderPayment(
   businessId: string,
@@ -181,15 +280,28 @@ export async function recordOrderPayment(
     throw new Error('Payment amount must be greater than zero.');
   }
 
-  // Load order from local DB
-  const orders = await getOrdersFromIndexedDB();
-  const existing = orders.find((o) => o.id === orderId);
+  // 1. Fetch current order from Firestore first (or IndexedDB if offline)
+  let existing: Order | null = null;
+  const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
+
+  try {
+    const snap = await withTimeout(getDoc(orderDocRef), 3000);
+    if (snap.exists()) {
+      existing = { id: snap.id, ...(snap.data() as any) };
+    }
+  } catch {}
+
+  if (!existing) {
+    const localOrders = await getOrdersFromIndexedDB();
+    existing = localOrders.find((o) => o.id === orderId) || null;
+  }
+
   if (!existing) {
     throw new Error('Order not found');
   }
 
   const roundedAmount = round2(params.amount);
-  if (roundedAmount > existing.balanceDue + 0.01) {
+  if (roundedAmount > existing.balanceDue + 0.05) {
     throw new Error(`Payment ₹${roundedAmount} cannot exceed the outstanding balance of ₹${existing.balanceDue}`);
   }
 
@@ -224,6 +336,7 @@ export async function recordOrderPayment(
     status: newOrderStatus,
     payments: [...existingPayments, payment],
     updatedAt: now,
+    syncedWithCloud: true,
   };
 
   // 1. Update in IndexedDB
@@ -232,11 +345,10 @@ export async function recordOrderPayment(
   // 2. Persist payment subcollection and update order doc in Firestore
   if (!isDemo(businessId)) {
     try {
-      const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
       const paymentDocRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', paymentId);
 
-      await withTimeout(setDoc(paymentDocRef, payment), 2000);
-      await withTimeout(
+      await Promise.all([
+        setDoc(paymentDocRef, payment),
         updateDoc(orderDocRef, {
           amountPaid: newAmountPaid,
           balanceDue: newBalanceDue,
@@ -245,9 +357,8 @@ export async function recordOrderPayment(
           paymentMethod: params.paymentMethod,
           payments: updatedOrder.payments,
           updatedAt: now,
-        }),
-        2000
-      );
+        })
+      ]);
     } catch (err) {
       console.warn('Could not sync payment to cloud immediately, stored locally:', err);
     }
@@ -266,7 +377,7 @@ export async function markOrderReceived(
   receivedBy = 'owner',
   receivedByName = 'Owner'
 ): Promise<Order> {
-  const orders = await getOrdersFromIndexedDB();
+  const orders = await getOrders(businessId);
   const existing = orders.find((o) => o.id === orderId);
   if (!existing) {
     throw new Error('Order not found');
@@ -295,7 +406,7 @@ export async function updateOrder(
   orderId: string,
   updates: Partial<Order>
 ): Promise<Order> {
-  const orders = await getOrdersFromIndexedDB();
+  const orders = await getOrders(businessId);
   const existing = orders.find((o) => o.id === orderId);
   if (!existing) throw new Error('Order not found');
 
@@ -311,7 +422,7 @@ export async function updateOrder(
   if (!isDemo(businessId)) {
     try {
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
-      await withTimeout(updateDoc(orderDocRef, { ...updates, updatedAt: now }), 2000);
+      await withTimeout(updateDoc(orderDocRef, { ...updates, updatedAt: now }), 5000);
     } catch (err) {
       console.warn('Could not sync order updates to cloud immediately:', err);
     }
@@ -352,7 +463,7 @@ export async function voidOrder(businessId: string, orderId: string, voidReason:
           updatedAt: now,
           syncedWithCloud: true,
         }, { merge: true }),
-        2000
+        5000
       );
 
       if (existing) {

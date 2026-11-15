@@ -2,8 +2,8 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBilling } from '../../contexts/BillingContext';
 import { getCategories, getMenuItems } from '../../services/business/businessService';
-import { getTables, calculateTableStatuses } from '../../services/tables/tableService';
-import { getOrders } from '../../services/orders/orderService';
+import { getTables, subscribeToTables, calculateTableStatuses } from '../../services/tables/tableService';
+import { getOrders, subscribeToOrders } from '../../services/orders/orderService';
 import { Category, MenuItem, MenuItemVariant, Order, PaymentMethod, PaymentStatus, RestaurantTable, TableWithStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { shareBillToWhatsApp } from '../../services/whatsapp/whatsappService';
@@ -152,9 +152,22 @@ export const BillingPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (profile?.id) {
-      loadData();
-    }
+    if (!profile?.id) return;
+    loadData();
+
+    // Real-time table and order listeners
+    const unsubOrders = subscribeToOrders(profile.id, (ords) => {
+      setAllOrders(ords);
+    });
+
+    const unsubTables = subscribeToTables(profile.id, (tbls) => {
+      setCustomTables(tbls);
+    });
+
+    return () => {
+      unsubOrders();
+      unsubTables();
+    };
   }, [profile?.id]);
 
   const loadData = async () => {

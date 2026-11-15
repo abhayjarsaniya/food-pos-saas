@@ -25,12 +25,13 @@ import { useBilling } from '../../contexts/BillingContext';
 import { Order, RestaurantTable, TableStatus, TableWithStatus } from '../../types';
 import { 
   getTables, 
+  subscribeToTables,
   createTable, 
   updateTable, 
   deleteTable, 
   calculateTableStatuses 
 } from '../../services/tables/tableService';
-import { getOrders } from '../../services/orders/orderService';
+import { getOrders, subscribeToOrders } from '../../services/orders/orderService';
 import { formatCurrency } from '../../utils/calculations';
 
 export const TableManagementPage: React.FC = () => {
@@ -44,6 +45,16 @@ export const TableManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MANAGE'>('OVERVIEW');
+  const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>(() => {
+    return (localStorage.getItem('table_mgmt_theme') as any) || 'light';
+  });
+
+  const handleSetTheme = (t: 'light' | 'dark' | 'system') => {
+    setThemePreference(t);
+    try {
+      localStorage.setItem('table_mgmt_theme', t);
+    } catch {}
+  };
 
   // Modal States
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
@@ -75,7 +86,35 @@ export const TableManagementPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
+    if (!businessId) return;
+    setLoading(true);
+
+    const unsubTables = subscribeToTables(
+      businessId,
+      (tbls) => {
+        setTables(tbls);
+        setLoading(false);
+      },
+      (err) => {
+        console.warn('Real-time tables subscription error:', err);
+        setLoading(false);
+      }
+    );
+
+    const unsubOrders = subscribeToOrders(
+      businessId,
+      (ords) => {
+        setOrders(ords);
+      },
+      (err) => {
+        console.warn('Real-time orders subscription error for tables:', err);
+      }
+    );
+
+    return () => {
+      unsubTables();
+      unsubOrders();
+    };
   }, [businessId]);
 
   // Calculate live statuses
@@ -209,31 +248,68 @@ export const TableManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24">
+    <div className={`min-h-screen pb-24 ${themePreference === 'dark' ? 'dark bg-slate-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
       {/* Top Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-4 py-3 sm:py-4">
+      <div className="bg-white dark:bg-slate-900 border-b border-zinc-200 dark:border-slate-800 sticky top-0 z-30 px-4 py-3 sm:py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 font-bold">
+              <span className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-900 dark:text-zinc-100 font-bold">
                 <UtensilsCrossed className="w-5 h-5" />
               </span>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
                   Table Management
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-zinc-500 dark:text-slate-400">
                   Real-time restaurant table status, seating capacity & active bill tracking
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Theme Preference Selector (Default Light) */}
+            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-slate-800 p-1 rounded-2xl border border-zinc-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => handleSetTheme('light')}
+                className={`min-h-[40px] px-3 py-1 text-xs font-bold rounded-xl transition-all ${
+                  themePreference === 'light'
+                    ? 'bg-white text-zinc-950 shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
+                }`}
+              >
+                Light
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetTheme('dark')}
+                className={`min-h-[40px] px-3 py-1 text-xs font-bold rounded-xl transition-all ${
+                  themePreference === 'dark'
+                    ? 'bg-zinc-950 text-white shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
+                }`}
+              >
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetTheme('system')}
+                className={`min-h-[40px] px-3 py-1 text-xs font-bold rounded-xl transition-all ${
+                  themePreference === 'system'
+                    ? 'bg-zinc-300 dark:bg-slate-600 text-zinc-950 dark:text-white shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
+                }`}
+              >
+                System
+              </button>
+            </div>
+
             <button
               onClick={loadData}
               disabled={loading}
-              className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all flex items-center justify-center active:scale-90"
+              className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl border border-zinc-200 dark:border-slate-700 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-700 dark:text-slate-300 transition-all flex items-center justify-center active:scale-90"
               title="Refresh status"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -255,7 +331,7 @@ export const TableManagementPage: React.FC = () => {
             className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
               activeTab === 'OVERVIEW'
                 ? 'bg-zinc-950 text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
             }`}
           >
             Live Tables Overview
@@ -265,7 +341,7 @@ export const TableManagementPage: React.FC = () => {
             className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
               activeTab === 'MANAGE'
                 ? 'bg-zinc-950 text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
             }`}
           >
             Manage & Settings
@@ -280,18 +356,18 @@ export const TableManagementPage: React.FC = () => {
             onClick={() => setFilterStatus(filterStatus === 'AVAILABLE' ? 'ALL' : 'AVAILABLE')}
             className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
               filterStatus === 'AVAILABLE'
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 shadow-sm'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-500 shadow-xs'
+                : 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-800 hover:border-zinc-300'
             }`}
           >
-            <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
+            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">Available</span>
               <CheckCircle className="w-4 h-4" />
             </div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl font-black text-zinc-950 dark:text-white">
               {stats.available}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
               Ready for guests
             </div>
           </div>
@@ -300,18 +376,18 @@ export const TableManagementPage: React.FC = () => {
             onClick={() => setFilterStatus(filterStatus === 'OCCUPIED' ? 'ALL' : 'OCCUPIED')}
             className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
               filterStatus === 'OCCUPIED'
-                ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-500 shadow-sm'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-xs'
+                : 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-800 hover:border-zinc-300'
             }`}
           >
-            <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-1">
+            <div className="flex items-center justify-between text-blue-700 dark:text-blue-400 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">Occupied</span>
               <Clock className="w-4 h-4" />
             </div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl font-black text-zinc-950 dark:text-white">
               {stats.occupied}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
               Dining in progress
             </div>
           </div>
@@ -320,46 +396,46 @@ export const TableManagementPage: React.FC = () => {
             onClick={() => setFilterStatus(filterStatus === 'PAYMENT_PENDING' ? 'ALL' : 'PAYMENT_PENDING')}
             className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
               filterStatus === 'PAYMENT_PENDING'
-                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500 shadow-sm'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-500 shadow-xs'
+                : 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-800 hover:border-zinc-300'
             }`}
           >
-            <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1">
+            <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">Payment Due</span>
               <AlertCircle className="w-4 h-4" />
             </div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl font-black text-zinc-950 dark:text-white">
               {stats.paymentPending}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
               Bill served / Unpaid
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between text-purple-600 dark:text-purple-400 mb-1">
+          <div className="p-3.5 rounded-2xl border bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-800">
+            <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">Outstanding</span>
               <DollarSign className="w-4 h-4" />
             </div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl font-black text-zinc-950 dark:text-white">
               {formatCurrency(stats.totalOutstanding)}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="text-[11px] text-zinc-500 dark:text-slate-400 mt-0.5">
               Across {stats.occupied + stats.paymentPending} active tables
             </div>
           </div>
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-zinc-200 dark:border-slate-800 flex flex-col sm:flex-row gap-3 items-center justify-between shadow-2xs">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search table by name or area..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
+              className="w-full pl-9 pr-3 min-h-[44px] rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 text-zinc-950 dark:text-white font-medium"
             />
           </div>
 
@@ -368,10 +444,10 @@ export const TableManagementPage: React.FC = () => {
               <button
                 key={st}
                 onClick={() => setFilterStatus(st)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors active:scale-95 ${
                   filterStatus === st
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-2xs'
+                    : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
                 }`}
               >
                 {st === 'ALL' ? 'All Tables' : st.replace('_', ' ')}
@@ -384,15 +460,15 @@ export const TableManagementPage: React.FC = () => {
         {activeTab === 'OVERVIEW' && (
           <div>
             {filteredTables.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
-                <UtensilsCrossed className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">No Tables Match Criteria</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-zinc-200 dark:border-slate-800 p-8 text-center">
+                <UtensilsCrossed className="w-12 h-12 text-zinc-300 dark:text-slate-600 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-zinc-950 dark:text-white">No Tables Match Criteria</h3>
+                <p className="text-xs text-zinc-500 dark:text-slate-400 mt-1">
                   Try adjusting your search or add a new table.
                 </p>
                 <button
                   onClick={openCreateModal}
-                  className="mt-4 px-4 py-2 rounded-xl bg-primary-600 text-white text-xs font-bold"
+                  className="mt-4 px-4 min-h-[44px] rounded-xl bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold"
                 >
                   Create Table Now
                 </button>
@@ -408,24 +484,24 @@ export const TableManagementPage: React.FC = () => {
                     <div
                       key={tbl.id}
                       onClick={() => setSelectedTableForDetails(tbl)}
-                      className={`relative rounded-2xl border p-4 cursor-pointer transition-all hover:shadow-md flex flex-col justify-between min-h-[145px] ${
+                      className={`relative rounded-2xl border p-4 cursor-pointer transition-all hover:shadow-sm flex flex-col justify-between min-h-[160px] ${
                         !tbl.isActive
-                          ? 'bg-slate-100/70 dark:bg-slate-900/40 border-dashed border-slate-300 dark:border-slate-800 opacity-60'
+                          ? 'bg-zinc-100/70 dark:bg-slate-900/40 border-dashed border-zinc-300 dark:border-slate-800 opacity-60'
                           : isAvailable
-                          ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                          ? 'bg-white dark:bg-slate-900 border-zinc-200 dark:border-slate-800 hover:border-emerald-500'
                           : isOccupied
-                          ? 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900'
-                          : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-900'
+                          ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900'
+                          : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-900'
                       }`}
                     >
                       {/* Card Header */}
                       <div className="flex items-start justify-between gap-1.5">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white truncate">
+                          <h3 className="font-black text-base sm:text-lg text-zinc-950 dark:text-white truncate">
                             {tbl.name}
                           </h3>
                           {tbl.description && (
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            <p className="text-[11px] text-zinc-500 dark:text-slate-400 truncate">
                               {tbl.description}
                             </p>
                           )}
@@ -433,12 +509,12 @@ export const TableManagementPage: React.FC = () => {
 
                         {/* Status Badge */}
                         <span
-                          className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 ${
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 border ${
                             isAvailable
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400'
                               : isOccupied
-                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 animate-pulse'
+                              ? 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-400'
+                              : 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-400'
                           }`}
                         >
                           {isAvailable ? 'Available' : isOccupied ? 'Occupied' : 'Pending'}
@@ -448,19 +524,19 @@ export const TableManagementPage: React.FC = () => {
                       {/* Card Body */}
                       <div className="my-2">
                         {isAvailable ? (
-                          <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs">
+                          <div className="flex items-center gap-1.5 text-zinc-400 dark:text-slate-500 text-xs">
                             <Users className="w-3.5 h-3.5" />
                             <span>{tbl.seatingCapacity ? `${tbl.seatingCapacity} Seats` : 'Seating table'}</span>
                           </div>
                         ) : (
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+                            <div className="flex items-center justify-between text-xs font-bold text-zinc-800 dark:text-slate-200">
                               <span>{tbl.activeOrders.length} Bill{tbl.activeOrders.length > 1 ? 's' : ''}</span>
-                              <span className="text-primary-600 dark:text-primary-400 font-black">
+                              <span className="text-zinc-950 dark:text-zinc-100 font-mono font-bold">
                                 {formatCurrency(tbl.totalOutstanding)}
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            <div className="text-[11px] text-zinc-500 dark:text-slate-400 truncate">
                               {tbl.activeOrders[0]?.customer?.name || tbl.activeOrders[0]?.billNumber || 'Guest'}
                             </div>
                           </div>
@@ -468,22 +544,22 @@ export const TableManagementPage: React.FC = () => {
                       </div>
 
                       {/* Card Footer Actions */}
-                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold">
+                      <div className="pt-2 border-t border-zinc-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold">
                         {isAvailable ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStartBillForTable(tbl);
                             }}
-                            className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1 transition-colors"
+                            className="w-full min-h-[44px] py-2 rounded-xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs"
                           >
-                            <span>New Bill</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <Plus className="w-4 h-4" />
+                            <span>Start Bill</span>
                           </button>
                         ) : (
-                          <div className="w-full flex items-center justify-between text-slate-600 dark:text-slate-300">
-                            <span className="text-[11px] font-bold">View details</span>
-                            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                          <div className="w-full min-h-[44px] flex items-center justify-between text-zinc-700 dark:text-slate-300 px-1">
+                            <span className="text-xs font-bold">View details</span>
+                            <ChevronRight className="w-4 h-4 text-zinc-400" />
                           </div>
                         )}
                       </div>

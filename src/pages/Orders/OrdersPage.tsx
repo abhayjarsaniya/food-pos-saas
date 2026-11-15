@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOrders, voidOrder } from '../../services/orders/orderService';
+import { getOrders, subscribeToOrders, voidOrder } from '../../services/orders/orderService';
 import { Order, PaymentMethod, PaymentStatus, OrderStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { downloadReceiptPdf, formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -47,22 +47,21 @@ export const OrdersPage: React.FC = () => {
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.id) {
-      fetchOrders();
-    }
-  }, [profile?.id]);
-
-  const fetchOrders = async () => {
     if (!profile?.id) return;
-    try {
-      const data = await getOrders(profile.id);
-      setOrders(data);
-    } catch (err) {
-      console.warn('Error fetching orders:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(true);
+    const unsubscribe = subscribeToOrders(
+      profile.id,
+      (data) => {
+        setOrders(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.warn('Real-time orders error:', err);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
+  }, [profile?.id]);
 
   const filteredOrders = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -223,7 +222,9 @@ export const OrdersPage: React.FC = () => {
               className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
             >
               <option value="all">All Status</option>
+              <option value="OPEN">Open (In Progress)</option>
               <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
               <option value="VOIDED">Voided</option>
             </select>
           </div>
@@ -246,7 +247,7 @@ export const OrdersPage: React.FC = () => {
           </div>
         ) : (
           filteredOrders.map((order) => {
-            const isVoided = order.status === 'VOIDED';
+            const isVoided = order.status === 'VOIDED' || order.status === 'CANCELLED';
             return (
               <div
                 key={order.id}
@@ -265,7 +266,7 @@ export const OrdersPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <span className="text-sm font-bold text-zinc-950 font-mono">
                         {order.billNumber}
                       </span>
@@ -274,21 +275,26 @@ export const OrdersPage: React.FC = () => {
                           {order.tableNumber}
                         </span>
                       )}
-                      {isVoided ? (
-                        <span className="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">
-                          VOIDED
-                        </span>
-                      ) : (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                          order.paymentStatus === 'PAID'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : order.paymentStatus === 'PARTIAL' || order.paymentStatus === 'PARTIALLY_PAID'
-                            ? 'bg-amber-100 text-amber-900'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          {order.paymentStatus === 'UNPAID' ? 'PAYMENT PENDING' : order.paymentStatus}
-                        </span>
-                      )}
+                      {/* Order Status Badge */}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
+                        order.status === 'COMPLETED'
+                          ? 'bg-zinc-100 text-zinc-800 border border-zinc-200'
+                          : order.status === 'OPEN'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'bg-rose-100 text-rose-700 border border-rose-200'
+                      }`}>
+                        {order.status}
+                      </span>
+                      {/* Payment Status Badge */}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
+                        order.paymentStatus === 'PAID'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          : order.paymentStatus === 'PARTIAL' || order.paymentStatus === 'PARTIALLY_PAID'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {order.paymentStatus === 'UNPAID' ? 'UNPAID' : order.paymentStatus}
+                      </span>
                     </div>
 
                     <p className="text-xs text-zinc-600 mt-1">
