@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { db } from '../services/firebase/config';
 import { AuthUser, loginWithEmail, logoutUser, signupWithEmail, subscribeToAuth } from '../services/auth/authService';
 import { BusinessFeatures, BusinessProfile, BusinessSettings, DEFAULT_BUSINESS_FEATURES, UserRole } from '../types';
 import { 
@@ -9,8 +11,62 @@ import {
   saveBusinessSettings 
 } from '../services/business/businessService';
 import { getBusinessFeatures } from '../services/features/featureService';
-import { resolveStaffLoginId } from '../services/members/memberService';
+import { resolveStaffLoginId, ResolvedStaffIdentity } from '../services/members/memberService';
 import { clearLocalShopCache } from '../services/offline/indexedDb';
+
+/**
+ * Robust business resolver for an authenticated Firebase user.
+ * Searches:
+ * 1. Direct document: businesses/{uid}
+ * 2. Businesses collection where ownerUid == uid, ownerEmail == email, or email == email
+ * 3. Platform shops directory
+ */
+async function findBusinessForUser(uid: string, email: string): Promise<BusinessProfile | null> {
+  const cleanEmail = (email || '').toLowerCase().trim();
+
+  // 1. Direct document check
+  try {
+    const directSnap = await getDoc(doc(db, 'businesses', uid));
+    if (directSnap.exists()) {
+      return { id: directSnap.id, ...(directSnap.data() as any) };
+    }
+  } catch {}
+
+  // 2. Query businesses collection
+  try {
+    const bSnap = await getDocs(collection(db, 'businesses'));
+    for (const d of bSnap.docs) {
+      const data = d.data();
+      const bOwnerEmail = (data.ownerEmail || '').toLowerCase().trim();
+      const bEmail = (data.email || '').toLowerCase().trim();
+      if (
+        data.ownerUid === uid ||
+        (cleanEmail && (bOwnerEmail === cleanEmail || bEmail === cleanEmail))
+      ) {
+        return { id: d.id, ...(data as any) };
+      }
+    }
+  } catch (err) {
+    console.warn('Error querying businesses for user:', err);
+  }
+
+  // 3. Platform directory lookup
+  try {
+    const platSnap = await getDocs(collection(db, 'platform', 'shops', 'directory'));
+    for (const d of platSnap.docs) {
+      const data = d.data();
+      const bOwnerEmail = (data.ownerEmail || '').toLowerCase().trim();
+      if (
+        data.ownerUid === uid ||
+        (cleanEmail && bOwnerEmail === cleanEmail)
+      ) {
+        return { id: d.id, ...(data as any) };
+      }
+    }
+  } catch {}
+
+  return null;
+}
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -76,10 +132,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = subscribeToAuth(async (authUser) => {
       setUser(authUser);
       if (authUser) {
-        const isAdmin = authUser.email === 'superadmin@foodpos.app' || localStorage.getItem('food_pos_is_super_admin') === 'true';
+        const isAdmin = 
+          authUser.email === 'superadmin@foodpos.app' || 
+          authUser.email === 'admin@foodpos.app' || 
+          localStorage.getItem('food_pos_is_super_admin') === 'true';
+
         setIsSuperAdmin(isAdmin);
 
-        // Retrieve active staff session info if present
+        if (isAdmin) {
+          setUserRole('SUPER_ADMIN');
+          setCanCollectPayment(true);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        // 1. Retrieve active staff session info if present
         const staffMetaRaw = localStorage.getItem('food_pos_staff_session');
         if (staffMetaRaw) {
           try {
@@ -92,28 +160,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch {}
         }
 
-        if (!isAdmin) {
+        // 2. Discover business for authenticated user
+        const biz = await findBusinessForUser(authUser.uid, authUser.email || '');
+        if (biz) {
+          setUserRole('OWNER');
+          setCanCollectPayment(true);
+          await loadShopContext(biz.id);
+        } else {
+          // Fallback to active shop ID if stored
           const storedShop = localStorage.getItem('food_pos_active_shop_id');
-          if (authUser.email === 'princebhajipav16@gmail.com' || storedShop === 'biz_prince_pavbhaji_01') {
-            await loadShopContext('biz_prince_pavbhaji_01');
-          } else {
-            await loadShopContext(authUser.uid);
+          if (storedShop) {
+            await loadShopContext(storedShop);
           }
         }
       } else {
         const adminFlag = localStorage.getItem('food_pos_is_super_admin') === 'true';
         setIsSuperAdmin(adminFlag);
-
-        const savedDemo = localStorage.getItem('food_pos_demo_user');
-        if (savedDemo) {
-          try {
-            const parsed = JSON.parse(savedDemo);
-            setUser(parsed.user);
-            await loadShopContext(parsed.user.uid);
-          } catch {}
-        } else {
-          setProfile(null);
-        }
+        setProfile(null);
+        setUserRole('CASHIER');
       }
       setLoading(false);
     });
@@ -123,126 +187,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Universal Login: Supports Super Admin, Shop Owner, Manager, and Cashier
-   * via Login ID (e.g. superadmin, shopowner01, cashier01) or Email + Password.
-   * Resolves identity, verifies status & role, sets session, and returns UserRole.
+   * via Login ID (e.g. superadmin, princeowner, shopowner01, cashier01) or Email + Password.
+   * Resolves identity, verifies status & role from database, sets session, and returns UserRole.
    */
   const login = async (identifier: string, pass: string): Promise<UserRole> => {
     setLoading(true);
     const cleanIdentifier = identifier.trim();
 
+    if (!cleanIdentifier || !pass) {
+      setLoading(false);
+      throw new Error('Please enter both Login ID / Email and password.');
+    }
+
     try {
-      // 1. Check if input is a Login ID (no '@')
-      if (!cleanIdentifier.includes('@')) {
-        const resolved = await resolveStaffLoginId(cleanIdentifier);
-        if (!resolved) {
-          throw new Error('Invalid Login ID or Password.');
+      let targetEmail = '';
+      let resolvedIdentity: ResolvedStaffIdentity | null = null;
+
+      // 1. Determine target email
+      if (cleanIdentifier.includes('@')) {
+        targetEmail = cleanIdentifier.toLowerCase();
+      } else {
+        resolvedIdentity = await resolveStaffLoginId(cleanIdentifier);
+        if (!resolvedIdentity) {
+          throw new Error('Account not found. Contact your Super Admin.');
         }
 
-        if (resolved.status === 'DEACTIVATED' || resolved.status === 'SUSPENDED') {
-          throw new Error('This account has been deactivated. Please contact your business owner or platform administrator.');
+        if (resolvedIdentity.status === 'DEACTIVATED' || resolvedIdentity.status === 'SUSPENDED') {
+          throw new Error('Your account has been suspended. Contact support.');
         }
 
-        // A. Super Admin Login ID (superadmin)
-        if (resolved.role === 'SUPER_ADMIN') {
-          const authUser = await loginWithEmail(resolved.email, pass);
-          localStorage.setItem('food_pos_is_super_admin', 'true');
-          localStorage.removeItem('food_pos_demo_user');
-          localStorage.removeItem('food_pos_staff_session');
-          setUser(authUser);
-          setIsSuperAdmin(true);
-          setUserRole('SUPER_ADMIN');
-          setCanCollectPayment(true);
-          setProfile(null);
-          return 'SUPER_ADMIN';
-        }
-
-        // B. Shop Owner Login ID (shopowner01, princeowner)
-        if (resolved.role === 'OWNER') {
-          let authUser: AuthUser;
-          try {
-            authUser = await loginWithEmail(resolved.email, pass);
-          } catch (err: any) {
-            // Development fallback for demo shop owner
-            if (pass === 'OwnerPass@2026' || pass === 'Owner@2026' || pass === 'TestCheck123!' || pass === 'Prince@2026') {
-              authUser = {
-                uid: resolved.businessId || 'demo-business-owner-101',
-                email: resolved.email,
-                displayName: resolved.loginId.includes('prince') ? 'Prince Pavbhaji Owner' : 'Shop Owner',
-                isAnonymous: false,
-                emailVerified: true,
-              };
-            } else {
-              throw err;
-            }
-          }
-          localStorage.removeItem('food_pos_staff_session');
-          localStorage.removeItem('food_pos_is_super_admin');
-          const targetBizId = resolved.businessId || authUser.uid;
-          const prevShop = localStorage.getItem('food_pos_active_shop_id');
-          if (prevShop && prevShop !== targetBizId) {
-            await clearLocalShopCache();
-          }
-          localStorage.setItem('food_pos_active_shop_id', targetBizId);
-          setUser(authUser);
-          setIsSuperAdmin(false);
-          setUserRole('OWNER');
-          setCanCollectPayment(true);
-          await loadShopContext(targetBizId);
-          return 'OWNER';
-        }
-
-        // C. Member / Staff Login ID (cashier01, manager01, counter02)
-        let authUser: AuthUser;
-        try {
-          authUser = await loginWithEmail(resolved.email, pass);
-        } catch (err: any) {
-          if (pass === 'Cashier@2026' || pass === 'Manager@2026' || pass === 'Staff@2026') {
-            authUser = {
-              uid: resolved.memberId || `mem_${cleanIdentifier}`,
-              email: resolved.email,
-              displayName: resolved.loginId,
-              isAnonymous: false,
-              emailVerified: true,
-            };
-          } else {
-            throw err;
-          }
-        }
-        const staffBizId = resolved.businessId || 'biz_prince_pavbhaji_01';
-        const prevShop = localStorage.getItem('food_pos_active_shop_id');
-        if (prevShop && prevShop !== staffBizId) {
-          await clearLocalShopCache();
-        }
-        localStorage.setItem('food_pos_active_shop_id', staffBizId);
-        setUser(authUser);
-        setIsSuperAdmin(false);
-        setUserRole(resolved.role);
-        setCanCollectPayment(resolved.canCollectPayment ?? true);
-
-        localStorage.setItem(
-          'food_pos_staff_session',
-          JSON.stringify({
-            loginId: resolved.loginId,
-            businessId: staffBizId,
-            role: resolved.role,
-            canCollectPayment: resolved.canCollectPayment ?? true,
-          })
-        );
-        localStorage.removeItem('food_pos_is_super_admin');
-        await loadShopContext(staffBizId);
-        return resolved.role;
+        targetEmail = resolvedIdentity.email.toLowerCase();
       }
 
-      // 2. Email Login
-      const cleanEmail = cleanIdentifier.toLowerCase();
+      // 2. Authenticate with Firebase Authentication
+      let authUser: any;
+      try {
+        authUser = await loginWithEmail(targetEmail, pass);
+      } catch (authErr: any) {
+        const code = authErr?.code || '';
+        if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+          throw new Error('Incorrect email/login ID or password.');
+        } else if (code === 'auth/user-disabled') {
+          throw new Error('Your account has been suspended. Contact support.');
+        } else if (code === 'auth/too-many-requests') {
+          throw new Error('Too many login attempts. Please try again later.');
+        } else if (code === 'auth/network-request-failed') {
+          throw new Error('Authentication service temporarily unavailable.');
+        } else {
+          throw new Error('Incorrect email/login ID or password.');
+        }
+      }
 
-      // Check if Super Admin email
-      if (cleanEmail === 'superadmin@foodpos.app' || cleanEmail === 'admin@foodpos.app') {
-        const authUser = await loginWithEmail(cleanEmail, pass);
+      // 3. Super Admin Verification
+      const isSuper = 
+        targetEmail === 'superadmin@foodpos.app' || 
+        targetEmail === 'admin@foodpos.app' || 
+        resolvedIdentity?.role === 'SUPER_ADMIN';
+
+      if (isSuper) {
         localStorage.setItem('food_pos_is_super_admin', 'true');
-        localStorage.removeItem('food_pos_demo_user');
         localStorage.removeItem('food_pos_staff_session');
-        setUser(authUser);
+        localStorage.removeItem('food_pos_active_shop_id');
+        setUser({
+          uid: authUser.uid,
+          email: targetEmail,
+          displayName: 'Super Administrator',
+          isAnonymous: false,
+          emailVerified: true,
+        });
         setIsSuperAdmin(true);
         setUserRole('SUPER_ADMIN');
         setCanCollectPayment(true);
@@ -250,74 +262,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return 'SUPER_ADMIN';
       }
 
-      // Check if Prince Pavbhaji Owner email
-      if (cleanEmail === 'princebhajipav16@gmail.com') {
-        let authUser: AuthUser;
-        try {
-          authUser = await loginWithEmail(cleanEmail, pass);
-        } catch (err: any) {
-          if (pass === 'TestCheck123!' || pass === 'OwnerPass@2026' || pass === 'Prince@2026') {
-            authUser = {
-              uid: 'uZ5vzv3LGwctK5o26yALxbriwDu2',
-              email: cleanEmail,
-              displayName: 'Prince Pavbhaji Owner',
-              isAnonymous: false,
-              emailVerified: true,
-            };
-          } else {
-            throw err;
-          }
+      // 4. Shop Owner Verification from Database
+      let targetBiz = await findBusinessForUser(authUser.uid, targetEmail);
+      if (!targetBiz && resolvedIdentity?.businessId) {
+        targetBiz = await getBusinessProfile(resolvedIdentity.businessId);
+      }
+
+      // If business found or resolved as OWNER
+      if (targetBiz && (resolvedIdentity?.role === 'OWNER' || !resolvedIdentity)) {
+        if (targetBiz.status === 'SUSPENDED' || (targetBiz as any).isArchived) {
+          await logoutUser();
+          throw new Error('Your account has been suspended. Contact support.');
         }
-        localStorage.removeItem('food_pos_staff_session');
+
         localStorage.removeItem('food_pos_is_super_admin');
-        const prevShop = localStorage.getItem('food_pos_active_shop_id');
-        if (prevShop && prevShop !== 'biz_prince_pavbhaji_01') {
-          await clearLocalShopCache();
-        }
-        localStorage.setItem('food_pos_active_shop_id', 'biz_prince_pavbhaji_01');
-        setUser(authUser);
+        localStorage.removeItem('food_pos_staff_session');
+        localStorage.setItem('food_pos_active_shop_id', targetBiz.id);
+        setUser({
+          uid: authUser.uid,
+          email: targetEmail,
+          displayName: targetBiz.name || 'Shop Owner',
+          isAnonymous: false,
+          emailVerified: true,
+        });
         setIsSuperAdmin(false);
         setUserRole('OWNER');
         setCanCollectPayment(true);
-        await loadShopContext('biz_prince_pavbhaji_01');
+        await loadShopContext(targetBiz.id);
         return 'OWNER';
       }
 
-      // Check if staff email
-      const staffByEmail = cleanEmail.includes('cashier')
-        ? 'CASHIER'
-        : cleanEmail.includes('manager')
-        ? 'MANAGER'
-        : null;
-
-      const authUser = await loginWithEmail(cleanEmail, pass);
-      setUser(authUser);
-
-      if (staffByEmail) {
-        setUserRole(staffByEmail);
-        setCanCollectPayment(true);
+      // 5. Staff Member Verification (Manager / Cashier)
+      if (resolvedIdentity && (resolvedIdentity.role === 'CASHIER' || resolvedIdentity.role === 'MANAGER')) {
+        const staffBizId = resolvedIdentity.businessId || targetBiz?.id || 'biz_prince_pavbhaji_01';
+        localStorage.removeItem('food_pos_is_super_admin');
         localStorage.setItem(
           'food_pos_staff_session',
           JSON.stringify({
-            loginId: cleanEmail.split('@')[0],
-            businessId: 'demo-business-owner-101',
+            loginId: resolvedIdentity.loginId,
+            businessId: staffBizId,
+            role: resolvedIdentity.role,
+            canCollectPayment: resolvedIdentity.canCollectPayment ?? true,
+          })
+        );
+        localStorage.setItem('food_pos_active_shop_id', staffBizId);
+        setUser({
+          uid: authUser.uid,
+          email: targetEmail,
+          displayName: resolvedIdentity.name || resolvedIdentity.loginId,
+          isAnonymous: false,
+          emailVerified: true,
+        });
+        setIsSuperAdmin(false);
+        setUserRole(resolvedIdentity.role);
+        setCanCollectPayment(resolvedIdentity.canCollectPayment ?? true);
+        await loadShopContext(staffBizId);
+        return resolvedIdentity.role;
+      }
+
+      // 6. Check if email-based staff
+      const staffByEmail = targetEmail.includes('cashier') ? 'CASHIER' : targetEmail.includes('manager') ? 'MANAGER' : null;
+      if (staffByEmail && targetBiz) {
+        localStorage.removeItem('food_pos_is_super_admin');
+        localStorage.setItem(
+          'food_pos_staff_session',
+          JSON.stringify({
+            loginId: targetEmail.split('@')[0],
+            businessId: targetBiz.id,
             role: staffByEmail,
             canCollectPayment: true,
           })
         );
-        localStorage.removeItem('food_pos_is_super_admin');
-        await loadShopContext('demo-business-owner-101');
+        localStorage.setItem('food_pos_active_shop_id', targetBiz.id);
+        setUser({
+          uid: authUser.uid,
+          email: targetEmail,
+          displayName: targetEmail.split('@')[0],
+          isAnonymous: false,
+          emailVerified: true,
+        });
+        setIsSuperAdmin(false);
+        setUserRole(staffByEmail);
+        setCanCollectPayment(true);
+        await loadShopContext(targetBiz.id);
         return staffByEmail;
       }
 
-      // Default: Shop Owner
-      localStorage.removeItem('food_pos_staff_session');
-      localStorage.removeItem('food_pos_is_super_admin');
-      setIsSuperAdmin(false);
-      setUserRole('OWNER');
-      setCanCollectPayment(true);
-      await loadShopContext(authUser.uid);
-      return 'OWNER';
+      // 7. No shop association found
+      await logoutUser();
+      throw new Error('Your account is not associated with an active shop. Contact your Super Admin.');
     } finally {
       setLoading(false);
     }

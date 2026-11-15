@@ -182,11 +182,31 @@ export async function createNewShop(params: CreateShopParams): Promise<CreateSho
 
   // 1. Save in Firestore if reachable
   try {
+    const bTopRef = doc(db, 'businesses', businessId);
     const profRef = doc(db, 'businesses', businessId, 'meta', 'profile');
     const settRef = doc(db, 'businesses', businessId, 'meta', 'settings');
     const platRef = doc(db, 'platform', 'shops', 'directory', businessId);
     const loginIdRef = doc(db, 'loginIds', chosenLoginId);
     const memberRef = doc(db, 'businesses', businessId, 'members', `mem_owner_${businessId}`);
+
+    const bTopData = {
+      id: businessId,
+      name: params.name,
+      businessName: params.name,
+      brandName: params.brandName || params.name,
+      ownerName: params.ownerName,
+      ownerEmail: params.ownerEmail,
+      email: params.ownerEmail,
+      ownerUid,
+      loginId: chosenLoginId,
+      phone: params.phone,
+      category: params.category,
+      address: params.address,
+      status: 'ACTIVE',
+      plan: params.plan,
+      createdAt: now,
+      updatedAt: now,
+    };
 
     const ownerMember: BusinessMember = {
       id: `mem_owner_${businessId}`,
@@ -215,13 +235,14 @@ export async function createNewShop(params: CreateShopParams): Promise<CreateSho
 
     await withTimeout(
       Promise.all([
-        setDoc(profRef, profile),
-        setDoc(settRef, DEFAULT_BUSINESS_SETTINGS),
-        setDoc(platRef, profile),
-        setDoc(loginIdRef, loginIdRecord),
-        setDoc(memberRef, ownerMember),
+        setDoc(bTopRef, bTopData, { merge: true }),
+        setDoc(profRef, profile, { merge: true }),
+        setDoc(settRef, DEFAULT_BUSINESS_SETTINGS, { merge: true }),
+        setDoc(platRef, profile, { merge: true }),
+        setDoc(loginIdRef, loginIdRecord, { merge: true }),
+        setDoc(memberRef, ownerMember, { merge: true }),
       ]),
-      2500
+      3000
     );
   } catch (err) {
     console.warn('Could not reach cloud Firestore for platform shop creation, persisting locally:', err);

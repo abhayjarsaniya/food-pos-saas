@@ -50,6 +50,7 @@ export interface CreateTeamMemberParams {
 export interface ResolvedStaffIdentity {
   loginId: string;
   email: string;
+  name?: string;
   businessId?: string;
   memberId?: string;
   role: UserRole;

@@ -39,16 +39,24 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
     }
 
-    // Public lookup for staff custom login IDs (e.g. cashier01) to enable secure sign-in
+    // Login ID mappings:
+    // Allow single doc get for exact login ID resolution.
+    // Disallow public listing/querying to prevent enumeration.
+    // ONLY Super Admin can write mappings.
     match /loginIds/{loginId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow get: if true;
+      allow list: if isSuperAdmin();
+      allow write: if isSuperAdmin();
     }
 
-    // Business scoped collections
+    // Business scoped collections:
+    // ONLY authenticated Super Admin can create a new business.
+    // Public shop creation is strictly disabled.
     match /businesses/{businessId} {
       allow read: if request.auth != null;
-      allow write: if isShopOwner(businessId) || isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update: if isShopOwner(businessId) || isSuperAdmin();
+      allow delete: if isSuperAdmin();
 
       match /profile/{docId} {
         allow read: if request.auth != null;

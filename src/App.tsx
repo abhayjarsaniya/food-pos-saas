@@ -39,7 +39,7 @@ import { AdminSettingsPage } from './pages/Admin/AdminSettingsPage';
 
 // Protected Route Guard for Shop Owners & Staff
 const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile, loading, isOnboarded, isSuperAdmin } = useAuth();
+  const { user, profile, loading, isSuperAdmin, isShopSuspended, logout } = useAuth();
 
   if (loading) {
     return (
@@ -58,8 +58,30 @@ const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children 
     return <Navigate to="/admin" replace />;
   }
 
-  if (!isOnboarded) {
-    return <Navigate to="/onboarding" replace />;
+  if (isShopSuspended) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col justify-center items-center px-4">
+        <div className="bg-white border border-rose-200 p-8 rounded-2xl max-w-md w-full text-center shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 font-bold text-lg">
+            !
+          </div>
+          <h2 className="text-xl font-bold text-zinc-900 mb-2">Shop Suspended</h2>
+          <p className="text-sm text-zinc-600 mb-6">
+            Your shop account has been suspended or archived. Please contact platform support or your Super Admin.
+          </p>
+          <button
+            onClick={() => logout()}
+            className="w-full py-3 bg-zinc-900 text-white font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -78,7 +100,7 @@ const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   if (!user || !isSuperAdmin) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -88,13 +110,14 @@ export const AppContent: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Auth Routes */}
+        {/* Public Auth Routes: ONE unified login portal */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/login" element={<SuperAdminLoginPage />} />
-        <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
-        <Route path="/shop/login" element={<ShopOwnerLoginPage />} />
-        <Route path="/member/login" element={<MemberLoginPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+        <Route path="/super-admin/login" element={<Navigate to="/login" replace />} />
+        <Route path="/shop/login" element={<Navigate to="/login" replace />} />
+        <Route path="/member/login" element={<Navigate to="/login" replace />} />
+        <Route path="/onboarding" element={<Navigate to="/login" replace />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
 
         {/* Super Admin Routes */}
         <Route

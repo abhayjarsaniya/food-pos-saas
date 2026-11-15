@@ -5,15 +5,13 @@ import { Utensils, Eye, EyeOff, KeyRound, Mail, CheckCircle2, AlertCircle } from
 import { sendPasswordReset } from '../../services/auth/authService';
 
 export const LoginPage: React.FC = () => {
-  const { login, signup, user, loading, isSuperAdmin, userRole } = useAuth();
+  const { login, user, loading, isSuperAdmin, userRole } = useAuth();
   const navigate = useNavigate();
 
-  const [isSignUp, setIsSignUp] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Forgot password modal
@@ -38,24 +36,18 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMsg(null);
     setIsSubmitting(true);
 
     try {
-      if (isSignUp) {
-        await signup(identifier, password);
-        setSuccessMsg('Account created successfully! Verification email dispatched.');
+      const detectedRole = await login(identifier, password);
+      // Automatic Role-Based Redirection
+      if (detectedRole === 'SUPER_ADMIN') {
+        navigate('/admin', { replace: true });
+      } else if (detectedRole === 'CASHIER') {
+        navigate('/billing', { replace: true });
       } else {
-        const detectedRole = await login(identifier, password);
-        // Automatic Role-Based Redirection
-        if (detectedRole === 'SUPER_ADMIN') {
-          navigate('/admin');
-        } else if (detectedRole === 'CASHIER') {
-          navigate('/billing');
-        } else {
-          // OWNER or MANAGER
-          navigate('/');
-        }
+        // OWNER or MANAGER
+        navigate('/', { replace: true });
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check your credentials.');
@@ -100,13 +92,6 @@ export const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {successMsg && (
-          <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-        )}
-
         {/* Single Common Login Form for All Roles */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -114,14 +99,14 @@ export const LoginPage: React.FC = () => {
               LOGIN ID OR EMAIL ADDRESS
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Mail className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="e.g. cashier01 or owner@example.com"
-                className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
+                placeholder="e.g. princeowner, shopowner01, or admin"
+                className="w-full pl-11 pr-4 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
             </div>
           </div>
@@ -131,35 +116,33 @@ export const LoginPage: React.FC = () => {
               <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider">
                 PASSWORD
               </label>
-              {!isSignUp && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setForgotEmail(identifier.includes('@') ? identifier : '');
-                    setShowForgotModal(true);
-                  }}
-                  className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
-                >
-                  Forgot password?
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(identifier.includes('@') ? identifier : '');
+                  setShowForgotModal(true);
+                }}
+                className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
+              >
+                Forgot password?
+              </button>
             </div>
             <div className="relative">
-              <KeyRound className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <KeyRound className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
+                className="w-full pl-11 pr-11 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 focus:outline-none"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 focus:outline-none p-1"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -167,32 +150,19 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-sm rounded-xl transition-colors shadow-2xs mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full min-h-[52px] py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-sm mt-3 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-98"
           >
             {isSubmitting ? (
               <span>Authenticating...</span>
-            ) : isSignUp ? (
-              <span>Create Business Account</span>
             ) : (
-              <span>Sign In to Billing Counter</span>
+              <span>Sign In</span>
             )}
           </button>
         </form>
 
-        {/* Public Shop Registration Option */}
-        <div className="mt-8 text-center pt-2">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError(null);
-            }}
-            className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
-          >
-            {isSignUp
-              ? 'Already have an account? Sign In'
-              : "Don't have an account? Register a new shop"}
-          </button>
+        {/* Security & Access Notice */}
+        <div className="mt-6 text-center text-xs text-zinc-400">
+          Super Admin, Shop Owners, Managers & Staff authenticate here.
         </div>
       </div>
 
