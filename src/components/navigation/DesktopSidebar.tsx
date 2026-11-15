@@ -10,8 +10,6 @@ import {
   ClipboardList, 
   BarChart3, 
   Settings, 
-  WifiOff, 
-  RefreshCw, 
   LogOut, 
   ShieldCheck,
   Wallet,
@@ -20,12 +18,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBilling } from '../../contexts/BillingContext';
-import { useSync } from '../../contexts/SyncContext';
+import { useOrders } from '../../contexts/OrdersContext';
 
 export const DesktopSidebar: React.FC = () => {
   const { profile, logout, features } = useAuth();
   const { items } = useBilling();
-  const { isOnline, pendingCount, isSyncing, triggerSync } = useSync();
+  const { pendingPaymentCount } = useOrders();
   const navigate = useNavigate();
 
   const totalItemCount = items.reduce((sum, i) => sum + i.quantity, 0);
@@ -34,7 +32,7 @@ export const DesktopSidebar: React.FC = () => {
     { to: '/', label: 'Dashboard', icon: Home, feature: null },
     { to: '/billing', label: 'POS & Billing', icon: Receipt, badge: totalItemCount > 0 ? totalItemCount : null, feature: 'billing' as const },
     { to: '/tables', label: 'Table Management', icon: LayoutGrid, feature: 'tableManagement' as const },
-    { to: '/pending-payments', label: 'Pending Payments', icon: Wallet, feature: 'pendingPayments' as const },
+    { to: '/pending-payments', label: 'Pending Payments', icon: Wallet, badge: pendingPaymentCount > 0 ? pendingPaymentCount : null, feature: 'pendingPayments' as const },
     { to: '/orders', label: 'Orders History', icon: ShoppingBag, feature: 'orders' as const },
     { to: '/menu', label: 'Menu Management', icon: UtensilsCrossed, feature: 'menuManagement' as const },
     { to: '/inventory', label: 'Inventory & Materials', icon: Boxes, feature: 'inventory' as const },
@@ -67,38 +65,6 @@ export const DesktopSidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Sync Indicator */}
-        <div className="mb-4 px-3 py-2 bg-white border border-[#E5EAE6] rounded-xl flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            {isOnline ? (
-              <span className="flex items-center gap-1.5 text-xs text-[#19865D] font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#20A879] animate-pulse"></span>
-                Online
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
-                <WifiOff className="w-3.5 h-3.5" />
-                Offline
-              </span>
-            )}
-            {pendingCount > 0 && (
-              <span className="text-[11px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded-full">
-                {pendingCount} pending
-              </span>
-            )}
-          </div>
-          {pendingCount > 0 && (
-            <button
-              onClick={() => triggerSync()}
-              disabled={isSyncing || !isOnline}
-              title="Sync pending orders now"
-              className="p-1 text-[#68736D] hover:text-[#202923] disabled:opacity-40 transition-colors"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            </button>
-          )}
-        </div>
-
         {/* Navigation links */}
         <nav className="space-y-1">
           {navLinks.map((link) => {
@@ -120,7 +86,7 @@ export const DesktopSidebar: React.FC = () => {
                   <span>{link.label}</span>
                 </div>
                 {link.badge !== null && link.badge !== undefined && (
-                  <span className="bg-[#145C43] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-[#145C43] text-white text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
                     {link.badge}
                   </span>
                 )}

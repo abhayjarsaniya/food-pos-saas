@@ -1,6 +1,7 @@
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getPendingOrdersFromIndexedDB, markOrderSyncedInIndexedDB } from './indexedDb';
+import { sanitizeFirestoreData } from '../orders/orderService';
 
 export type NetworkStatus = 'ONLINE' | 'OFFLINE';
 
@@ -67,10 +68,11 @@ class SyncManager {
       for (const order of pendingOrders) {
         try {
           const docRef = doc(db, 'businesses', order.businessId, 'orders', order.id);
-          await setDoc(docRef, {
+          const sanitizedPayload = sanitizeFirestoreData({
             ...order,
             syncedWithCloud: true,
-          }, { merge: true });
+          });
+          await setDoc(docRef, sanitizedPayload, { merge: true });
 
           await markOrderSyncedInIndexedDB(order.id);
           synced++;

@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOrders, subscribeToOrders, markOrderReceived, recordOrderPayment } from '../../services/orders/orderService';
+import { useOrders } from '../../contexts/OrdersContext';
+import { markOrderReceived, recordOrderPayment, normalizePaymentStatus, normalizeOrderStatus } from '../../services/orders/orderService';
 import { Order, PaymentMethod, PaymentStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -27,8 +28,7 @@ import {
 
 export const PendingPaymentsPage: React.FC = () => {
   const { profile, settings, user, userRole, canCollectPayment } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { orders, loading, refreshOrders } = useOrders();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'PENDING' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'ALL'>('PENDING');
   const [tableFilter, setTableFilter] = useState<string>('ALL');
@@ -45,33 +45,6 @@ export const PendingPaymentsPage: React.FC = () => {
   // Quick Action Confirmation State
   const [confirmQuickOrderId, setConfirmQuickOrderId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const unsubscribe = subscribeToOrders(
-      profile.id,
-      (data) => {
-        setOrders(data);
-        setLoading(false);
-      },
-      (err) => {
-        console.warn('Real-time pending orders error:', err);
-        setLoading(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [profile?.id]);
-
-  const loadOrders = async () => {
-    if (!profile?.id) return;
-    try {
-      const data = await getOrders(profile.id);
-      setOrders(data);
-    } catch (err) {
-      console.warn('Error loading orders:', err);
-    }
-  };
-
   const availableTables = useMemo(() => {
     const set = new Set<string>();
     orders.forEach((o) => {
@@ -82,13 +55,24 @@ export const PendingPaymentsPage: React.FC = () => {
 
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
-      if (o.status === 'VOIDED' || o.status === 'CANCELLED') return false;
+      const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
+      if (ordStatus === 'CANCELLED' || ordStatus === 'DRAFT') return false;
+
+      const payStatus = normalizePaymentStatus(o.paymentStatus);
+      const balance = o.balanceDue !== undefined 
+        ? o.balanceDue 
+        : Math.max(0, (o.grandTotal || 0) - (o.amountPaid || 0));
 
       // Filter by status
-      if (statusFilter === 'PENDING' && o.paymentStatus === 'PAID') return false;
-      if (statusFilter === 'UNPAID' && o.paymentStatus !== 'UNPAID') return false;
-      if (statusFilter === 'PARTIAL' && o.paymentStatus !== 'PARTIAL' && o.paymentStatus !== 'PARTIALLY_PAID') return false;
-      if (statusFilter === 'PAID' && o.paymentStatus !== 'PAID') return false;
+      if (statusFilter === 'PENDING') {
+        if (payStatus === 'PAID' || balance <= 0) return false;
+      } else if (statusFilter === 'UNPAID') {
+        if (payStatus !== 'UNPAID') return false;
+      } else if (statusFilter === 'PARTIAL') {
+        if (payStatus !== 'PARTIAL') return false;
+      } else if (statusFilter === 'PAID') {
+        if (payStatus !== 'PAID') return false;
+      }
 
       // Filter by table
       if (tableFilter !== 'ALL' && o.tableNumber !== tableFilter) return false;
@@ -96,10 +80,10 @@ export const PendingPaymentsPage: React.FC = () => {
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchesBill = o.billNumber.toLowerCase().includes(q);
-        const matchesCustomer = (o.customer?.name || '').toLowerCase().includes(q);
-        const matchesPhone = (o.customer?.phone || '').includes(q);
-        const matchesTable = (o.tableNumber || '').toLowerCase().includes(q);
+        const matchesBill = (o.billNumber || '').toLowerCase().includes(q);
+        const matchesCustomer = (o.customer?.name || o.customerName || '').toLowerCase().includes(q);
+        const matchesPhone = (o.customer?.phone || o.customerId || '').includes(q);
+        const matchesTable = (o.tableNumber || o.tableName || '').toLowerCase().includes(q);
         return matchesBill || matchesCustomer || matchesPhone || matchesTable;
       }
 
@@ -109,7 +93,10 @@ export const PendingPaymentsPage: React.FC = () => {
 
   const totalOutstanding = useMemo(() => {
     return orders
-      .filter((o) => o.status !== 'VOIDED' && o.status !== 'CANCELLED')
+      .filter((o) => {
+        const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
+        return ordStatus !== 'CANCELLED';
+      })
       .reduce((sum, o) => sum + (o.balanceDue || 0), 0);
   }, [orders]);
 
@@ -154,7 +141,7 @@ export const PendingPaymentsPage: React.FC = () => {
         receivedByName: user?.displayName || user?.email || 'Counter Staff',
       });
 
-      await loadOrders();
+      await refreshOrders();
       setActiveOrderForPayment(null);
     } catch (err: any) {
       setPaymentError(err.message || 'Payment recording failed.');
@@ -180,7 +167,7 @@ export const PendingPaymentsPage: React.FC = () => {
         user?.displayName || 'Owner'
       );
       setConfirmQuickOrderId(null);
-      await loadOrders();
+      await refreshOrders();
     } catch (err: any) {
       alert(err.message || 'Failed to mark as received.');
     }

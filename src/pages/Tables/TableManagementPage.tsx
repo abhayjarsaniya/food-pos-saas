@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBilling } from '../../contexts/BillingContext';
+import { useOrders } from '../../contexts/OrdersContext';
 import { Order, RestaurantTable, TableStatus, TableWithStatus } from '../../types';
 import { 
   getTables, 
@@ -31,16 +32,15 @@ import {
   deleteTable, 
   calculateTableStatuses 
 } from '../../services/tables/tableService';
-import { getOrders, subscribeToOrders } from '../../services/orders/orderService';
 import { formatCurrency } from '../../utils/calculations';
 
 export const TableManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { setTable, setOrderType, loadDraftOrder } = useBilling();
+  const { orders } = useOrders();
 
   const [tables, setTables] = useState<RestaurantTable[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -72,12 +72,8 @@ export const TableManagementPage: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [fetchedTables, fetchedOrders] = await Promise.all([
-        getTables(businessId),
-        getOrders(businessId),
-      ]);
+      const fetchedTables = await getTables(businessId);
       setTables(fetchedTables);
-      setOrders(fetchedOrders);
     } catch (err) {
       console.error('Failed to load table management data:', err);
     } finally {
@@ -101,19 +97,8 @@ export const TableManagementPage: React.FC = () => {
       }
     );
 
-    const unsubOrders = subscribeToOrders(
-      businessId,
-      (ords) => {
-        setOrders(ords);
-      },
-      (err) => {
-        console.warn('Real-time orders subscription error for tables:', err);
-      }
-    );
-
     return () => {
       unsubTables();
-      unsubOrders();
     };
   }, [businessId]);
 

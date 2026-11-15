@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOrders, subscribeToOrders } from '../../services/orders/orderService';
+import { useOrders } from '../../contexts/OrdersContext';
 import { Order } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -23,26 +23,7 @@ import {
 export const HomePage: React.FC = () => {
   const { profile, settings } = useAuth();
   const navigate = useNavigate();
-
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const unsubscribe = subscribeToOrders(
-      profile.id,
-      (data) => {
-        setOrders(data);
-        setLoading(false);
-      },
-      (err) => {
-        console.warn('Real-time home orders error:', err);
-        setLoading(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [profile?.id]);
+  const { orders, loading } = useOrders();
 
   // Compute Today's Stats from actual orders
   const todayStats = useMemo(() => {

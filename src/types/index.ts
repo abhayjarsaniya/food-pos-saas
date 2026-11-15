@@ -265,6 +265,7 @@ export interface CustomerInfo {
 
 export interface Order {
   id: string;
+  orderId?: string; // Canonical alias for id
   billNumber: string;
   businessId: string;
   tableId?: string | null;
@@ -272,24 +273,30 @@ export interface Order {
   tableNumber?: string | null; // e.g. "Table 01", "Table 02", "Takeaway", "Parcel"
   orderType?: OrderType;
   customer?: CustomerInfo;
+  customerId?: string | null;
+  customerName?: string | null;
   items: OrderItem[];
   extras?: BillExtra[];
   payments?: OrderPayment[];
   subtotal: number;
   discountType: DiscountType;
   discountValue: number;
+  discount?: number; // Canonical alias for discountAmount
   discountAmount: number;
   taxableAmount: number;
+  tax?: number; // Canonical alias for gstAmount
   gstAmount: number;
   cgstAmount: number;
   sgstAmount: number;
   igstAmount: number;
   grandTotal: number;
   paymentMethod: PaymentMethod;
+  paymentMethodSummary?: string; // Canonical payment summary
   paymentStatus: PaymentStatus;
   amountPaid: number;
   balanceDue: number;
   status: OrderStatus;
+  orderStatus?: string; // Canonical display status ('Open', 'Completed', 'Cancelled', 'Draft')
   voidReason?: string;
   createdBy?: string;
   createdByName?: string;

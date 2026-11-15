@@ -3,17 +3,19 @@ import { NavLink } from 'react-router-dom';
 import { Home, Receipt, ShoppingBag, Wallet, Menu as MenuIcon } from 'lucide-react';
 import { useBilling } from '../../contexts/BillingContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useOrders } from '../../contexts/OrdersContext';
 
 export const MobileNavBar: React.FC = () => {
   const { items, extras } = useBilling();
   const { features } = useAuth();
+  const { pendingPaymentCount } = useOrders();
   const totalItemCount = items.reduce((sum, i) => sum + i.quantity, 0) + extras.reduce((sum, e) => sum + e.quantity, 0);
 
   const allNavItems = [
     { to: '/', label: 'Home', icon: Home, feature: null },
     { to: '/billing', label: 'Billing', icon: Receipt, badge: totalItemCount > 0 ? totalItemCount : null, highlight: true, feature: 'billing' as const },
     { to: '/orders', label: 'Orders', icon: ShoppingBag, feature: 'orders' as const },
-    { to: '/pending-payments', label: 'Pending', icon: Wallet, feature: 'pendingPayments' as const },
+    { to: '/pending-payments', label: 'Pending', icon: Wallet, badge: pendingPaymentCount > 0 ? pendingPaymentCount : null, feature: 'pendingPayments' as const },
     { to: '/more', label: 'More', icon: MenuIcon, feature: null },
   ];
 

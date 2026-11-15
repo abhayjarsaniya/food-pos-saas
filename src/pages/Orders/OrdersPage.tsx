@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOrders, subscribeToOrders, voidOrder } from '../../services/orders/orderService';
+import { useOrders } from '../../contexts/OrdersContext';
+import { voidOrder, normalizeOrderStatus, normalizePaymentStatus } from '../../services/orders/orderService';
 import { Order, PaymentMethod, PaymentStatus, OrderStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { downloadReceiptPdf, formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -26,8 +27,7 @@ import {
 
 export const OrdersPage: React.FC = () => {
   const { profile, settings } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loading, refreshOrders } = useOrders();
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,23 +46,6 @@ export const OrdersPage: React.FC = () => {
 
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const unsubscribe = subscribeToOrders(
-      profile.id,
-      (data) => {
-        setOrders(data);
-        setLoading(false);
-      },
-      (err) => {
-        console.warn('Real-time orders error:', err);
-        setLoading(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [profile?.id]);
-
   const filteredOrders = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -74,9 +57,9 @@ export const OrdersPage: React.FC = () => {
       // Search Bill number or Phone or Name
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesBill = order.billNumber.toLowerCase().includes(query);
-        const matchesPhone = order.customer?.phone?.includes(query);
-        const matchesName = order.customer?.name?.toLowerCase().includes(query);
+        const matchesBill = (order.billNumber || '').toLowerCase().includes(query);
+        const matchesPhone = (order.customer?.phone || order.customerId || '').includes(query);
+        const matchesName = (order.customer?.name || order.customerName || '').toLowerCase().includes(query);
         if (!matchesBill && !matchesPhone && !matchesName) return false;
       }
 
@@ -93,10 +76,13 @@ export const OrdersPage: React.FC = () => {
       }
 
       // Payment Filter
-      if (paymentFilter !== 'all' && order.paymentMethod !== paymentFilter) return false;
+      if (paymentFilter !== 'all' && (order.paymentMethod !== paymentFilter && order.paymentMethodSummary !== paymentFilter)) return false;
 
       // Status Filter
-      if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+      if (statusFilter !== 'all') {
+        const ordStatus = normalizeOrderStatus(order.orderStatus || order.status);
+        if (ordStatus !== normalizeOrderStatus(statusFilter)) return false;
+      }
 
       return true;
     });
@@ -114,14 +100,7 @@ export const OrdersPage: React.FC = () => {
 
     try {
       await voidOrder(profile.id, voidingOrder.id, voidReason.trim());
-      // Refresh local list
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === voidingOrder.id
-            ? { ...o, status: 'VOIDED', voidReason: voidReason.trim() }
-            : o
-        )
-      );
+      await refreshOrders();
       if (selectedOrder?.id === voidingOrder.id) {
         setSelectedOrder((prev) => prev ? { ...prev, status: 'VOIDED', voidReason: voidReason.trim() } : null);
       }

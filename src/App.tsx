@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SyncProvider } from './contexts/SyncContext';
 import { BillingProvider } from './contexts/BillingContext';
+import { OrdersProvider } from './contexts/OrdersContext';
 import { AppLayout } from './components/navigation/AppLayout';
 import { FeatureGuard } from './components/common/FeatureGuard';
 import { HomePage } from './pages/Home/HomePage';
@@ -243,7 +244,9 @@ export const App: React.FC = () => {
     <AuthProvider>
       <SyncProvider>
         <BillingProvider>
-          <AppContent />
+          <OrdersProvider>
+            <AppContent />
+          </OrdersProvider>
         </BillingProvider>
       </SyncProvider>
     </AuthProvider>

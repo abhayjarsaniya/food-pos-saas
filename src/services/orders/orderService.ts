@@ -29,6 +29,56 @@ function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   ]);
 }
 
+/**
+ * Recursively removes undefined fields and converts undefined to null,
+ * guaranteeing Firestore setDoc and updateDoc never fail with unsupported field value errors.
+ */
+export function sanitizeFirestoreData<T>(obj: T): T {
+  if (obj === undefined) {
+    return null as any;
+  }
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeFirestoreData(item)) as any;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj as Record<string, any>)) {
+    if (value === undefined) {
+      clean[key] = null;
+    } else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+      clean[key] = sanitizeFirestoreData(value);
+    } else {
+      clean[key] = value;
+    }
+  }
+  return clean as T;
+}
+
+/**
+ * Normalizes payment statuses across case, legacy values, and variations
+ */
+export function normalizePaymentStatus(status: any): 'UNPAID' | 'PARTIAL' | 'PAID' {
+  if (!status) return 'UNPAID';
+  const s = String(status).trim().toUpperCase();
+  if (s === 'PAID') return 'PAID';
+  if (s === 'PARTIAL' || s === 'PARTIALLY_PAID' || s === 'PARTIALLY PAID') return 'PARTIAL';
+  return 'UNPAID';
+}
+
+/**
+ * Normalizes order statuses across case, legacy values, and variations
+ */
+export function normalizeOrderStatus(status: any): 'OPEN' | 'COMPLETED' | 'CANCELLED' | 'DRAFT' {
+  if (!status) return 'OPEN';
+  const s = String(status).trim().toUpperCase();
+  if (s === 'COMPLETED') return 'COMPLETED';
+  if (s === 'CANCELLED' || s === 'VOIDED') return 'CANCELLED';
+  if (s === 'DRAFT') return 'DRAFT';
+  return 'OPEN';
+}
+
 function isDemo(_businessId: string): boolean {
   return false;
 }
@@ -103,23 +153,47 @@ export async function createOrder(
   }
 
   let status: OrderStatus = orderData.status || (paymentStatus === 'PAID' ? 'COMPLETED' : 'OPEN');
+  const orderStatusStr = status === 'COMPLETED' ? 'Completed' : status === 'CANCELLED' || status === 'VOIDED' ? 'Cancelled' : status === 'DRAFT' ? 'Draft' : 'Open';
+
+  const subtotal = round2(orderData.subtotal || 0);
+  const discountVal = round2(orderData.discountAmount || (orderData as any).discount || 0);
+  const taxVal = round2(orderData.gstAmount || (orderData as any).tax || 0);
+  const customerId = orderData.customer?.phone || (orderData as any).customerId || null;
+  const customerName = orderData.customer?.name || (orderData as any).customerName || null;
+  const tableId = orderData.tableId || null;
+  const tableName = orderData.tableName || orderData.tableNumber || null;
 
   const order: Order = {
     ...orderData,
     id: orderId,
+    orderId,
     billNumber,
     businessId,
-    tableId: orderData.tableId || undefined,
-    tableName: orderData.tableName || orderData.tableNumber || '',
-    tableNumber: orderData.tableName || orderData.tableNumber || '',
-    orderType: orderData.orderType || 'DINE_IN',
+    items: orderData.items || [],
     extras: orderData.extras || [],
     payments: orderData.payments || [],
-    status,
-    paymentStatus,
+    subtotal,
+    discount: discountVal,
+    discountAmount: discountVal,
+    tax: taxVal,
+    gstAmount: taxVal,
+    grandTotal,
     amountPaid,
     balanceDue,
-    grandTotal,
+    status,
+    orderStatus: orderStatusStr,
+    paymentStatus,
+    paymentMethod: orderData.paymentMethod || 'CASH',
+    paymentMethodSummary: orderData.paymentMethod || 'CASH',
+    customerId,
+    customerName,
+    tableId,
+    tableName,
+    tableNumber: tableName,
+    orderType: orderData.orderType || 'DINE_IN',
+    createdBy: orderData.createdBy || 'cashier',
+    createdByName: orderData.createdByName || 'Counter Cashier',
+    isDemo: false,
     createdAt: now,
     updatedAt: now,
     syncedWithCloud: false,
@@ -149,12 +223,13 @@ export async function createOrder(
   if (!isDemo(businessId)) {
     try {
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
+      const sanitizedDoc = sanitizeFirestoreData({
+        ...order,
+        syncedWithCloud: true,
+      });
+
       await withTimeout(
-        setDoc(orderDocRef, {
-          ...order,
-          orderId,
-          syncedWithCloud: true,
-        }),
+        setDoc(orderDocRef, sanitizedDoc),
         8000
       );
 
@@ -162,7 +237,7 @@ export async function createOrder(
       if (order.payments && order.payments.length > 0) {
         const payment = order.payments[0];
         const payRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', payment.id);
-        await setDoc(payRef, payment).catch(() => {});
+        await setDoc(payRef, sanitizeFirestoreData(payment)).catch(() => {});
       }
 
       await markOrderSyncedInIndexedDB(orderId);
@@ -327,13 +402,17 @@ export async function recordOrderPayment(
   const newOrderStatus: OrderStatus = newBalanceDue === 0 ? 'COMPLETED' : existing.status;
 
   const existingPayments = existing.payments || [];
+  const updatedOrderStatusStr = newOrderStatus === 'COMPLETED' ? 'Completed' : 'Open';
+
   const updatedOrder: Order = {
     ...existing,
     amountPaid: newAmountPaid,
     balanceDue: newBalanceDue,
     paymentStatus: newPaymentStatus,
     paymentMethod: params.paymentMethod, // last used method
+    paymentMethodSummary: params.paymentMethod,
     status: newOrderStatus,
+    orderStatus: updatedOrderStatusStr,
     payments: [...existingPayments, payment],
     updatedAt: now,
     syncedWithCloud: true,
@@ -346,18 +425,21 @@ export async function recordOrderPayment(
   if (!isDemo(businessId)) {
     try {
       const paymentDocRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', paymentId);
+      const updatePayload = sanitizeFirestoreData({
+        amountPaid: newAmountPaid,
+        balanceDue: newBalanceDue,
+        paymentStatus: newPaymentStatus,
+        status: newOrderStatus,
+        orderStatus: updatedOrderStatusStr,
+        paymentMethod: params.paymentMethod,
+        paymentMethodSummary: params.paymentMethod,
+        payments: updatedOrder.payments,
+        updatedAt: now,
+      });
 
       await Promise.all([
-        setDoc(paymentDocRef, payment),
-        updateDoc(orderDocRef, {
-          amountPaid: newAmountPaid,
-          balanceDue: newBalanceDue,
-          paymentStatus: newPaymentStatus,
-          status: newOrderStatus,
-          paymentMethod: params.paymentMethod,
-          payments: updatedOrder.payments,
-          updatedAt: now,
-        })
+        setDoc(paymentDocRef, sanitizeFirestoreData(payment)),
+        updateDoc(orderDocRef, updatePayload)
       ]);
     } catch (err) {
       console.warn('Could not sync payment to cloud immediately, stored locally:', err);
@@ -422,7 +504,8 @@ export async function updateOrder(
   if (!isDemo(businessId)) {
     try {
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
-      await withTimeout(updateDoc(orderDocRef, { ...updates, updatedAt: now }), 5000);
+      const sanitizedUpdates = sanitizeFirestoreData({ ...updates, updatedAt: now });
+      await withTimeout(updateDoc(orderDocRef, sanitizedUpdates), 5000);
     } catch (err) {
       console.warn('Could not sync order updates to cloud immediately:', err);
     }
@@ -446,6 +529,7 @@ export async function voidOrder(businessId: string, orderId: string, voidReason:
   const existing = orders.find((o) => o.id === orderId);
   if (existing) {
     existing.status = 'VOIDED';
+    existing.orderStatus = 'Cancelled';
     existing.voidReason = voidReason.trim();
     existing.updatedAt = now;
     existing.syncedWithCloud = false;
@@ -456,13 +540,16 @@ export async function voidOrder(businessId: string, orderId: string, voidReason:
   if (!isDemo(businessId)) {
     try {
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
+      const voidPayload = sanitizeFirestoreData({
+        status: 'VOIDED' as OrderStatus,
+        orderStatus: 'Cancelled',
+        voidReason: voidReason.trim(),
+        updatedAt: now,
+        syncedWithCloud: true,
+      });
+
       await withTimeout(
-        setDoc(orderDocRef, {
-          status: 'VOIDED' as OrderStatus,
-          voidReason: voidReason.trim(),
-          updatedAt: now,
-          syncedWithCloud: true,
-        }, { merge: true }),
+        setDoc(orderDocRef, voidPayload, { merge: true }),
         5000
       );
 
