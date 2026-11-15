@@ -72,16 +72,16 @@ async function runAcceptanceTests() {
   assert(sanitized.customer.nested.valid === 123, 'Valid fields preserved in nested object');
   assert(sanitized.items[0].notes === null, 'Undefined array element field sanitized to null');
 
-  assert(normalizePaymentStatus('UNPAID') === 'UNPAID', 'normalizePaymentStatus: UNPAID');
-  assert(normalizePaymentStatus('unpaid') === 'UNPAID', 'normalizePaymentStatus: lowercase unpaid');
-  assert(normalizePaymentStatus('PARTIALLY_PAID') === 'PARTIAL', 'normalizePaymentStatus: PARTIALLY_PAID -> PARTIAL');
-  assert(normalizePaymentStatus('partially paid') === 'PARTIAL', 'normalizePaymentStatus: partially paid -> PARTIAL');
-  assert(normalizePaymentStatus('PAID') === 'PAID', 'normalizePaymentStatus: PAID');
+  assert(normalizePaymentStatus('UNPAID') === 'Unpaid', 'normalizePaymentStatus: UNPAID -> Unpaid');
+  assert(normalizePaymentStatus('unpaid') === 'Unpaid', 'normalizePaymentStatus: lowercase unpaid -> Unpaid');
+  assert(normalizePaymentStatus('PARTIALLY_PAID') === 'Partially Paid', 'normalizePaymentStatus: PARTIALLY_PAID -> Partially Paid');
+  assert(normalizePaymentStatus('partially paid') === 'Partially Paid', 'normalizePaymentStatus: partially paid -> Partially Paid');
+  assert(normalizePaymentStatus('PAID') === 'Paid', 'normalizePaymentStatus: PAID -> Paid');
 
-  assert(normalizeOrderStatus('OPEN') === 'OPEN', 'normalizeOrderStatus: OPEN');
-  assert(normalizeOrderStatus('Completed') === 'COMPLETED', 'normalizeOrderStatus: Completed -> COMPLETED');
-  assert(normalizeOrderStatus('VOIDED') === 'CANCELLED', 'normalizeOrderStatus: VOIDED -> CANCELLED');
-  assert(normalizeOrderStatus('Draft') === 'DRAFT', 'normalizeOrderStatus: Draft -> DRAFT');
+  assert(normalizeOrderStatus('OPEN') === 'Open', 'normalizeOrderStatus: OPEN -> Open');
+  assert(normalizeOrderStatus('Completed') === 'Completed', 'normalizeOrderStatus: Completed -> Completed');
+  assert(normalizeOrderStatus('VOIDED') === 'Cancelled', 'normalizeOrderStatus: VOIDED -> Cancelled');
+  assert(normalizeOrderStatus('Draft') === 'Draft', 'normalizeOrderStatus: Draft -> Draft');
 
   // --- REQUIREMENT 4: FIRESTORE AUTHENTICATION & INSTANT REAL-TIME BILL SAVING ---
   console.log('\n[TEST 4] Authenticate Shop Owner and Test Live Firestore Operations...');

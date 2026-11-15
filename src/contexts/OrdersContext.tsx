@@ -4,8 +4,7 @@ import { useAuth } from './AuthContext';
 import { 
   subscribeToOrders, 
   getOrders, 
-  normalizePaymentStatus, 
-  normalizeOrderStatus 
+  isEligiblePendingPayment 
 } from '../services/orders/orderService';
 
 interface OrdersContextType {
@@ -14,6 +13,7 @@ interface OrdersContextType {
   pendingPaymentOrders: Order[];
   pendingPaymentCount: number;
   refreshOrders: () => Promise<void>;
+  addOrUpdateOrder: (order: Order) => void;
 }
 
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -22,6 +22,39 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { profile } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const addOrUpdateOrder = useCallback((incoming: Order) => {
+    setOrders((prev) => {
+      const targetId = incoming.id || incoming.orderId;
+      const idx = prev.findIndex(
+        (o) => o.id === targetId || o.orderId === targetId || (incoming.orderId && o.id === incoming.orderId)
+      );
+
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], ...incoming };
+        return updated;
+      }
+      return [incoming, ...prev];
+    });
+  }, []);
+
+  // Listen to immediate in-memory order events (instant 0ms update across UI)
+  useEffect(() => {
+    const handleOrderEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<Order>;
+      if (customEvent.detail) {
+        addOrUpdateOrder(customEvent.detail);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('food_pos_order_saved', handleOrderEvent);
+      return () => {
+        window.removeEventListener('food_pos_order_saved', handleOrderEvent);
+      };
+    }
+  }, [addOrUpdateOrder]);
 
   // Subscribe to real-time Firestore order stream for the current business
   useEffect(() => {
@@ -59,17 +92,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Actual pending payment orders (Unpaid & Partially Paid with active balance, excluding Cancelled/Voided)
   const pendingPaymentOrders = useMemo(() => {
-    return orders.filter((o) => {
-      const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
-      if (ordStatus === 'CANCELLED' || ordStatus === 'DRAFT') return false;
-
-      const payStatus = normalizePaymentStatus(o.paymentStatus);
-      const balance = o.balanceDue !== undefined 
-        ? o.balanceDue 
-        : Math.max(0, (o.grandTotal || 0) - (o.amountPaid || 0));
-
-      return (payStatus === 'UNPAID' || payStatus === 'PARTIAL') && balance > 0;
-    });
+    return orders.filter((o) => isEligiblePendingPayment(o));
   }, [orders]);
 
   const pendingPaymentCount = pendingPaymentOrders.length;
@@ -82,6 +105,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         pendingPaymentOrders,
         pendingPaymentCount,
         refreshOrders,
+        addOrUpdateOrder,
       }}
     >
       {children}

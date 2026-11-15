@@ -57,26 +57,66 @@ export function sanitizeFirestoreData<T>(obj: T): T {
 }
 
 /**
- * Normalizes payment statuses across case, legacy values, and variations
+ * Normalizes payment statuses across case, legacy values, and variations to canonical values:
+ * 'Unpaid' | 'Partially Paid' | 'Paid'
  */
-export function normalizePaymentStatus(status: any): 'UNPAID' | 'PARTIAL' | 'PAID' {
-  if (!status) return 'UNPAID';
+export function normalizePaymentStatus(status: any): 'Unpaid' | 'Partially Paid' | 'Paid' {
+  if (!status) return 'Unpaid';
   const s = String(status).trim().toUpperCase();
-  if (s === 'PAID') return 'PAID';
-  if (s === 'PARTIAL' || s === 'PARTIALLY_PAID' || s === 'PARTIALLY PAID') return 'PARTIAL';
-  return 'UNPAID';
+  if (s === 'PAID') return 'Paid';
+  if (s === 'PARTIAL' || s === 'PARTIALLY_PAID' || s === 'PARTIALLY PAID' || s === 'PARTIALLY-PAID') return 'Partially Paid';
+  return 'Unpaid';
 }
 
 /**
- * Normalizes order statuses across case, legacy values, and variations
+ * Normalizes order statuses across case, legacy values, and variations to canonical values:
+ * 'Draft' | 'Open' | 'Completed' | 'Cancelled'
  */
-export function normalizeOrderStatus(status: any): 'OPEN' | 'COMPLETED' | 'CANCELLED' | 'DRAFT' {
-  if (!status) return 'OPEN';
+export function normalizeOrderStatus(status: any): 'Draft' | 'Open' | 'Completed' | 'Cancelled' {
+  if (!status) return 'Open';
   const s = String(status).trim().toUpperCase();
-  if (s === 'COMPLETED') return 'COMPLETED';
-  if (s === 'CANCELLED' || s === 'VOIDED') return 'CANCELLED';
-  if (s === 'DRAFT') return 'DRAFT';
-  return 'OPEN';
+  if (s === 'COMPLETED') return 'Completed';
+  if (s === 'CANCELLED' || s === 'CANCELED' || s === 'VOIDED') return 'Cancelled';
+  if (s === 'DRAFT') return 'Draft';
+  return 'Open';
+}
+
+/**
+ * Determines strictly whether an order record is eligible to appear in Pending Payments.
+ * Requirement 5:
+ *   - paymentStatus is 'Unpaid' or 'Partially Paid'
+ *   - Excludes fully paid orders (balanceDue <= 0 or Paid)
+ *   - Excludes cancelled orders
+ *   - Order status and payment status are treated independently (Open or Completed does not block unpaid dues)
+ */
+export function isEligiblePendingPayment(order: any): boolean {
+  if (!order) return false;
+
+  const ordStatus = normalizeOrderStatus(order.orderStatus || order.status);
+  if (ordStatus === 'Cancelled') return false;
+
+  const payStatus = normalizePaymentStatus(order.canonicalPaymentStatus || order.paymentStatus);
+  if (payStatus === 'Paid') return false;
+
+  const grandTotal = typeof order.grandTotal === 'number' ? order.grandTotal : parseFloat(order.grandTotal) || 0;
+  const amountPaid = typeof order.amountPaid === 'number' ? order.amountPaid : parseFloat(order.amountPaid) || 0;
+  const balanceDue = order.balanceDue !== undefined && order.balanceDue !== null
+    ? (typeof order.balanceDue === 'number' ? order.balanceDue : parseFloat(order.balanceDue) || 0)
+    : Math.max(0, grandTotal - amountPaid);
+
+  if (balanceDue <= 0) return false;
+
+  return payStatus === 'Unpaid' || payStatus === 'Partially Paid';
+}
+
+/**
+ * Dispatches an immediate event to synchronize in-memory React state
+ * across all mounted contexts without waiting for asynchronous network roundtrips.
+ */
+export function onOrderSaved(order: Order): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('food_pos_order_saved', { detail: order }));
+  }
 }
 
 function isDemo(_businessId: string): boolean {
@@ -146,14 +186,18 @@ export async function createOrder(
 
   // Determine exact statuses
   let paymentStatus: PaymentStatus = 'UNPAID';
+  let canonicalPaymentStatus: 'Unpaid' | 'Partially Paid' | 'Paid' = 'Unpaid';
   if (amountPaid >= grandTotal && grandTotal > 0) {
     paymentStatus = 'PAID';
+    canonicalPaymentStatus = 'Paid';
   } else if (amountPaid > 0) {
     paymentStatus = 'PARTIAL';
+    canonicalPaymentStatus = 'Partially Paid';
   }
 
   let status: OrderStatus = orderData.status || (paymentStatus === 'PAID' ? 'COMPLETED' : 'OPEN');
-  const orderStatusStr = status === 'COMPLETED' ? 'Completed' : status === 'CANCELLED' || status === 'VOIDED' ? 'Cancelled' : status === 'DRAFT' ? 'Draft' : 'Open';
+  const orderStatusStr: 'Draft' | 'Open' | 'Completed' | 'Cancelled' = 
+    status === 'COMPLETED' ? 'Completed' : status === 'CANCELLED' || status === 'VOIDED' ? 'Cancelled' : status === 'DRAFT' ? 'Draft' : 'Open';
 
   const subtotal = round2(orderData.subtotal || 0);
   const discountVal = round2(orderData.discountAmount || (orderData as any).discount || 0);
@@ -183,6 +227,7 @@ export async function createOrder(
     status,
     orderStatus: orderStatusStr,
     paymentStatus,
+    canonicalPaymentStatus,
     paymentMethod: orderData.paymentMethod || 'CASH',
     paymentMethodSummary: orderData.paymentMethod || 'CASH',
     customerId,
@@ -242,14 +287,22 @@ export async function createOrder(
 
       await markOrderSyncedInIndexedDB(orderId);
       order.syncedWithCloud = true;
-    } catch (err) {
-      console.warn('Order saved offline. Will sync when connection is established:', err);
+      onOrderSaved(order);
+    } catch (err: any) {
+      console.error('Firestore save failed:', err);
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        throw new Error(`Failed to save bill to cloud database: ${err.message || 'Write timed out or was rejected'}`);
+      }
       order.syncedWithCloud = false;
+      onOrderSaved(order);
     }
   } else {
     await markOrderSyncedInIndexedDB(orderId);
     order.syncedWithCloud = true;
+    onOrderSaved(order);
   }
+
+  return order;
 
   return order;
 }
@@ -399,6 +452,8 @@ export async function recordOrderPayment(
   const newAmountPaid = round2((existing.amountPaid || 0) + roundedAmount);
   const newBalanceDue = Math.max(0, round2(existing.grandTotal - newAmountPaid));
   const newPaymentStatus: PaymentStatus = newBalanceDue === 0 ? 'PAID' : 'PARTIAL';
+  const newCanonicalPaymentStatus: 'Unpaid' | 'Partially Paid' | 'Paid' = 
+    newBalanceDue === 0 ? 'Paid' : 'Partially Paid';
   const newOrderStatus: OrderStatus = newBalanceDue === 0 ? 'COMPLETED' : existing.status;
 
   const existingPayments = existing.payments || [];
@@ -409,6 +464,7 @@ export async function recordOrderPayment(
     amountPaid: newAmountPaid,
     balanceDue: newBalanceDue,
     paymentStatus: newPaymentStatus,
+    canonicalPaymentStatus: newCanonicalPaymentStatus,
     paymentMethod: params.paymentMethod, // last used method
     paymentMethodSummary: params.paymentMethod,
     status: newOrderStatus,
@@ -429,6 +485,7 @@ export async function recordOrderPayment(
         amountPaid: newAmountPaid,
         balanceDue: newBalanceDue,
         paymentStatus: newPaymentStatus,
+        canonicalPaymentStatus: newCanonicalPaymentStatus,
         status: newOrderStatus,
         orderStatus: updatedOrderStatusStr,
         paymentMethod: params.paymentMethod,
@@ -441,11 +498,15 @@ export async function recordOrderPayment(
         setDoc(paymentDocRef, sanitizeFirestoreData(payment)),
         updateDoc(orderDocRef, updatePayload)
       ]);
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Could not sync payment to cloud immediately, stored locally:', err);
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        throw new Error(`Failed to record payment in cloud database: ${err.message || 'Network timeout or permission error'}`);
+      }
     }
   }
 
+  onOrderSaved(updatedOrder);
   return { order: updatedOrder, payment };
 }
 

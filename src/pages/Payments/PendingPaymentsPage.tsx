@@ -1,7 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../contexts/OrdersContext';
-import { markOrderReceived, recordOrderPayment, normalizePaymentStatus, normalizeOrderStatus } from '../../services/orders/orderService';
+import { 
+  markOrderReceived, 
+  recordOrderPayment, 
+  normalizePaymentStatus, 
+  normalizeOrderStatus,
+  isEligiblePendingPayment
+} from '../../services/orders/orderService';
 import { Order, PaymentMethod, PaymentStatus } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { formatDateTime } from '../../services/pdf/receiptGenerator';
@@ -56,26 +62,31 @@ export const PendingPaymentsPage: React.FC = () => {
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
-      if (ordStatus === 'CANCELLED' || ordStatus === 'DRAFT') return false;
+      if (ordStatus === 'Cancelled') return false;
 
-      const payStatus = normalizePaymentStatus(o.paymentStatus);
-      const balance = o.balanceDue !== undefined 
-        ? o.balanceDue 
-        : Math.max(0, (o.grandTotal || 0) - (o.amountPaid || 0));
+      const payStatus = normalizePaymentStatus(o.canonicalPaymentStatus || o.paymentStatus);
+      const grandTotal = typeof o.grandTotal === 'number' ? o.grandTotal : parseFloat(o.grandTotal) || 0;
+      const amountPaid = typeof o.amountPaid === 'number' ? o.amountPaid : parseFloat(o.amountPaid) || 0;
+      const balance = o.balanceDue !== undefined && o.balanceDue !== null 
+        ? (typeof o.balanceDue === 'number' ? o.balanceDue : parseFloat(o.balanceDue) || 0)
+        : Math.max(0, grandTotal - amountPaid);
 
-      // Filter by status
+      // Filter by status tab
       if (statusFilter === 'PENDING') {
-        if (payStatus === 'PAID' || balance <= 0) return false;
+        if (!isEligiblePendingPayment(o)) return false;
       } else if (statusFilter === 'UNPAID') {
-        if (payStatus !== 'UNPAID') return false;
+        if (payStatus !== 'Unpaid' || balance <= 0) return false;
       } else if (statusFilter === 'PARTIAL') {
-        if (payStatus !== 'PARTIAL') return false;
+        if (payStatus !== 'Partially Paid' || balance <= 0) return false;
       } else if (statusFilter === 'PAID') {
-        if (payStatus !== 'PAID') return false;
+        if (payStatus !== 'Paid' && balance > 0) return false;
       }
 
       // Filter by table
-      if (tableFilter !== 'ALL' && o.tableNumber !== tableFilter) return false;
+      if (tableFilter !== 'ALL') {
+        const tbl = o.tableNumber || o.tableName;
+        if (tbl !== tableFilter) return false;
+      }
 
       // Search query
       if (searchQuery.trim()) {
@@ -93,11 +104,13 @@ export const PendingPaymentsPage: React.FC = () => {
 
   const totalOutstanding = useMemo(() => {
     return orders
-      .filter((o) => {
-        const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
-        return ordStatus !== 'CANCELLED';
-      })
-      .reduce((sum, o) => sum + (o.balanceDue || 0), 0);
+      .filter((o) => isEligiblePendingPayment(o))
+      .reduce((sum, o) => {
+        const bal = o.balanceDue !== undefined && o.balanceDue !== null 
+          ? (typeof o.balanceDue === 'number' ? o.balanceDue : parseFloat(o.balanceDue) || 0)
+          : Math.max(0, (o.grandTotal || 0) - (o.amountPaid || 0));
+        return sum + bal;
+      }, 0);
   }, [orders]);
 
   const handleOpenReceiveModal = (order: Order) => {

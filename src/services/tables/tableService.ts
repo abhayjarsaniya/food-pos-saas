@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Order, RestaurantTable, TableStatus, TableWithStatus } from '../../types';
+import { normalizePaymentStatus, normalizeOrderStatus } from '../orders/orderService';
 
 function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
@@ -329,7 +330,8 @@ export function calculateTableStatuses(
     // Find active orders currently occupying this table
     const activeOrders = orders.filter(o => {
       // Must be an active dining order occupying the table
-      const isOccupying = o.status === 'OPEN' || o.status === 'DRAFT';
+      const ordStatus = normalizeOrderStatus(o.orderStatus || o.status);
+      const isOccupying = ordStatus === 'Open' || ordStatus === 'Draft';
       if (!isOccupying) return false;
 
       const isLinked = o.tableId === table.id || 
@@ -342,11 +344,17 @@ export function calculateTableStatuses(
     let totalOutstanding = 0;
 
     if (activeOrders.length > 0) {
-      totalOutstanding = activeOrders.reduce((sum, o) => sum + (o.balanceDue || 0), 0);
+      totalOutstanding = activeOrders.reduce((sum, o) => {
+        const bal = o.balanceDue !== undefined && o.balanceDue !== null 
+          ? o.balanceDue 
+          : Math.max(0, (o.grandTotal || 0) - (o.amountPaid || 0));
+        return sum + bal;
+      }, 0);
 
-      const hasPaymentPending = activeOrders.some(
-        o => o.paymentStatus === 'UNPAID' || o.paymentStatus === 'PARTIAL'
-      );
+      const hasPaymentPending = activeOrders.some(o => {
+        const payStatus = normalizePaymentStatus(o.canonicalPaymentStatus || o.paymentStatus);
+        return payStatus === 'Unpaid' || payStatus === 'Partially Paid';
+      });
 
       if (hasPaymentPending) {
         status = 'PAYMENT_PENDING';

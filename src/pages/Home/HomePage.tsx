@@ -36,12 +36,20 @@ export const HomePage: React.FC = () => {
     let revenue = 0;
     let cash = 0;
     let upi = 0;
+    let outstanding = 0;
 
     todaysOrders.forEach((o) => {
       revenue += o.grandTotal;
       const collected = o.amountPaid || (o.paymentStatus === 'PAID' ? o.grandTotal : 0);
       if (o.paymentMethod === 'CASH') cash += collected;
       else if (o.paymentMethod === 'UPI') upi += collected;
+
+      const bal = o.balanceDue !== undefined && o.balanceDue !== null 
+        ? o.balanceDue 
+        : Math.max(0, o.grandTotal - collected);
+      if (o.status !== 'CANCELLED' && o.status !== 'VOIDED') {
+        outstanding += bal;
+      }
     });
 
     const count = todaysOrders.length;
@@ -53,6 +61,7 @@ export const HomePage: React.FC = () => {
       aov,
       cash,
       upi,
+      outstanding,
     };
   }, [orders]);
 

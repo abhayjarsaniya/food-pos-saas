@@ -293,6 +293,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   paymentMethodSummary?: string; // Canonical payment summary
   paymentStatus: PaymentStatus;
+  canonicalPaymentStatus?: string; // Canonical payment status ('Unpaid', 'Partially Paid', 'Paid')
   amountPaid: number;
   balanceDue: number;
   status: OrderStatus;
