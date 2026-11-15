@@ -297,15 +297,15 @@ export const BillingPage: React.FC = () => {
 
         {/* Table Selection – Dropdown Only */}
         <div className="p-3 bg-white border border-zinc-200/90 rounded-2xl shadow-2xs space-y-2.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             {/* Order Type Toggle (Dine In, Takeaway, Parcel) */}
-            <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-xl w-fit">
+            <div className="flex items-center gap-1.5 p-1.5 bg-zinc-100 rounded-2xl w-full sm:w-fit">
               <button
                 type="button"
                 onClick={() => setOrderType('DINE_IN')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 ${
                   orderType === 'DINE_IN'
-                    ? 'bg-white text-zinc-950 shadow-2xs'
+                    ? 'bg-white text-zinc-950 shadow-xs'
                     : 'text-zinc-600 hover:text-zinc-900'
                 }`}
               >
@@ -316,9 +316,9 @@ export const BillingPage: React.FC = () => {
                 onClick={() => {
                   setOrderType('TAKEAWAY');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 ${
                   orderType === 'TAKEAWAY'
-                    ? 'bg-amber-600 text-white shadow-2xs'
+                    ? 'bg-amber-600 text-white shadow-xs'
                     : 'text-zinc-600 hover:text-zinc-900'
                 }`}
               >
@@ -329,9 +329,9 @@ export const BillingPage: React.FC = () => {
                 onClick={() => {
                   setOrderType('PARCEL');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 ${
                   orderType === 'PARCEL'
-                    ? 'bg-amber-600 text-white shadow-2xs'
+                    ? 'bg-amber-600 text-white shadow-xs'
                     : 'text-zinc-600 hover:text-zinc-900'
                 }`}
               >
@@ -340,9 +340,9 @@ export const BillingPage: React.FC = () => {
             </div>
 
             {/* Current Selection Indicator */}
-            <div className="text-[11px] font-medium text-zinc-500 flex items-center gap-1">
+            <div className="text-xs font-medium text-zinc-500 flex items-center gap-1.5 px-1">
               <span>Selected:</span>
-              <span className="font-bold text-zinc-900 font-mono">
+              <span className="font-bold text-zinc-900 font-mono text-sm">
                 {orderType === 'TAKEAWAY' ? 'Takeaway' : orderType === 'PARCEL' ? 'Parcel' : (tableName || 'No Table Selected')}
               </span>
             </div>
@@ -350,11 +350,11 @@ export const BillingPage: React.FC = () => {
 
           {/* Proper Table Dropdown (Only dropdown) */}
           <div className="relative">
-            <label htmlFor="table-dropdown-select" className="block text-[11px] font-bold text-zinc-700 uppercase tracking-wider mb-1">
+            <label htmlFor="table-dropdown-select" className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
               Assigned Table
             </label>
             <div className="relative">
-              <UtensilsCrossed className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <UtensilsCrossed className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               <select
                 id="table-dropdown-select"
                 value={tableId || ''}
@@ -369,7 +369,7 @@ export const BillingPage: React.FC = () => {
                     }
                   }
                 }}
-                className="w-full pl-10 pr-8 py-2.5 bg-zinc-50 hover:bg-zinc-100/60 border border-zinc-300 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all cursor-pointer"
+                className="w-full pl-12 pr-10 min-h-[52px] bg-zinc-50 hover:bg-zinc-100/70 border border-zinc-300 rounded-2xl text-sm sm:text-base font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all cursor-pointer"
               >
                 <option value="">No Table Selected</option>
                 {activeTables.map((tbl) => {
@@ -392,20 +392,20 @@ export const BillingPage: React.FC = () => {
         </div>
 
         {/* Search & Actions Bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search food, beverages, snacks..."
-              className="w-full pl-9 pr-4 py-2 bg-zinc-100/80 hover:bg-zinc-100 focus:bg-white text-xs sm:text-sm rounded-xl border border-zinc-200/80 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+              className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-100/90 hover:bg-zinc-100 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -416,9 +416,9 @@ export const BillingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsExtraModalOpen(true)}
-            className="py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 shrink-0"
+            className="min-h-[50px] px-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-xs transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4" />
             <span>+ Extras</span>
           </button>
 
@@ -426,21 +426,21 @@ export const BillingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCustomItemModalOpen(true)}
-            className="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 shrink-0"
+            className="min-h-[50px] px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-xs transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>+ Custom</span>
           </button>
         </div>
 
         {/* Horizontal Category Selector */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
               selectedCategory === null
-                ? 'bg-zinc-900 text-white shadow-2xs'
-                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                ? 'bg-zinc-900 text-white shadow-xs'
+                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
             }`}
           >
             All Items
@@ -450,10 +450,10 @@ export const BillingPage: React.FC = () => {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
                 selectedCategory === cat.id
-                  ? 'bg-zinc-900 text-white shadow-2xs'
-                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  ? 'bg-zinc-900 text-white shadow-xs'
+                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
               }`}
             >
               {cat.name}
@@ -466,7 +466,7 @@ export const BillingPage: React.FC = () => {
           {loadingMenu ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-28 bg-zinc-100 animate-pulse rounded-2xl border border-zinc-200"></div>
+                <div key={i} className="h-32 bg-zinc-100 animate-pulse rounded-2xl border border-zinc-200"></div>
               ))}
             </div>
           ) : filteredMenuItems.length === 0 ? (
@@ -481,71 +481,73 @@ export const BillingPage: React.FC = () => {
                   <div
                     key={item.id}
                     onClick={() => handleItemClick(item)}
-                    className={`p-3 bg-white border rounded-2xl flex flex-col justify-between transition-all select-none cursor-pointer relative shadow-2xs hover:shadow-xs active:scale-[0.98] ${
-                      qtyInBill > 0 ? 'border-zinc-900 ring-1 ring-zinc-900' : 'border-zinc-200/80 hover:border-zinc-300'
+                    className={`p-3.5 bg-white border rounded-2xl flex flex-col justify-between transition-all select-none cursor-pointer relative shadow-xs hover:shadow-sm active:scale-[0.98] min-h-[110px] ${
+                      qtyInBill > 0 ? 'border-zinc-900 ring-2 ring-zinc-900' : 'border-zinc-200/90 hover:border-zinc-300'
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <span
-                          className={`w-2.5 h-2.5 rounded-full ${
+                          className={`w-3 h-3 rounded-full ${
                             item.isVeg ? 'bg-emerald-500' : 'bg-rose-500'
                           }`}
                           title={item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'}
                         />
                         {qtyInBill > 0 && (
-                          <span className="text-[10px] font-bold bg-zinc-950 text-white px-1.5 py-0.2 rounded-full">
+                          <span className="text-[11px] font-bold bg-zinc-950 text-white px-2 py-0.5 rounded-full shadow-2xs">
                             x{qtyInBill}
                           </span>
                         )}
                       </div>
-                      <h3 className="text-xs font-bold text-zinc-900 line-clamp-2">
+                      <h3 className="text-xs sm:text-sm font-bold text-zinc-900 line-clamp-2 leading-snug">
                         {item.name}
                       </h3>
                       {item.variants && item.variants.length > 0 && (
-                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block mt-1">
                           {item.variants.filter((v) => v.isAvailable).length} Variants
                         </span>
                       )}
                       {item.priceType === 'mrp' && (
-                        <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md inline-block mt-1">
                           MRP
                         </span>
                       )}
                       {item.isPromotional && (
-                        <span className="text-[9px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md inline-block mt-1">
+                        <span className="text-[9px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md inline-block mt-1">
                           Promo Combo
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-zinc-100">
-                      <span className="text-xs font-bold text-zinc-950 font-mono">
+                    <div className="mt-3 flex items-center justify-between pt-2 border-t border-zinc-100">
+                      <span className="text-xs sm:text-sm font-bold text-zinc-950 font-mono">
                         {item.priceType === 'mrp' ? 'MRP' : formatCurrency(item.price)}
                       </span>
                       {qtyInBill > 0 ? (
                         <div
-                          className="flex items-center gap-1"
+                          className="flex items-center gap-1.5"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             onClick={() => updateItemQuantity(item.id, -1)}
-                            className="w-5 h-5 rounded-md bg-zinc-200 hover:bg-zinc-300 text-zinc-900 flex items-center justify-center transition-colors"
+                            className="w-11 h-11 stepper-btn-mobile rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 flex items-center justify-center transition-all active:scale-90"
+                            title="Decrease quantity"
                           >
-                            <Minus className="w-2.5 h-2.5" />
+                            <Minus className="w-5 h-5" />
                           </button>
-                          <span className="text-xs font-bold text-zinc-900 w-3 text-center">
+                          <span className="text-base font-bold text-zinc-900 min-w-[24px] text-center">
                             {qtyInBill}
                           </span>
                           <button
                             onClick={() => updateItemQuantity(item.id, 1)}
-                            className="w-5 h-5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center transition-colors"
+                            className="w-11 h-11 stepper-btn-mobile rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+                            title="Increase quantity"
                           >
-                            <Plus className="w-2.5 h-2.5" />
+                            <Plus className="w-5 h-5" />
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-zinc-400 font-medium">
+                        <span className="text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition-colors">
                           + Add
                         </span>
                       )}
@@ -645,21 +647,21 @@ export const BillingPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-0.5">
+                    <div className="flex items-center gap-1.5 bg-zinc-100 rounded-xl p-1">
                       <button
                         onClick={() => updateItemQuantity(item.itemId, -1)}
-                        className="w-5 h-5 flex items-center justify-center text-zinc-700 hover:bg-white rounded transition-colors"
+                        className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-zinc-700 hover:bg-white rounded-lg transition-all active:scale-90"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-4 h-4" />
                       </button>
-                      <span className="text-xs font-bold text-zinc-900 w-4 text-center">
+                      <span className="text-sm font-bold text-zinc-900 w-6 text-center">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateItemQuantity(item.itemId, 1)}
-                        className="w-5 h-5 flex items-center justify-center text-zinc-700 hover:bg-white rounded transition-colors"
+                        className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-zinc-700 hover:bg-white rounded-lg transition-all active:scale-90"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -790,43 +792,43 @@ export const BillingPage: React.FC = () => {
 
       {/* MOBILE FIXED BOTTOM BILLING BAR */}
       {(items.length > 0 || extras.length > 0) && (
-        <div className="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-30 shadow-lg safe-bottom">
-          <div className="flex items-center justify-between gap-2 max-w-md mx-auto">
-            <div>
-              <p className="text-[10px] text-zinc-500 font-semibold uppercase font-mono">
-                {tableNumber} • {items.length + extras.length} Items
+        <div className="lg:hidden fixed bottom-16 sm:bottom-18 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-30 shadow-2xl safe-bottom">
+          <div className="flex items-center justify-between gap-2.5 max-w-lg mx-auto">
+            <div className="min-w-0 pr-1">
+              <p className="text-[11px] text-zinc-500 font-bold uppercase font-mono truncate">
+                {tableNumber || tableName || 'Counter'} • {items.length + extras.length} Items
               </p>
-              <p className="text-base font-bold text-zinc-950 font-mono">
+              <p className="text-xl font-black text-zinc-950 font-mono tracking-tight leading-tight">
                 {formatCurrency(grandTotal)}
               </p>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => clearBill()}
-                className="p-2 rounded-xl border border-zinc-200 text-zinc-500 hover:text-rose-600"
+                className="w-12 h-12 rounded-2xl border border-zinc-200 text-zinc-400 hover:text-rose-600 flex items-center justify-center transition-all active:scale-90"
                 title="Clear Bill"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-5 h-5" />
               </button>
 
-              {/* Quick Save Unpaid on Mobile */}
+              {/* Quick Save Unpaid on Mobile (Min 52px height) */}
               <button
                 onClick={handleSaveUnpaidBill}
                 disabled={isSubmitting}
-                className="px-3.5 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5"
+                className="min-h-[52px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all"
               >
-                <Receipt className="w-3.5 h-3.5" />
-                <span>Save Unpaid</span>
+                <Receipt className="w-4 h-4" />
+                <span>Save Bill</span>
               </button>
 
-              {/* Collect Payment on Mobile */}
+              {/* Collect Payment on Mobile (Min 52px height) */}
               {!(userRole === 'CASHIER' && !canCollectPayment) && (
                 <button
                   onClick={() => setIsCheckoutDrawerOpen(true)}
-                  className="px-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1"
+                  className="min-h-[52px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all"
                 >
-                  <Wallet className="w-3.5 h-3.5" />
+                  <Wallet className="w-4 h-4" />
                   <span>Pay</span>
                 </button>
               )}
@@ -855,46 +857,46 @@ export const BillingPage: React.FC = () => {
             </div>
 
             {/* Optional Customer Info */}
-            <div className="space-y-2 p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
-              <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wider block">
+            <div className="space-y-2.5 p-3.5 bg-zinc-50 border border-zinc-200 rounded-2xl">
+              <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block">
                 Customer Details (Optional)
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="relative">
-                  <User className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={customer.name || ''}
                     onChange={(e) => setCustomer((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Customer Name"
-                    className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="tel"
                     value={customer.phone || ''}
                     onChange={(e) => setCustomer((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="Mobile (+91...)"
-                    className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
             </div>
 
             {/* Discount Section */}
-            <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2">
+            <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider">
                   Discount
                 </span>
-                <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-0.5 text-xs font-semibold">
+                <div className="flex items-center gap-1 bg-zinc-200 rounded-xl p-1 text-xs font-bold">
                   <button
                     type="button"
                     onClick={() => setDiscountType('fixed')}
-                    className={`px-2 py-0.5 rounded ${
-                      discountType === 'fixed' ? 'bg-white text-zinc-950 shadow-2xs' : 'text-zinc-600'
+                    className={`min-h-[36px] px-3 py-1 rounded-lg ${
+                      discountType === 'fixed' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600'
                     }`}
                   >
                     ₹ Flat
@@ -902,8 +904,8 @@ export const BillingPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDiscountType('percentage')}
-                    className={`px-2 py-0.5 rounded ${
-                      discountType === 'percentage' ? 'bg-white text-zinc-950 shadow-2xs' : 'text-zinc-600'
+                    className={`min-h-[36px] px-3 py-1 rounded-lg ${
+                      discountType === 'percentage' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600'
                     }`}
                   >
                     % Percent
@@ -917,13 +919,13 @@ export const BillingPage: React.FC = () => {
                 value={discountValue || ''}
                 onChange={(e) => setDiscountValue(Math.max(0, parseFloat(e.target.value) || 0))}
                 placeholder={discountType === 'fixed' ? 'Enter flat discount (₹)' : 'Enter discount percentage (%)'}
-                className="w-full px-3 py-2 text-xs bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 font-mono"
+                className="w-full px-3.5 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono"
               />
             </div>
 
             {/* Payment Method Selector */}
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wider block">
+            <div className="space-y-2.5">
+              <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block">
                 Payment Method
               </span>
               <div className="grid grid-cols-4 gap-2">
@@ -940,14 +942,14 @@ export const BillingPage: React.FC = () => {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`p-2 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                      className={`min-h-[56px] p-2.5 rounded-2xl border flex flex-col items-center justify-center transition-all active:scale-95 ${
                         isSelected
-                          ? 'border-zinc-950 bg-zinc-950 text-white shadow-2xs'
+                          ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                           : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
                       }`}
                     >
-                      <Icon className="w-4 h-4 mb-1" />
-                      <span className="text-xs font-semibold">{m.label}</span>
+                      <Icon className="w-5 h-5 mb-1" />
+                      <span className="text-xs sm:text-sm font-bold">{m.label}</span>
                     </button>
                   );
                 })}
@@ -955,28 +957,28 @@ export const BillingPage: React.FC = () => {
             </div>
 
             {/* Payment Status (Full Paid vs Partial) */}
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wider block">
+            <div className="space-y-2.5">
+              <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block">
                 Payment Mode
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentStatus('PAID')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
+                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 ${
                     paymentStatus === 'PAID'
-                      ? 'border-zinc-950 bg-zinc-950 text-white'
+                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                       : 'border-zinc-200 bg-white text-zinc-700'
                   }`}
                 >
-                  Full Payment ({formatCurrency(grandTotal)})
+                  Full ({formatCurrency(grandTotal)})
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaymentStatus('PARTIAL')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
+                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 ${
                     paymentStatus === 'PARTIAL'
-                      ? 'border-zinc-950 bg-zinc-950 text-white'
+                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
                       : 'border-zinc-200 bg-white text-zinc-700'
                   }`}
                 >
@@ -987,7 +989,7 @@ export const BillingPage: React.FC = () => {
               {paymentStatus === 'PARTIAL' && (
                 <div className="pt-2 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                    <label className="block text-xs font-semibold text-zinc-600 mb-1">
                       Received Now (₹)
                     </label>
                     <input
@@ -995,14 +997,14 @@ export const BillingPage: React.FC = () => {
                       value={amountPaid || ''}
                       onChange={(e) => setAmountPaid(Math.max(0, parseFloat(e.target.value) || 0))}
                       placeholder="0.00"
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-zinc-300 rounded-lg font-mono"
+                      className="w-full px-3.5 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl font-mono"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                    <label className="block text-xs font-semibold text-zinc-600 mb-1">
                       Balance Due (₹)
                     </label>
-                    <div className="px-3 py-1.5 text-xs bg-zinc-100 border border-zinc-200 rounded-lg font-mono font-bold text-rose-600">
+                    <div className="px-3.5 min-h-[48px] flex items-center text-sm bg-zinc-100 border border-zinc-200 rounded-xl font-mono font-bold text-rose-600">
                       {formatCurrency(balanceDue)}
                     </div>
                   </div>
@@ -1011,11 +1013,11 @@ export const BillingPage: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-2 space-y-2">
+            <div className="pt-2 space-y-2.5">
               <button
                 onClick={handleCollectPaymentNow}
                 disabled={isSubmitting}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full min-h-[54px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>Confirm & Record Payment</span>
@@ -1024,7 +1026,7 @@ export const BillingPage: React.FC = () => {
               <button
                 onClick={handleSaveUnpaidBill}
                 disabled={isSubmitting}
-                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold text-xs rounded-xl transition-colors"
+                className="w-full min-h-[48px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold text-xs sm:text-sm rounded-2xl transition-colors active:scale-98"
               >
                 Save as Unpaid Instead
               </button>
@@ -1068,47 +1070,47 @@ export const BillingPage: React.FC = () => {
             )}
 
             {/* Quick Actions Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {/* Browser Print Button (Dialog) */}
               <button
                 onClick={() => handlePrintInBrowser(completedOrder, 'compact80')}
-                className="py-3 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-2xs"
+                className="min-h-[52px] px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
               >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-5 h-5" />
                 <span>Print Bill</span>
               </button>
 
               {/* WhatsApp Share Button */}
               <button
                 onClick={() => handleWhatsAppShare(completedOrder)}
-                className="py-3 px-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-2xs"
+                className="min-h-[52px] px-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-5 h-5" />
                 <span>WhatsApp</span>
               </button>
             </div>
 
             {/* PDF Downloads */}
-            <div className="grid grid-cols-3 gap-1.5 pt-1">
+            <div className="grid grid-cols-3 gap-2 pt-1">
               <button
                 onClick={() => profile && downloadReceiptPdf(completedOrder, profile, settings, 'compact58')}
-                className="py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors"
+                className="min-h-[44px] px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-95"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-4 h-4" />
                 <span>58mm</span>
               </button>
               <button
                 onClick={() => profile && downloadReceiptPdf(completedOrder, profile, settings, 'compact80')}
-                className="py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors"
+                className="min-h-[44px] px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-95"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-4 h-4" />
                 <span>80mm</span>
               </button>
               <button
                 onClick={() => profile && downloadReceiptPdf(completedOrder, profile, settings, 'a4')}
-                className="py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors"
+                className="min-h-[44px] px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-95"
               >
-                <Download className="w-3 h-3" />
+                <Download className="w-4 h-4" />
                 <span>A4 Invoice</span>
               </button>
             </div>
@@ -1118,7 +1120,7 @@ export const BillingPage: React.FC = () => {
                 setCompletedOrder(null);
                 setShareFeedback(null);
               }}
-              className="w-full py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-bold text-xs rounded-xl transition-colors mt-2"
+              className="w-full min-h-[52px] bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-bold text-sm sm:text-base rounded-2xl transition-colors mt-2 active:scale-98"
             >
               Start Next Bill
             </button>

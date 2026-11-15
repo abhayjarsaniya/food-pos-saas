@@ -140,9 +140,9 @@ export const MembersPage: React.FC = () => {
             setErrorMsg(null);
             setIsInviteModalOpen(true);
           }}
-          className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-2xs transition-colors w-fit"
+          className="min-h-[48px] px-5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 shadow-xs transition-all active:scale-95 w-fit"
         >
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="w-5 h-5" />
           <span>Add Staff Member</span>
         </button>
       </div>
@@ -300,7 +300,7 @@ export const MembersPage: React.FC = () => {
                   Full Name *
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
@@ -308,73 +308,73 @@ export const MembersPage: React.FC = () => {
                     value={inviteName}
                     onChange={(e) => setInviteName(e.target.value)}
                     placeholder="e.g. Ramesh Cashier"
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                   Staff Login ID *
                 </label>
                 <div className="relative">
-                  <span className="text-zinc-400 font-mono text-xs absolute left-3 top-1/2 -translate-y-1/2">@</span>
+                  <span className="text-zinc-400 font-mono text-sm absolute left-4 top-1/2 -translate-y-1/2">@</span>
                   <input
                     type="text"
                     required
                     value={inviteLoginId}
                     onChange={(e) => setInviteLoginId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="e.g. cashier01"
-                    className="w-full pl-8 pr-3 py-2 text-xs font-mono bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-0.5">Used by staff to sign in on the POS counter.</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Used by staff to sign in on the POS counter.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                   Initial Password *
                 </label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <KeyRound className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
                     value={invitePassword}
                     onChange={(e) => setInvitePassword(e.target.value)}
                     placeholder="Staff@2026"
-                    className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                   Recovery Email (Optional)
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="staff@gmail.com"
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">Role</label>
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">Role</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['MANAGER', 'CASHIER'] as UserRole[]).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setInviteRole(r)}
-                      className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                      className={`min-h-[46px] text-xs sm:text-sm font-bold rounded-2xl border transition-all active:scale-95 ${
                         inviteRole === r
-                          ? 'bg-zinc-900 text-white border-zinc-900'
+                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
                           : 'bg-zinc-50 text-zinc-700 border-zinc-200'
                       }`}
                     >
@@ -385,12 +385,12 @@ export const MembersPage: React.FC = () => {
               </div>
 
               {inviteRole === 'CASHIER' && (
-                <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-between">
+                <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-semibold text-zinc-900 block">
+                    <span className="text-xs sm:text-sm font-bold text-zinc-900 block">
                       Authorize Payment Collection
                     </span>
-                    <span className="text-[10px] text-zinc-500">
+                    <span className="text-[11px] text-zinc-500">
                       Permit cashier to mark bills as paid
                     </span>
                   </div>
@@ -398,23 +398,23 @@ export const MembersPage: React.FC = () => {
                     type="checkbox"
                     checked={canCollectPayment}
                     onChange={(e) => setCanCollectPayment(e.target.checked)}
-                    className="w-4 h-4 rounded text-zinc-900 focus:ring-zinc-900"
+                    className="w-6 h-6 rounded-lg text-zinc-900 focus:ring-zinc-900 cursor-pointer"
                   />
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsInviteModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+                  className="flex-1 min-h-[52px] text-sm font-bold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-2xl transition-all active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-2 text-xs font-semibold text-white bg-zinc-950 hover:bg-zinc-900 rounded-xl transition-colors disabled:opacity-50"
+                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-zinc-950 hover:bg-zinc-900 rounded-2xl shadow-xs transition-all active:scale-95 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Staff Member'}
                 </button>

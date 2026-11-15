@@ -14,7 +14,7 @@ export const AppLayout: React.FC = () => {
       <DesktopSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-full pb-24 md:pb-6 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 max-w-full pb-32 md:pb-8 overflow-y-auto overflow-x-hidden">
         {/* Offline Banner alert on mobile & desktop if disconnected */}
         {!isOnline && (
           <div className="bg-amber-500 text-white text-xs font-medium px-4 py-2 flex items-center justify-between sticky top-0 z-30 shadow-xs">

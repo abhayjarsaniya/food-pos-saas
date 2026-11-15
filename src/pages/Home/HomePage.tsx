@@ -102,33 +102,33 @@ export const HomePage: React.FC = () => {
 
         <button
           onClick={() => navigate('/settings')}
-          className="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center transition-colors"
-          title="Settings"
+          className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+          title="Settings & Profile"
         >
-          <span className="font-semibold text-sm">
+          <span className="font-bold text-base">
             {profile?.ownerName?.charAt(0) || 'O'}
           </span>
         </button>
       </div>
 
-      {/* Prominent Action - NEW BILL (Highest Priority) */}
+      {/* Prominent Action - NEW BILL (Highest Priority - Touch friendly >= 64px) */}
       <button
         onClick={() => navigate('/billing')}
-        className="w-full group relative overflow-hidden bg-zinc-950 hover:bg-zinc-900 text-white rounded-2xl p-5 shadow-sm transition-all flex items-center justify-between"
+        className="w-full min-h-[76px] group relative overflow-hidden bg-zinc-950 hover:bg-zinc-900 text-white rounded-2xl p-5 shadow-md transition-all active:scale-[0.98] flex items-center justify-between"
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white">
-            <PlusCircle className="w-7 h-7 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
+          <div className="w-13 h-13 min-w-[52px] min-h-[52px] rounded-2xl bg-white/10 flex items-center justify-center text-white">
+            <PlusCircle className="w-8 h-8 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
           </div>
           <div className="text-left">
-            <h2 className="text-lg font-bold">Create New Bill</h2>
-            <p className="text-xs text-zinc-400">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight">Create New Bill</h2>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
               Instant menu selection & WhatsApp sharing
             </p>
           </div>
         </div>
 
-        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+        <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
           <ArrowRight className="w-5 h-5 text-white" />
         </div>
       </button>
@@ -136,95 +136,95 @@ export const HomePage: React.FC = () => {
       {/* Revenue Overview Section */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+          <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
             Today's Financial Overview
           </h2>
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-zinc-400 font-medium">
             {new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Today's Revenue */}
-          <div className="col-span-2 sm:col-span-1 bg-zinc-900 text-white p-4 rounded-2xl shadow-2xs">
+          <div className="col-span-2 sm:col-span-1 bg-zinc-900 text-white p-4.5 rounded-2xl shadow-xs">
             <div className="flex items-center justify-between text-zinc-400 mb-1">
-              <span className="text-xs font-medium">Today's Revenue</span>
+              <span className="text-xs font-semibold">Today's Revenue</span>
               <TrendingUp className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-2xl font-bold tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               {formatCurrency(todayStats.revenue)}
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               {todayStats.count} {todayStats.count === 1 ? 'bill created' : 'bills created'}
             </p>
           </div>
 
           {/* Average Order Value */}
-          <div className="bg-white border border-zinc-200/80 p-4 rounded-2xl shadow-2xs">
-            <div className="text-xs font-medium text-zinc-500 mb-1">Avg Order Value</div>
-            <div className="text-xl font-bold text-zinc-900">
+          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
+            <div className="text-xs font-semibold text-zinc-500 mb-1">Avg Order Value</div>
+            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
               {formatCurrency(todayStats.aov)}
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1">Per transaction</p>
+            <p className="text-xs text-zinc-400 mt-1">Per transaction</p>
           </div>
 
           {/* Cash Collected */}
-          <div className="bg-white border border-zinc-200/80 p-4 rounded-2xl shadow-2xs">
+          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
             <div className="flex items-center justify-between text-zinc-500 mb-1">
-              <span className="text-xs font-medium">Cash Collected</span>
-              <Wallet className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-xs font-semibold">Cash Collected</span>
+              <Wallet className="w-4 h-4 text-zinc-400" />
             </div>
-            <div className="text-xl font-bold text-zinc-900">
+            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
               {formatCurrency(todayStats.cash)}
             </div>
-            <p className="text-[11px] text-emerald-600 mt-1 font-medium">Physical cash in drawer</p>
+            <p className="text-xs text-emerald-600 mt-1 font-semibold">Physical cash in drawer</p>
           </div>
 
           {/* UPI Collected */}
-          <div className="bg-white border border-zinc-200/80 p-4 rounded-2xl shadow-2xs">
+          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
             <div className="flex items-center justify-between text-zinc-500 mb-1">
-              <span className="text-xs font-medium">UPI / QR Collected</span>
-              <QrCode className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-xs font-semibold">UPI / QR Collected</span>
+              <QrCode className="w-4 h-4 text-zinc-400" />
             </div>
-            <div className="text-xl font-bold text-zinc-900">
+            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
               {formatCurrency(todayStats.upi)}
             </div>
-            <p className="text-[11px] text-indigo-600 mt-1 font-medium">Direct digital receipts</p>
+            <p className="text-xs text-indigo-600 mt-1 font-semibold">Direct digital receipts</p>
           </div>
         </div>
       </section>
 
       {/* Quick Navigation Cards */}
       <section className="space-y-3">
-        <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+        <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
           Quick Management
         </h2>
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('/orders')}
-            className="p-3.5 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors flex flex-col items-center text-center shadow-2xs"
+            className="min-h-[72px] p-4 bg-white border border-zinc-200/90 rounded-2xl hover:bg-zinc-50 transition-all active:scale-95 flex flex-col items-center text-center shadow-xs"
           >
-            <ShoppingBag className="w-5 h-5 text-zinc-700 mb-1.5" />
-            <span className="text-xs font-semibold text-zinc-900">Orders</span>
-            <span className="text-[10px] text-zinc-400">History & Bills</span>
+            <ShoppingBag className="w-6 h-6 text-zinc-800 mb-1.5" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-900">Orders</span>
+            <span className="text-[11px] text-zinc-400 mt-0.5">History & Bills</span>
           </button>
 
           <button
             onClick={() => navigate('/menu')}
-            className="p-3.5 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors flex flex-col items-center text-center shadow-2xs"
+            className="min-h-[72px] p-4 bg-white border border-zinc-200/90 rounded-2xl hover:bg-zinc-50 transition-all active:scale-95 flex flex-col items-center text-center shadow-xs"
           >
-            <UtensilsCrossed className="w-5 h-5 text-zinc-700 mb-1.5" />
-            <span className="text-xs font-semibold text-zinc-900">Menu</span>
-            <span className="text-[10px] text-zinc-400">Items & Rates</span>
+            <UtensilsCrossed className="w-6 h-6 text-zinc-800 mb-1.5" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-900">Menu</span>
+            <span className="text-[11px] text-zinc-400 mt-0.5">Items & Rates</span>
           </button>
 
           <button
             onClick={() => navigate('/reports')}
-            className="p-3.5 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors flex flex-col items-center text-center shadow-2xs"
+            className="min-h-[72px] p-4 bg-white border border-zinc-200/90 rounded-2xl hover:bg-zinc-50 transition-all active:scale-95 flex flex-col items-center text-center shadow-xs"
           >
-            <BarChart3 className="w-5 h-5 text-zinc-700 mb-1.5" />
-            <span className="text-xs font-semibold text-zinc-900">Reports</span>
-            <span className="text-[10px] text-zinc-400">Sales & Tax</span>
+            <BarChart3 className="w-6 h-6 text-zinc-800 mb-1.5" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-900">Reports</span>
+            <span className="text-[11px] text-zinc-400 mt-0.5">Sales & Tax</span>
           </button>
         </div>
       </section>

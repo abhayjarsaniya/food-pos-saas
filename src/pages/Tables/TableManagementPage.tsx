@@ -233,28 +233,28 @@ export const TableManagementPage: React.FC = () => {
             <button
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all flex items-center justify-center active:scale-90"
               title="Refresh status"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={openCreateModal}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-sm transition-all"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-2xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm shadow-xs transition-all active:scale-95"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               <span>Add Table</span>
             </button>
           </div>
         </div>
 
-        {/* View Switcher Tabs */}
+        {/* View Switcher Tabs (Min 48px touch friendly) */}
         <div className="max-w-7xl mx-auto flex items-center gap-2 mt-4">
           <button
             onClick={() => setActiveTab('OVERVIEW')}
-            className={`flex-1 sm:flex-initial px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
               activeTab === 'OVERVIEW'
-                ? 'bg-primary-600 text-white shadow-sm'
+                ? 'bg-zinc-950 text-white shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
             }`}
           >
@@ -262,9 +262,9 @@ export const TableManagementPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('MANAGE')}
-            className={`flex-1 sm:flex-initial px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
               activeTab === 'MANAGE'
-                ? 'bg-primary-600 text-white shadow-sm'
+                ? 'bg-zinc-950 text-white shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
             }`}
           >
@@ -821,9 +821,9 @@ export const TableManagementPage: React.FC = () => {
                   onClick={() => {
                     handleStartBillForTable(selectedTableForDetails);
                   }}
-                  className="w-full py-3 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md transition-all"
+                  className="w-full min-h-[52px] rounded-2xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                   <span>Start New Bill for {selectedTableForDetails.name}</span>
                 </button>
 
@@ -832,7 +832,7 @@ export const TableManagementPage: React.FC = () => {
                     onClick={() => {
                       navigate('/pending-payments');
                     }}
-                    className="w-full py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full min-h-[48px] rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
                   >
                     <DollarSign className="w-4 h-4" />
                     <span>Collect Payments in Pending Payments Drawer</span>

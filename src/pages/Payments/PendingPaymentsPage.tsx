@@ -204,31 +204,31 @@ export const PendingPaymentsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-3 bg-white border border-zinc-200 rounded-2xl space-y-2 shadow-2xs">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <div className="p-4 bg-white border border-zinc-200 rounded-2xl space-y-3 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search bill #, customer, table, mobile..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+              className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
             />
           </div>
 
           {/* Status Filters */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm">
             {(['UNPAID', 'PARTIAL', 'PAID', 'ALL'] as const).map((st) => (
               <button
                 key={st}
                 type="button"
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all ${
+                className={`min-h-[46px] px-4 py-2 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 ${
                   statusFilter === st
-                    ? 'bg-zinc-950 text-white shadow-2xs'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                    ? 'bg-zinc-950 text-white shadow-xs'
+                    : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                 }`}
               >
                 {st === 'UNPAID' ? 'Pending Dues' : st === 'PARTIAL' ? 'Partially Paid' : st === 'PAID' ? 'Fully Paid' : 'All Orders'}
@@ -241,7 +241,7 @@ export const PendingPaymentsPage: React.FC = () => {
             <select
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
-              className="text-xs font-semibold px-2.5 py-2 bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900"
+              className="min-h-[48px] text-sm font-bold px-4 py-2 bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
             >
               <option value="ALL">All Tables</option>
               {availableTables.map((t) => (
@@ -370,12 +370,12 @@ export const PendingPaymentsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Actions Bar */}
-                  <div className="flex items-center gap-1.5 pt-1">
+                  {/* Actions Bar (Touch friendly min 52px height) */}
+                  <div className="flex items-center gap-2 pt-2">
                     {!isFullyPaid && (
                       <>
                         {userRole === 'CASHIER' && !canCollectPayment ? (
-                          <div className="flex-1 py-1.5 px-3 bg-zinc-100 text-zinc-500 rounded-xl text-center text-[11px] font-medium">
+                          <div className="flex-1 min-h-[52px] px-3 bg-zinc-100 text-zinc-500 rounded-2xl flex items-center justify-center text-xs font-medium">
                             Payment collection requires owner authorization
                           </div>
                         ) : (
@@ -384,26 +384,26 @@ export const PendingPaymentsPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenReceiveModal(ord)}
-                              className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-colors flex items-center justify-center gap-1.5"
+                              className="flex-1 min-h-[52px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
-                              <Wallet className="w-3.5 h-3.5" />
+                              <Wallet className="w-5 h-5" />
                               <span>Receive Payment</span>
                             </button>
 
                             {/* Owner Quick Action: Mark Full as Received */}
                             {confirmQuickOrderId === ord.id ? (
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={() => handleQuickMarkReceived(ord)}
-                                  className="py-2 px-2.5 bg-zinc-900 text-white text-[11px] font-bold rounded-xl"
+                                  className="min-h-[52px] px-3.5 bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl active:scale-95 transition-all shadow-xs"
                                 >
                                   Confirm
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setConfirmQuickOrderId(null)}
-                                  className="py-2 px-2 text-zinc-500 text-[11px] rounded-xl hover:bg-zinc-100"
+                                  className="min-h-[52px] px-3 text-zinc-500 text-xs sm:text-sm rounded-2xl hover:bg-zinc-100 active:scale-95 transition-all"
                                 >
                                   Cancel
                                 </button>
@@ -412,7 +412,7 @@ export const PendingPaymentsPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setConfirmQuickOrderId(ord.id)}
-                                className="py-2 px-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors"
+                                className="min-h-[52px] px-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 shrink-0"
                                 title="One-tap mark full payment as received"
                               >
                                 Mark Full
@@ -427,20 +427,20 @@ export const PendingPaymentsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => profile && printReceiptInBrowser(ord, profile, settings, 'compact80')}
-                      className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl"
+                      className="w-12 h-12 min-w-[48px] min-h-[48px] bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0"
                       title="Print receipt"
                     >
-                      <Printer className="w-4 h-4" />
+                      <Printer className="w-5 h-5" />
                     </button>
 
                     {/* WhatsApp */}
                     <button
                       type="button"
                       onClick={() => profile && shareBillToWhatsApp(ord, profile, settings)}
-                      className="p-2 bg-zinc-100 hover:bg-[#25D366] hover:text-white text-zinc-700 rounded-xl transition-colors"
+                      className="w-12 h-12 min-w-[48px] min-h-[48px] bg-zinc-100 hover:bg-[#25D366] hover:text-white text-zinc-700 rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0"
                       title="Share to WhatsApp"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -492,10 +492,10 @@ export const PendingPaymentsPage: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleRecordPayment} className="space-y-3">
+            <form onSubmit={handleRecordPayment} className="space-y-3.5">
               {/* Payment Amount */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                   Received Amount (₹) *
                 </label>
                 <input
@@ -506,16 +506,16 @@ export const PendingPaymentsPage: React.FC = () => {
                   max={activeOrderForPayment.balanceDue}
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono font-bold"
+                  className="w-full px-4 min-h-[54px] text-lg sm:text-xl bg-white border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono font-bold"
                 />
               </div>
 
               {/* Payment Method */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                   Payment Method
                 </label>
-                <div className="grid grid-cols-4 gap-1.5">
+                <div className="grid grid-cols-4 gap-2">
                   {[
                     { id: 'CASH' as PaymentMethod, label: 'Cash' },
                     { id: 'UPI' as PaymentMethod, label: 'UPI' },
@@ -526,9 +526,9 @@ export const PendingPaymentsPage: React.FC = () => {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                      className={`min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl border transition-all active:scale-95 ${
                         paymentMethod === m.id
-                          ? 'bg-zinc-900 text-white border-zinc-900'
+                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
                           : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-zinc-100'
                       }`}
                     >
@@ -540,7 +540,7 @@ export const PendingPaymentsPage: React.FC = () => {
 
               {/* Reference ID / Notes */}
               <div>
-                <label className="block text-xs font-medium text-zinc-600 mb-1">
+                <label className="block text-xs font-semibold text-zinc-600 mb-1">
                   Transaction Reference (Optional)
                 </label>
                 <input
@@ -548,22 +548,22 @@ export const PendingPaymentsPage: React.FC = () => {
                   value={paymentRef}
                   onChange={(e) => setPaymentRef(e.target.value)}
                   placeholder="e.g. UPI Ref / Card Last 4"
-                  className="w-full px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
                 />
               </div>
 
-              <div className="pt-2 flex gap-2">
+              <div className="pt-2 flex gap-2.5">
                 <button
                   type="button"
                   onClick={() => setActiveOrderForPayment(null)}
-                  className="flex-1 py-2 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl"
+                  className="flex-1 min-h-[52px] text-sm font-bold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-2xl active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPayment}
-                  className="flex-1 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-2xs transition-colors disabled:opacity-50"
+                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-xs transition-all disabled:opacity-50 active:scale-95"
                 >
                   {isSubmittingPayment ? 'Recording...' : 'Confirm Payment'}
                 </button>

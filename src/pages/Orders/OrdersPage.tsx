@@ -162,29 +162,29 @@ export const OrdersPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-zinc-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
         <div className="relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by Bill No (e.g. BILL-1001) or customer phone / name..."
-            className="w-full pl-9 pr-4 py-2.5 bg-zinc-50 focus:bg-white text-sm rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+            className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-50 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
           />
         </div>
 
         {/* Filters Grid */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {/* Date Range */}
           <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Date
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              Date Filter
             </label>
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as any)}
-              className="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -196,13 +196,13 @@ export const OrdersPage: React.FC = () => {
 
           {/* Payment Method */}
           <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Payment
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              Payment Method
             </label>
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
             >
               <option value="all">All Methods</option>
               <option value="CASH">Cash</option>
@@ -214,13 +214,13 @@ export const OrdersPage: React.FC = () => {
 
           {/* Status */}
           <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Status
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              Order Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="COMPLETED">Completed</option>
@@ -325,38 +325,38 @@ export const OrdersPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1.5">
+                  {/* Action Buttons (Touch Friendly min 44x44px) */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedOrder(order)}
-                      className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-medium transition-colors"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl flex items-center justify-center transition-all active:scale-90"
                       title="View Details"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-5 h-5" />
                     </button>
 
                     <button
                       onClick={() => profile && printReceiptInBrowser(order, profile, settings, 'compact80')}
-                      className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-medium transition-colors"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl flex items-center justify-center transition-all active:scale-90"
                       title="Print Receipt"
                     >
-                      <Printer className="w-4 h-4" />
+                      <Printer className="w-5 h-5" />
                     </button>
 
                     <button
                       onClick={() => handleWhatsAppShare(order)}
-                      className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-medium transition-colors"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center transition-all active:scale-90"
                       title="Share Receipt on WhatsApp"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-5 h-5" />
                     </button>
 
                     <button
                       onClick={() => profile && downloadReceiptPdf(order, profile, settings)}
-                      className="p-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-medium transition-colors"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl flex items-center justify-center transition-all active:scale-90"
                       title="Download PDF"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-5 h-5" />
                     </button>
 
                     {!isVoided && (
@@ -366,10 +366,10 @@ export const OrdersPage: React.FC = () => {
                           setVoidReason('');
                           setVoidError(null);
                         }}
-                        className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-medium transition-colors"
+                        className="w-11 h-11 min-w-[44px] min-h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl flex items-center justify-center transition-all active:scale-90"
                         title="Void Transaction"
                       >
-                        <Ban className="w-4 h-4" />
+                        <Ban className="w-5 h-5" />
                       </button>
                     )}
                   </div>

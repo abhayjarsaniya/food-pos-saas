@@ -238,26 +238,26 @@ export const MenuPage: React.FC = () => {
               setCatNameInput('');
               setIsCatModalOpen(true);
             }}
-            className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
+            className="min-h-[48px] px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all active:scale-95"
           >
-            <FolderPlus className="w-4 h-4" />
+            <FolderPlus className="w-5 h-5" />
             <span>+ Category</span>
           </button>
 
           <button
             onClick={() => openItemModal()}
-            className="px-3.5 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="min-h-[48px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all shadow-xs active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             <span>+ Food Item</span>
           </button>
         </div>
       </div>
 
       {/* Categories Bar */}
-      <div className="bg-white border border-zinc-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
             Menu Categories ({categories.length})
           </span>
         </div>
@@ -265,10 +265,10 @@ export const MenuPage: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           <button
             onClick={() => setSelectedCatFilter('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
               selectedCatFilter === 'all'
-                ? 'bg-zinc-900 text-white shadow-2xs'
-                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                ? 'bg-zinc-900 text-white shadow-xs'
+                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
             }`}
           >
             All Items ({menuItems.length})
@@ -280,9 +280,9 @@ export const MenuPage: React.FC = () => {
             return (
               <div
                 key={cat.id}
-                className={`group flex items-center gap-1 pl-3.5 pr-2 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`group flex items-center gap-1.5 pl-4 pr-2.5 min-h-[46px] rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
                   isSelected
-                    ? 'bg-zinc-900 text-white shadow-2xs'
+                    ? 'bg-zinc-900 text-white shadow-xs'
                     : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                 }`}
               >
@@ -295,7 +295,7 @@ export const MenuPage: React.FC = () => {
                     setCatNameInput(cat.name);
                     setIsCatModalOpen(true);
                   }}
-                  className={`p-1 rounded opacity-60 hover:opacity-100 ${
+                  className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 ${
                     isSelected ? 'hover:bg-zinc-800' : 'hover:bg-zinc-300'
                   }`}
                   title="Rename"

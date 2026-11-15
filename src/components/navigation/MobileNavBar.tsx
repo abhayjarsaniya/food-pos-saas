@@ -5,9 +5,9 @@ import { useBilling } from '../../contexts/BillingContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const MobileNavBar: React.FC = () => {
-  const { items } = useBilling();
+  const { items, extras } = useBilling();
   const { features } = useAuth();
-  const totalItemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalItemCount = items.reduce((sum, i) => sum + i.quantity, 0) + extras.reduce((sum, e) => sum + e.quantity, 0);
 
   const allNavItems = [
     { to: '/', label: 'Home', icon: Home, feature: null },
@@ -22,8 +22,8 @@ export const MobileNavBar: React.FC = () => {
   );
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-40 safe-bottom">
-      <div className="flex items-center justify-around h-16 px-1">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-40 safe-bottom shadow-lg">
+      <div className="flex items-center justify-around h-16 sm:h-18 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -31,7 +31,7 @@ export const MobileNavBar: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs font-medium transition-colors ${
+                `relative flex flex-col items-center justify-center flex-1 h-full min-h-[52px] min-w-[48px] py-1 text-xs font-semibold transition-all select-none active:scale-95 ${
                   isActive
                     ? 'text-zinc-950 font-bold'
                     : 'text-zinc-400 hover:text-zinc-600'
@@ -39,14 +39,14 @@ export const MobileNavBar: React.FC = () => {
               }
             >
               <div className="relative">
-                <Icon className={`w-5 h-5 ${item.highlight && totalItemCount > 0 ? 'text-zinc-950 scale-110' : ''}`} />
+                <Icon className={`w-6 h-6 transition-transform duration-200 ${item.highlight && totalItemCount > 0 ? 'text-zinc-950 scale-110' : ''}`} />
                 {item.badge !== null && item.badge !== undefined && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-zinc-950 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-3 bg-zinc-950 text-white text-[11px] font-bold rounded-full h-4.5 min-w-[18px] px-1 flex items-center justify-center shadow-xs">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-1 truncate">{item.label}</span>
+              <span className="text-[11px] sm:text-xs mt-1 truncate">{item.label}</span>
             </NavLink>
           );
         })}

@@ -79,11 +79,26 @@ export type DiscountType = 'fixed' | 'percentage';
 export type ReceiptFormat = 'compact80' | 'compact58' | 'a4';
 export type PricingMode = 'inclusive' | 'exclusive';
 
+export type BillingCycle = 'MONTHLY' | 'QUARTERLY' | 'HALF_YEARLY' | 'ANNUAL' | 'CUSTOM';
+
+export type SubscriptionStatus = 
+  | 'TRIAL'
+  | 'ACTIVE'
+  | 'EXPIRING_SOON'
+  | 'PAYMENT_PENDING'
+  | 'PAST_DUE'
+  | 'GRACE_PERIOD'
+  | 'EXPIRED'
+  | 'SUSPENDED'
+  | 'CANCELLED';
+
 export interface BusinessProfile {
   id: string;
   name: string;
+  brandName?: string;
   ownerName: string;
   ownerEmail?: string;
+  loginId?: string;
   phone: string;
   category: BusinessCategory;
   address: string;
@@ -92,8 +107,12 @@ export interface BusinessProfile {
   currencySymbol: string; // '₹'
   status: AccountStatus;
   plan: AccessPlan;
+  subscriptionStatus?: SubscriptionStatus;
   planExpiresAt?: string;
   isDemo?: boolean;
+  isArchived?: boolean;
+  archivedAt?: string;
+  archivedReason?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -485,3 +504,79 @@ export interface PlatformSettings {
   maintenanceMode: boolean;
   updatedAt: string;
 }
+
+// ========================
+// SUBSCRIPTION MANAGEMENT
+// ========================
+
+export interface SubscriptionPlan {
+  id: string; // e.g. 'plan_starter', 'plan_pro', 'plan_enterprise'
+  name: string; // 'Starter Counter', 'Professional', 'Enterprise'
+  tierKey: AccessPlan; // 'starter' | 'pro' | 'enterprise' | 'trial'
+  description: string;
+  monthlyPrice: number; // in rupees
+  quarterlyPrice: number;
+  annualPrice: number;
+  currency: string; // 'INR'
+  maxMembers: number; // e.g. 3, 10, 50, -1 for unlimited
+  maxMenuItems: number;
+  features: Partial<BusinessFeatures>;
+  isPopular?: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionRecord {
+  id: string;
+  businessId: string;
+  planId: string;
+  planName: string;
+  tierKey: AccessPlan;
+  billingCycle: BillingCycle;
+  pricePaid: number;
+  status: SubscriptionStatus;
+  startDate: string;
+  expiresAt: string;
+  gracePeriodDays: number;
+  graceExpiresAt: string;
+  autoRenew: boolean;
+  mandateId?: string;
+  mandateStatus?: 'ACTIVE' | 'FAILED' | 'CANCELLED' | 'NONE';
+  mandateGateway?: 'RAZORPAY' | 'CASHFREE' | 'MANUAL';
+  assignedBy?: string; // admin UID or 'SYSTEM'
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionPayment {
+  id: string;
+  subscriptionId: string;
+  businessId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: PaymentMethod | 'ONLINE_MANDATE' | 'NET_BANKING';
+  gatewayTransactionId?: string;
+  gateway?: 'RAZORPAY' | 'CASHFREE' | 'MANUAL_CASH' | 'MANUAL_UPI' | 'BANK_TRANSFER';
+  status: 'SUCCESS' | 'PENDING' | 'FAILED';
+  paidAt: string;
+  invoiceUrl?: string;
+  receivedBy?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface RenewalReminder {
+  id: string;
+  businessId: string;
+  subscriptionId: string;
+  daysBeforeExpiry: number; // 7, 3, 1, 0, -3
+  targetDate: string;
+  status: 'PENDING' | 'SENT' | 'DISMISSED';
+  sentAt?: string;
+  channel: 'EMAIL' | 'IN_APP' | 'WHATSAPP';
+  message: string;
+  createdAt: string;
+}
+
