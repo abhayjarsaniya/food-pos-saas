@@ -140,7 +140,7 @@ export const MembersPage: React.FC = () => {
             setErrorMsg(null);
             setIsInviteModalOpen(true);
           }}
-          className="min-h-[48px] px-5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 shadow-xs transition-all active:scale-95 w-fit"
+          className="min-h-[48px] px-5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 shadow-xs transition-all active:scale-95 w-fit"
         >
           <UserPlus className="w-5 h-5" />
           <span>Add Staff Member</span>
@@ -308,7 +308,7 @@ export const MembersPage: React.FC = () => {
                     value={inviteName}
                     onChange={(e) => setInviteName(e.target.value)}
                     placeholder="e.g. Ramesh Cashier"
-                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -325,7 +325,7 @@ export const MembersPage: React.FC = () => {
                     value={inviteLoginId}
                     onChange={(e) => setInviteLoginId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="e.g. cashier01"
-                    className="w-full pl-10 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
                 <p className="text-[11px] text-zinc-500 mt-1">Used by staff to sign in on the POS counter.</p>
@@ -343,7 +343,7 @@ export const MembersPage: React.FC = () => {
                     value={invitePassword}
                     onChange={(e) => setInvitePassword(e.target.value)}
                     placeholder="Staff@2026"
-                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -359,7 +359,7 @@ export const MembersPage: React.FC = () => {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="staff@gmail.com"
-                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -374,8 +374,8 @@ export const MembersPage: React.FC = () => {
                       onClick={() => setInviteRole(r)}
                       className={`min-h-[46px] text-xs sm:text-sm font-bold rounded-2xl border transition-all active:scale-95 ${
                         inviteRole === r
-                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
-                          : 'bg-zinc-50 text-zinc-700 border-zinc-200'
+                          ? 'bg-[#145C43] text-white border-[#145C43] shadow-xs'
+                          : 'bg-[#F7F9F7] text-[#202923] border-[#E5EAE6] hover:bg-[#EAF5EF]'
                       }`}
                     >
                       {r}
@@ -398,7 +398,7 @@ export const MembersPage: React.FC = () => {
                     type="checkbox"
                     checked={canCollectPayment}
                     onChange={(e) => setCanCollectPayment(e.target.checked)}
-                    className="w-6 h-6 rounded-lg text-zinc-900 focus:ring-zinc-900 cursor-pointer"
+                    className="w-6 h-6 rounded-lg text-[#145C43] focus:ring-[#145C43] cursor-pointer"
                   />
                 </div>
               )}
@@ -414,7 +414,7 @@ export const MembersPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-zinc-950 hover:bg-zinc-900 rounded-2xl shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-[#145C43] hover:bg-[#0F4935] rounded-2xl shadow-xs transition-all active:scale-95 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Staff Member'}
                 </button>

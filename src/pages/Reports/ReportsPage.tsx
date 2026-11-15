@@ -102,7 +102,7 @@ export const ReportsPage: React.FC = () => {
 
           <button
             onClick={handleExportPDF}
-            className="px-3.5 py-2 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="px-3.5 py-2 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
           >
             <FileText className="w-4 h-4" />
             <span>Export PDF</span>
@@ -111,7 +111,7 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {/* Date Filter Tabs */}
-      <div className="bg-white border border-zinc-200 rounded-2xl p-3 shadow-2xs">
+      <div className="bg-white border border-[#E5EAE6] rounded-2xl p-3 shadow-2xs">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {[
             { id: 'today' as DateFilterType, label: 'Today' },
@@ -125,8 +125,8 @@ export const ReportsPage: React.FC = () => {
               onClick={() => setFilterType(tab.id)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 filterType === tab.id
-                  ? 'bg-zinc-900 text-white shadow-2xs'
-                  : 'text-zinc-600 hover:bg-zinc-100'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
               }`}
             >
               {tab.label}
@@ -165,15 +165,17 @@ export const ReportsPage: React.FC = () => {
       {/* Main KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Net Sales */}
-        <div className="col-span-2 sm:col-span-1 bg-zinc-900 text-white p-5 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-zinc-400 mb-1">
-            <span className="text-xs font-medium uppercase tracking-wider">Net Sales</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+        <div className="col-span-2 sm:col-span-1 bg-white border border-[#CFE5D8] p-5 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-[#68736D] mb-1">
+            <span className="text-xs font-semibold uppercase tracking-wider">Net Sales</span>
+            <div className="p-1 rounded-lg bg-[#EAF5EF] text-[#145C43]">
+              <TrendingUp className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-bold tracking-tight font-mono">
+          <div className="text-2xl font-bold tracking-tight font-mono text-[#145C43]">
             {formatCurrency(summary.netSales)}
           </div>
-          <p className="text-[11px] text-zinc-400 mt-1">
+          <p className="text-[11px] text-[#68736D] mt-1">
             Across {summary.totalOrders} completed orders
           </p>
         </div>

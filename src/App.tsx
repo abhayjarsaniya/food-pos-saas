@@ -44,7 +44,7 @@ const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-[#145C43] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -71,7 +71,7 @@ const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children 
           </p>
           <button
             onClick={() => logout()}
-            className="w-full py-3 bg-zinc-900 text-white font-semibold rounded-xl hover:bg-zinc-800 transition-colors"
+            className="w-full py-3 bg-[#145C43] text-white font-semibold rounded-xl hover:bg-[#0F4935] transition-colors"
           >
             Sign Out
           </button>
@@ -93,8 +93,8 @@ const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F9F7]">
+        <div className="w-8 h-8 border-2 border-[#145C43] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }

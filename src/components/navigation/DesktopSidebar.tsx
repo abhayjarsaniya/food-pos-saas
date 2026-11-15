@@ -50,29 +50,29 @@ export const DesktopSidebar: React.FC = () => {
   );
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-zinc-200 bg-zinc-50/50 min-h-screen p-4 justify-between select-none">
+    <aside className="hidden md:flex flex-col w-64 border-r border-[#E5EAE6] bg-white min-h-screen p-4 justify-between select-none">
       <div>
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-2 py-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-[#145C43] flex items-center justify-center text-white font-bold text-lg shadow-sm">
             {profile?.name ? profile.name.charAt(0).toUpperCase() : 'F'}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-semibold text-zinc-900 truncate">
+            <h1 className="text-sm font-semibold text-[#202923] truncate">
               {profile?.name || 'Food POS'}
             </h1>
-            <p className="text-xs text-zinc-500 capitalize truncate">
+            <p className="text-xs text-[#68736D] capitalize truncate">
               {profile?.category?.replace('_', ' ') || 'Billing Counter'}
             </p>
           </div>
         </div>
 
         {/* Sync Indicator */}
-        <div className="mb-4 px-3 py-2 bg-white border border-zinc-200 rounded-xl flex items-center justify-between shadow-2xs">
+        <div className="mb-4 px-3 py-2 bg-white border border-[#E5EAE6] rounded-xl flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             {isOnline ? (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="flex items-center gap-1.5 text-xs text-[#19865D] font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#20A879] animate-pulse"></span>
                 Online
               </span>
             ) : (
@@ -92,7 +92,7 @@ export const DesktopSidebar: React.FC = () => {
               onClick={() => triggerSync()}
               disabled={isSyncing || !isOnline}
               title="Sync pending orders now"
-              className="p-1 text-zinc-500 hover:text-zinc-900 disabled:opacity-40 transition-colors"
+              className="p-1 text-[#68736D] hover:text-[#202923] disabled:opacity-40 transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             </button>
@@ -108,10 +108,10 @@ export const DesktopSidebar: React.FC = () => {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  `flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
                     isActive
-                      ? 'bg-zinc-900 text-white shadow-2xs font-semibold'
-                      : 'text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-900'
+                      ? 'bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8]/80 font-bold shadow-2xs'
+                      : 'text-[#68736D] hover:bg-[#F7F9F7] hover:text-[#202923] font-medium'
                   }`
                 }
               >
@@ -120,7 +120,7 @@ export const DesktopSidebar: React.FC = () => {
                   <span>{link.label}</span>
                 </div>
                 {link.badge !== null && link.badge !== undefined && (
-                  <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-[#145C43] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
                     {link.badge}
                   </span>
                 )}
@@ -131,19 +131,19 @@ export const DesktopSidebar: React.FC = () => {
       </div>
 
       {/* User Footer */}
-      <div className="pt-4 border-t border-zinc-200">
+      <div className="pt-4 border-t border-[#E5EAE6]">
         <div className="flex items-center justify-between px-2">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-zinc-900 truncate">
+            <p className="text-xs font-medium text-[#202923] truncate">
               {profile?.ownerName || 'Cashier'}
             </p>
-            <p className="text-[11px] text-zinc-400 truncate">
+            <p className="text-[11px] text-[#929B95] truncate">
               {profile?.status || 'ACTIVE'}
             </p>
           </div>
           <button
             onClick={() => logout()}
-            className="p-2 text-zinc-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+            className="p-2 text-[#929B95] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
             title="Sign out"
           >
             <LogOut className="w-4 h-4" />

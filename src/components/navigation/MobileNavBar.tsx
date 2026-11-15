@@ -22,7 +22,7 @@ export const MobileNavBar: React.FC = () => {
   );
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-40 safe-bottom shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#E5EAE6] z-40 safe-bottom shadow-lg">
       <div className="flex items-center justify-around h-16 sm:h-18 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -33,15 +33,15 @@ export const MobileNavBar: React.FC = () => {
               className={({ isActive }) =>
                 `relative flex flex-col items-center justify-center flex-1 h-full min-h-[52px] min-w-[48px] py-1 text-xs font-semibold transition-all select-none active:scale-95 ${
                   isActive
-                    ? 'text-zinc-950 font-bold'
-                    : 'text-zinc-400 hover:text-zinc-600'
+                    ? 'text-[#145C43] font-bold'
+                    : 'text-[#929B95] hover:text-[#202923]'
                 }`
               }
             >
               <div className="relative">
-                <Icon className={`w-6 h-6 transition-transform duration-200 ${item.highlight && totalItemCount > 0 ? 'text-zinc-950 scale-110' : ''}`} />
+                <Icon className={`w-6 h-6 transition-transform duration-200 ${item.highlight && totalItemCount > 0 ? 'text-[#145C43] scale-110' : ''}`} />
                 {item.badge !== null && item.badge !== undefined && (
-                  <span className="absolute -top-1.5 -right-3 bg-zinc-950 text-white text-[11px] font-bold rounded-full h-4.5 min-w-[18px] px-1 flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1.5 -right-3 bg-[#145C43] text-white text-[11px] font-bold rounded-full h-4.5 min-w-[18px] px-1 flex items-center justify-center shadow-xs">
                     {item.badge}
                   </span>
                 )}

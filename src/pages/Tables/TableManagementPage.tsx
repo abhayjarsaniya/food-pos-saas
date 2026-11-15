@@ -287,7 +287,7 @@ export const TableManagementPage: React.FC = () => {
                 onClick={() => handleSetTheme('dark')}
                 className={`min-h-[40px] px-3 py-1 text-xs font-bold rounded-xl transition-all ${
                   themePreference === 'dark'
-                    ? 'bg-zinc-950 text-white shadow-2xs'
+                    ? 'bg-[#145C43] text-white shadow-2xs'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
                 }`}
               >
@@ -316,7 +316,7 @@ export const TableManagementPage: React.FC = () => {
             </button>
             <button
               onClick={openCreateModal}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-2xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm shadow-xs transition-all active:scale-95"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 min-h-[48px] rounded-2xl bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               <Plus className="w-5 h-5" />
               <span>Add Table</span>
@@ -328,20 +328,20 @@ export const TableManagementPage: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center gap-2 mt-4">
           <button
             onClick={() => setActiveTab('OVERVIEW')}
-            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
+            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 cursor-pointer ${
               activeTab === 'OVERVIEW'
-                ? 'bg-zinc-950 text-white shadow-xs'
-                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
+                ? 'bg-[#145C43] text-white shadow-xs'
+                : 'bg-zinc-100 dark:bg-slate-800 text-[#68736D] dark:text-slate-400 hover:bg-[#EAF5EF] hover:text-[#145C43]'
             }`}
           >
             Live Tables Overview
           </button>
           <button
             onClick={() => setActiveTab('MANAGE')}
-            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 ${
+            className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 cursor-pointer ${
               activeTab === 'MANAGE'
-                ? 'bg-zinc-950 text-white shadow-xs'
-                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
+                ? 'bg-[#145C43] text-white shadow-xs'
+                : 'bg-zinc-100 dark:bg-slate-800 text-[#68736D] dark:text-slate-400 hover:bg-[#EAF5EF] hover:text-[#145C43]'
             }`}
           >
             Manage & Settings
@@ -435,7 +435,7 @@ export const TableManagementPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search table by name or area..."
-              className="w-full pl-9 pr-3 min-h-[44px] rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 text-zinc-950 dark:text-white font-medium"
+              className="w-full pl-9 pr-3 min-h-[44px] rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#145C43] text-zinc-950 dark:text-white font-medium"
             />
           </div>
 
@@ -444,10 +444,10 @@ export const TableManagementPage: React.FC = () => {
               <button
                 key={st}
                 onClick={() => setFilterStatus(st)}
-                className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors active:scale-95 ${
+                className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors active:scale-95 cursor-pointer ${
                   filterStatus === st
-                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-2xs'
-                    : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200'
+                    ? 'bg-[#145C43] text-white shadow-2xs'
+                    : 'bg-zinc-100 dark:bg-slate-800 text-[#68736D] dark:text-slate-400 hover:bg-[#EAF5EF] hover:text-[#145C43]'
                 }`}
               >
                 {st === 'ALL' ? 'All Tables' : st.replace('_', ' ')}
@@ -468,7 +468,7 @@ export const TableManagementPage: React.FC = () => {
                 </p>
                 <button
                   onClick={openCreateModal}
-                  className="mt-4 px-4 min-h-[44px] rounded-xl bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold"
+                  className="mt-4 px-4 min-h-[44px] rounded-xl bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold cursor-pointer"
                 >
                   Create Table Now
                 </button>
@@ -551,7 +551,7 @@ export const TableManagementPage: React.FC = () => {
                               e.stopPropagation();
                               handleStartBillForTable(tbl);
                             }}
-                            className="w-full min-h-[44px] py-2 rounded-xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs"
+                            className="w-full min-h-[44px] py-2 rounded-xl bg-[#145C43] hover:bg-[#0F4935] text-white font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer"
                           >
                             <Plus className="w-4 h-4" />
                             <span>Start Bill</span>
@@ -764,7 +764,7 @@ export const TableManagementPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : editingTable ? 'Save Changes' : 'Create Table'}
                 </button>
@@ -897,7 +897,7 @@ export const TableManagementPage: React.FC = () => {
                   onClick={() => {
                     handleStartBillForTable(selectedTableForDetails);
                   }}
-                  className="w-full min-h-[52px] rounded-2xl bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95"
+                  className="w-full min-h-[52px] rounded-2xl bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-5 h-5" />
                   <span>Start New Bill for {selectedTableForDetails.name}</span>

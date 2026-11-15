@@ -32,8 +32,8 @@ export const AppLayout: React.FC = () => {
 
         {/* Subtle, non-intrusive background sync indicator */}
         {isOnline && isSyncing && (
-          <div className="bg-zinc-900 text-zinc-300 text-[11px] px-3 py-1 flex items-center justify-end gap-2 fixed bottom-20 right-4 md:bottom-4 md:right-6 z-40 rounded-full shadow-lg border border-zinc-700/50 backdrop-blur-md opacity-90 animate-pulse">
-            <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />
+          <div className="bg-[#145C43] text-white text-[11px] px-3 py-1.5 flex items-center justify-end gap-2 fixed bottom-20 right-4 md:bottom-4 md:right-6 z-40 rounded-full shadow-lg border border-[#19865D] backdrop-blur-md opacity-95 animate-pulse font-medium">
+            <RefreshCw className="w-3 h-3 animate-spin text-white" />
             <span>Syncing in background...</span>
           </div>
         )}

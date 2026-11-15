@@ -113,21 +113,21 @@ export const HomePage: React.FC = () => {
       {/* Prominent Action - NEW BILL (Highest Priority - Touch friendly >= 64px) */}
       <button
         onClick={() => navigate('/billing')}
-        className="w-full min-h-[76px] group relative overflow-hidden bg-zinc-950 hover:bg-zinc-900 text-white rounded-2xl p-5 shadow-md transition-all active:scale-[0.98] flex items-center justify-between"
+        className="w-full min-h-[76px] group relative overflow-hidden bg-[#145C43] hover:bg-[#0F4935] text-white rounded-2xl p-5 shadow-md transition-all active:scale-[0.98] flex items-center justify-between"
       >
         <div className="flex items-center gap-4">
-          <div className="w-13 h-13 min-w-[52px] min-h-[52px] rounded-2xl bg-white/10 flex items-center justify-center text-white">
-            <PlusCircle className="w-8 h-8 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
+          <div className="w-13 h-13 min-w-[52px] min-h-[52px] rounded-2xl bg-white/15 flex items-center justify-center text-white">
+            <PlusCircle className="w-8 h-8 text-white group-hover:rotate-90 transition-transform duration-300" />
           </div>
           <div className="text-left">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight">Create New Bill</h2>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">Create New Bill</h2>
+            <p className="text-xs sm:text-sm text-white/80 mt-0.5">
               Instant menu selection & WhatsApp sharing
             </p>
           </div>
         </div>
 
-        <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+        <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-1 transition-transform">
           <ArrowRight className="w-5 h-5 text-white" />
         </div>
       </button>
@@ -135,57 +135,59 @@ export const HomePage: React.FC = () => {
       {/* Revenue Overview Section */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+          <h2 className="text-xs font-bold text-[#68736D] uppercase tracking-wider">
             Today's Financial Overview
           </h2>
-          <span className="text-xs text-zinc-400 font-medium">
+          <span className="text-xs text-[#929B95] font-medium">
             {new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Today's Revenue */}
-          <div className="col-span-2 sm:col-span-1 bg-zinc-900 text-white p-4.5 rounded-2xl shadow-xs">
-            <div className="flex items-center justify-between text-zinc-400 mb-1">
+          {/* Today's Revenue (White card with dark green metric) */}
+          <div className="col-span-2 sm:col-span-1 bg-white border border-[#E5EAE6] text-[#202923] p-4.5 rounded-2xl shadow-2xs">
+            <div className="flex items-center justify-between text-[#68736D] mb-1">
               <span className="text-xs font-semibold">Today's Revenue</span>
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <span className="p-1 rounded-lg bg-[#EAF5EF] text-[#145C43]">
+                <TrendingUp className="w-3.5 h-3.5" />
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold text-[#145C43] tracking-tight">
               {formatCurrency(todayStats.revenue)}
             </div>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-[#68736D] mt-1">
               {todayStats.count} {todayStats.count === 1 ? 'bill created' : 'bills created'}
             </p>
           </div>
 
           {/* Average Order Value */}
-          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
-            <div className="text-xs font-semibold text-zinc-500 mb-1">Avg Order Value</div>
-            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
+          <div className="bg-white border border-[#E5EAE6] p-4.5 rounded-2xl shadow-2xs">
+            <div className="text-xs font-semibold text-[#68736D] mb-1">Avg Order Value</div>
+            <div className="text-xl sm:text-2xl font-bold text-[#202923]">
               {formatCurrency(todayStats.aov)}
             </div>
-            <p className="text-xs text-zinc-400 mt-1">Per transaction</p>
+            <p className="text-xs text-[#929B95] mt-1">Per transaction</p>
           </div>
 
           {/* Cash Collected */}
-          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
-            <div className="flex items-center justify-between text-zinc-500 mb-1">
+          <div className="bg-white border border-[#E5EAE6] p-4.5 rounded-2xl shadow-2xs">
+            <div className="flex items-center justify-between text-[#68736D] mb-1">
               <span className="text-xs font-semibold">Cash Collected</span>
-              <Wallet className="w-4 h-4 text-zinc-400" />
+              <Wallet className="w-4 h-4 text-[#929B95]" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
+            <div className="text-xl sm:text-2xl font-bold text-[#202923]">
               {formatCurrency(todayStats.cash)}
             </div>
-            <p className="text-xs text-emerald-600 mt-1 font-semibold">Physical cash in drawer</p>
+            <p className="text-xs text-[#19865D] mt-1 font-semibold">Physical cash in drawer</p>
           </div>
 
           {/* UPI Collected */}
-          <div className="bg-white border border-zinc-200/90 p-4.5 rounded-2xl shadow-xs">
-            <div className="flex items-center justify-between text-zinc-500 mb-1">
+          <div className="bg-white border border-[#E5EAE6] p-4.5 rounded-2xl shadow-2xs">
+            <div className="flex items-center justify-between text-[#68736D] mb-1">
               <span className="text-xs font-semibold">UPI / QR Collected</span>
-              <QrCode className="w-4 h-4 text-zinc-400" />
+              <QrCode className="w-4 h-4 text-[#929B95]" />
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-zinc-900">
+            <div className="text-xl sm:text-2xl font-bold text-[#202923]">
               {formatCurrency(todayStats.upi)}
             </div>
             <p className="text-xs text-indigo-600 mt-1 font-semibold">Direct digital receipts</p>

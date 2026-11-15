@@ -292,8 +292,8 @@ export const SettingsPage: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`min-h-[48px] px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 flex items-center gap-2 ${
                 isActive
-                  ? 'bg-zinc-950 text-white shadow-xs'
-                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                  ? 'bg-[#145C43] text-white shadow-xs'
+                  : 'bg-[#F7F9F7] text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43] border border-[#E5EAE6]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -322,7 +322,7 @@ export const SettingsPage: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -335,7 +335,7 @@ export const SettingsPage: React.FC = () => {
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. Prince Bhajipav Manekchowkwala"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -347,7 +347,7 @@ export const SettingsPage: React.FC = () => {
                   type="text"
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -359,7 +359,7 @@ export const SettingsPage: React.FC = () => {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -370,7 +370,7 @@ export const SettingsPage: React.FC = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as BusinessCategory)}
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
                 >
                   <option value="restaurant">Restaurant & Dining</option>
                   <option value="cafe">Cafe & Beverages</option>
@@ -391,14 +391,14 @@ export const SettingsPage: React.FC = () => {
                   rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full p-3.5 text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full p-3.5 text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full sm:w-auto min-h-[52px] px-6 bg-zinc-950 hover:bg-zinc-900 text-white text-sm sm:text-base font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto min-h-[52px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white text-sm sm:text-base font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2"
             >
               <Check className="w-5 h-5" />
               <span>Update Business Profile</span>
@@ -421,7 +421,7 @@ export const SettingsPage: React.FC = () => {
                 type="button"
                 onClick={() => setGstEnabled(!gstEnabled)}
                 className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors ${
-                  gstEnabled ? 'bg-zinc-950' : 'bg-zinc-300'
+                  gstEnabled ? 'bg-[#145C43]' : 'bg-zinc-300'
                 }`}
               >
                 <span
@@ -560,7 +560,7 @@ export const SettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={showAddress}
                     onChange={(e) => setShowAddress(e.target.checked)}
-                    className="w-6 h-6 rounded-lg text-zinc-950 focus:ring-zinc-900 border-zinc-300 cursor-pointer"
+                    className="w-6 h-6 rounded-lg text-[#145C43] focus:ring-[#145C43] border-zinc-300 cursor-pointer"
                   />
                   <span className="text-xs sm:text-sm font-semibold text-zinc-800">Show Address on Receipt</span>
                 </label>
@@ -570,7 +570,7 @@ export const SettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={showPhone}
                     onChange={(e) => setShowPhone(e.target.checked)}
-                    className="w-6 h-6 rounded-lg text-zinc-950 focus:ring-zinc-900 border-zinc-300 cursor-pointer"
+                    className="w-6 h-6 rounded-lg text-[#145C43] focus:ring-[#145C43] border-zinc-300 cursor-pointer"
                   />
                   <span className="text-xs sm:text-sm font-semibold text-zinc-800">Show Phone on Receipt</span>
                 </label>
@@ -580,7 +580,7 @@ export const SettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={showGstin}
                     onChange={(e) => setShowGstin(e.target.checked)}
-                    className="w-6 h-6 rounded-lg text-zinc-950 focus:ring-zinc-900 border-zinc-300 cursor-pointer"
+                    className="w-6 h-6 rounded-lg text-[#145C43] focus:ring-[#145C43] border-zinc-300 cursor-pointer"
                   />
                   <span className="text-xs sm:text-sm font-semibold text-zinc-800">Show GSTIN on Receipt</span>
                 </label>
@@ -588,7 +588,7 @@ export const SettingsPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full sm:w-auto min-h-[52px] px-6 bg-zinc-950 hover:bg-zinc-900 text-white text-sm sm:text-base font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto min-h-[52px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white text-sm sm:text-base font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
                 <span>Save All Preferences</span>
@@ -647,12 +647,12 @@ export const SettingsPage: React.FC = () => {
                     value={newLoginId}
                     onChange={(e) => setNewLoginId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                     placeholder="Enter new unique login ID (e.g. princeowner)"
-                    className="flex-1 px-4 min-h-[52px] text-sm sm:text-base bg-white border border-zinc-300 rounded-2xl font-mono focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="flex-1 px-4 min-h-[52px] text-sm sm:text-base bg-white border border-zinc-300 rounded-2xl font-mono focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                   <button
                     type="submit"
                     disabled={isSubmittingAccount || !newLoginId.trim()}
-                    className="min-h-[52px] px-6 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl active:scale-95 transition-all disabled:opacity-50"
+                    className="min-h-[52px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isSubmittingAccount ? 'Updating...' : 'Update Login ID'}
                   </button>
@@ -687,12 +687,12 @@ export const SettingsPage: React.FC = () => {
                     value={newOwnerEmail}
                     onChange={(e) => setNewOwnerEmail(e.target.value)}
                     placeholder="Enter new verified email address"
-                    className="flex-1 px-4 min-h-[52px] text-sm sm:text-base bg-white border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="flex-1 px-4 min-h-[52px] text-sm sm:text-base bg-white border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                   <button
                     type="submit"
                     disabled={isSubmittingAccount || !newOwnerEmail.trim()}
-                    className="min-h-[52px] px-6 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl active:scale-95 transition-all disabled:opacity-50"
+                    className="min-h-[52px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl active:scale-95 transition-all disabled:opacity-50"
                   >
                     {isSubmittingAccount ? 'Updating...' : 'Update Email'}
                   </button>
@@ -720,7 +720,7 @@ export const SettingsPage: React.FC = () => {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Current password"
-                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
 
@@ -734,7 +734,7 @@ export const SettingsPage: React.FC = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
 
@@ -748,7 +748,7 @@ export const SettingsPage: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat new password"
-                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -756,7 +756,7 @@ export const SettingsPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmittingAccount}
-                className="w-full sm:w-auto min-h-[52px] px-6 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                className="w-full sm:w-auto min-h-[52px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl shadow-xs transition-all active:scale-95 disabled:opacity-50"
               >
                 {isSubmittingAccount ? 'Updating...' : 'Update Password'}
               </button>
@@ -849,7 +849,7 @@ export const SettingsPage: React.FC = () => {
               <button
                 onClick={() => triggerSync()}
                 disabled={isSyncing || !isOnline}
-                className="min-h-[44px] px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
+                className="min-h-[44px] px-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>Sync Now</span>

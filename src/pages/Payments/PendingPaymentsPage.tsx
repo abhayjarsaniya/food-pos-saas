@@ -223,7 +223,7 @@ export const PendingPaymentsPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search bill #, customer, table, mobile..."
-              className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+              className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
             />
           </div>
 
@@ -234,10 +234,10 @@ export const PendingPaymentsPage: React.FC = () => {
                 key={st}
                 type="button"
                 onClick={() => setStatusFilter(st)}
-                className={`min-h-[46px] px-4 py-2 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 ${
+                className={`min-h-[46px] px-4 py-2 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
                   statusFilter === st
-                    ? 'bg-zinc-950 text-white shadow-xs'
-                    : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                    ? 'bg-[#145C43] text-white shadow-xs'
+                    : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
                 }`}
               >
                 {st === 'PENDING'
@@ -258,7 +258,7 @@ export const PendingPaymentsPage: React.FC = () => {
             <select
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
-              className="min-h-[48px] text-sm font-bold px-4 py-2 bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+              className="min-h-[48px] text-sm font-bold px-4 py-2 bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
             >
               <option value="ALL">All Tables</option>
               {availableTables.map((t) => (
@@ -413,7 +413,7 @@ export const PendingPaymentsPage: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickMarkReceived(ord)}
-                                  className="min-h-[52px] px-3.5 bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl active:scale-95 transition-all shadow-xs"
+                                  className="min-h-[52px] px-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-2xl active:scale-95 transition-all shadow-xs cursor-pointer"
                                 >
                                   Confirm
                                 </button>
@@ -523,7 +523,7 @@ export const PendingPaymentsPage: React.FC = () => {
                   max={activeOrderForPayment.balanceDue}
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full px-4 min-h-[54px] text-lg sm:text-xl bg-white border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono font-bold"
+                  className="w-full px-4 min-h-[54px] text-lg sm:text-xl bg-white border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43] font-mono font-bold"
                 />
               </div>
 
@@ -543,10 +543,10 @@ export const PendingPaymentsPage: React.FC = () => {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl border transition-all active:scale-95 ${
+                      className={`min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl border transition-all active:scale-95 cursor-pointer ${
                         paymentMethod === m.id
-                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
-                          : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-zinc-100'
+                          ? 'bg-[#145C43] text-white border-[#145C43] shadow-xs'
+                          : 'bg-zinc-50 text-[#68736D] border-zinc-200 hover:bg-[#EAF5EF] hover:text-[#145C43]'
                       }`}
                     >
                       {m.label}
@@ -565,7 +565,7 @@ export const PendingPaymentsPage: React.FC = () => {
                   value={paymentRef}
                   onChange={(e) => setPaymentRef(e.target.value)}
                   placeholder="e.g. UPI Ref / Card Last 4"
-                  className="w-full px-4 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]/20 focus:border-[#145C43]"
                 />
               </div>
 
@@ -580,7 +580,7 @@ export const PendingPaymentsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmittingPayment}
-                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-xs transition-all disabled:opacity-50 active:scale-95"
+                  className="flex-1 min-h-[52px] text-sm sm:text-base font-bold text-white bg-[#145C43] hover:bg-[#0F4935] rounded-2xl shadow-xs transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
                 >
                   {isSubmittingPayment ? 'Recording...' : 'Confirm Payment'}
                 </button>

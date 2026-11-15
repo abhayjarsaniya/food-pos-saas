@@ -90,7 +90,7 @@ export const AdminOverviewPage: React.FC = () => {
 
           <button
             onClick={() => navigate('/admin/create-shop')}
-            className="px-3.5 py-2 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="px-3.5 py-2 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             <span>+ Create Shop</span>
@@ -133,15 +133,17 @@ export const AdminOverviewPage: React.FC = () => {
           <span className="text-[11px] text-zinc-400 block mt-1">Across all business counters</span>
         </div>
 
-        <div className="bg-zinc-950 text-white p-4 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-zinc-400 mb-1">
+        <div className="bg-white border border-[#E5EAE6] text-[#202923] p-4 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-[#68736D] mb-1">
             <span className="text-xs font-medium uppercase tracking-wider">Total Sales Volume</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <span className="p-1 rounded-lg bg-[#EAF5EF] text-[#145C43]">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </span>
           </div>
-          <span className="text-xl font-bold font-mono">
+          <span className="text-xl font-bold font-mono text-[#145C43]">
             {formatCurrency(metrics?.totalSalesVolume || 0)}
           </span>
-          <span className="text-[11px] text-zinc-400 block mt-1">Completed platform transactions</span>
+          <span className="text-[11px] text-[#929B95] block mt-1">Completed platform transactions</span>
         </div>
 
         <div className="bg-white border border-zinc-200/90 p-4 rounded-2xl shadow-2xs">

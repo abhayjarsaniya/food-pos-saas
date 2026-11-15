@@ -91,7 +91,7 @@ export const AdminSettingsPage: React.FC = () => {
 
           <button
             type="submit"
-            className="py-2.5 px-5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
+            className="py-2.5 px-5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
           >
             Save Platform Settings
           </button>

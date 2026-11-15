@@ -246,7 +246,7 @@ export const MenuPage: React.FC = () => {
 
           <button
             onClick={() => openItemModal()}
-            className="min-h-[48px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all shadow-xs active:scale-95"
+            className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all shadow-xs active:scale-95 cursor-pointer"
           >
             <Plus className="w-5 h-5" />
             <span>+ Food Item</span>
@@ -265,10 +265,10 @@ export const MenuPage: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           <button
             onClick={() => setSelectedCatFilter('all')}
-            className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
+            className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
               selectedCatFilter === 'all'
-                ? 'bg-zinc-900 text-white shadow-xs'
-                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                ? 'bg-[#145C43] text-white shadow-xs'
+                : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
             }`}
           >
             All Items ({menuItems.length})
@@ -280,10 +280,10 @@ export const MenuPage: React.FC = () => {
             return (
               <div
                 key={cat.id}
-                className={`group flex items-center gap-1.5 pl-4 pr-2.5 min-h-[46px] rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
+                className={`group flex items-center gap-1.5 pl-4 pr-2.5 min-h-[46px] rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
                   isSelected
-                    ? 'bg-zinc-900 text-white shadow-xs'
-                    : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                    ? 'bg-[#145C43] text-white shadow-xs'
+                    : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
                 }`}
               >
                 <button onClick={() => setSelectedCatFilter(cat.id)}>
@@ -296,7 +296,7 @@ export const MenuPage: React.FC = () => {
                     setIsCatModalOpen(true);
                   }}
                   className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 ${
-                    isSelected ? 'hover:bg-zinc-800' : 'hover:bg-zinc-300'
+                    isSelected ? 'hover:bg-[#0F4935]' : 'hover:bg-[#CFE5D8]'
                   }`}
                   title="Rename"
                 >
@@ -305,7 +305,7 @@ export const MenuPage: React.FC = () => {
                 <button
                   onClick={() => handleDeleteCategory(cat.id)}
                   className={`p-1 rounded text-rose-500 opacity-60 hover:opacity-100 ${
-                    isSelected ? 'hover:bg-zinc-800' : 'hover:bg-zinc-300'
+                    isSelected ? 'hover:bg-[#0F4935]' : 'hover:bg-[#CFE5D8]'
                   }`}
                   title="Delete"
                 >
@@ -326,7 +326,7 @@ export const MenuPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search food items by name..."
-            className="w-full pl-9 pr-4 py-2.5 bg-white text-sm rounded-xl border border-zinc-200/90 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs transition-all"
+            className="w-full pl-9 pr-4 py-2.5 bg-white text-sm rounded-xl border border-zinc-200/90 focus:outline-none focus:ring-2 focus:ring-[#145C43] shadow-2xs transition-all"
           />
         </div>
 
@@ -473,7 +473,7 @@ export const MenuPage: React.FC = () => {
                   value={catNameInput}
                   onChange={(e) => setCatNameInput(e.target.value)}
                   placeholder="e.g. South Indian, Beverages, Desserts"
-                  className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white"
+                  className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white"
                 />
               </div>
 
@@ -487,7 +487,7 @@ export const MenuPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Save Category
                 </button>
@@ -525,7 +525,7 @@ export const MenuPage: React.FC = () => {
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
                   placeholder="e.g. Masala Dosa, Cold Coffee"
-                  className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white"
+                  className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white"
                 />
               </div>
 
@@ -541,7 +541,7 @@ export const MenuPage: React.FC = () => {
                     value={itemPrice}
                     onChange={(e) => setItemPrice(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
 
@@ -553,7 +553,7 @@ export const MenuPage: React.FC = () => {
                     required
                     value={itemCategoryId}
                     onChange={(e) => setItemCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white"
+                    className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -607,7 +607,7 @@ export const MenuPage: React.FC = () => {
                     value={itemGstRate}
                     onChange={(e) => setItemGstRate(e.target.value)}
                     placeholder={`Default (${settings.tax.defaultGstRate}%)`}
-                    className="w-full px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
               </div>
@@ -622,7 +622,7 @@ export const MenuPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Save Item
                 </button>

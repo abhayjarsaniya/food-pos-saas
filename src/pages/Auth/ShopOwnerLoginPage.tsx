@@ -67,7 +67,7 @@ export const ShopOwnerLoginPage: React.FC = () => {
       <div className="w-full max-w-md bg-white border border-zinc-200/80 rounded-2xl shadow-sm p-6 sm:p-8">
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm shadow-emerald-600/20">
+          <div className="w-14 h-14 bg-[#145C43] text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm shadow-[#145C43]/20">
             <Store className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Shop Owner Portal</h1>
@@ -140,7 +140,7 @@ export const ShopOwnerLoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-6"
+            className="w-full py-3 px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-6 cursor-pointer"
           >
             <span>{isSubmitting ? 'Verifying Owner Session...' : 'Sign In as Shop Owner'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -197,7 +197,7 @@ export const ShopOwnerLoginPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="flex-1 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 py-2 text-xs font-semibold text-white bg-[#145C43] hover:bg-[#0F4935] rounded-lg transition-colors disabled:opacity-50"
                   >
                     {forgotLoading ? 'Sending...' : 'Send Link'}
                   </button>

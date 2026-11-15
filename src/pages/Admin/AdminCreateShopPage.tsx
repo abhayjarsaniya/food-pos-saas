@@ -171,7 +171,7 @@ Counter Login URL: ${window.location.origin}/login
           <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
             <button
               onClick={handleCopyCredentials}
-              className="w-full sm:flex-1 min-h-[52px] bg-zinc-950 hover:bg-zinc-900 text-white text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
+              className="w-full sm:flex-1 min-h-[52px] bg-[#145C43] hover:bg-[#0F4935] text-white text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
             >
               <Copy className="w-5 h-5" />
               <span>{copied ? 'Credentials Copied!' : 'Copy Full Login Details'}</span>
@@ -217,7 +217,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="e.g. Prince Pavbhaji"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -230,7 +230,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. Prince Bhajipav Manekchowkwala"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
             </div>
@@ -246,7 +246,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
                   placeholder="e.g. Rajesh Sharma"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -257,7 +257,7 @@ Counter Login URL: ${window.location.origin}/login
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as BusinessCategory)}
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
                 >
                   <option value="restaurant">Restaurant & Dining</option>
                   <option value="cafe">Cafe & Beverages</option>
@@ -282,7 +282,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={ownerEmail}
                   onChange={(e) => setOwnerEmail(e.target.value)}
                   placeholder="owner@princepavbhaji.com"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -296,7 +296,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98250 12345"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                   placeholder="e.g. princeowner (auto-generated if empty)"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base font-mono bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -324,7 +324,7 @@ Counter Login URL: ${window.location.origin}/login
                   value={customPassword}
                   onChange={(e) => setCustomPassword(e.target.value)}
                   placeholder="Leave empty for auto-generated password"
-                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono"
+                  className="w-full px-4 min-h-[52px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43] font-mono"
                 />
               </div>
             </div>
@@ -338,7 +338,7 @@ Counter Login URL: ${window.location.origin}/login
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Outlet / Shop full address..."
-                className="w-full p-4 text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                className="w-full p-4 text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
               />
             </div>
 
@@ -392,7 +392,7 @@ Counter Login URL: ${window.location.origin}/login
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full min-h-[56px] bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98 mt-2"
+              className="w-full min-h-[56px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98 mt-2 cursor-pointer"
             >
               <span>{isSubmitting ? 'Provisioning Shop...' : 'Create Shop & Generate Credentials'}</span>
               <ArrowRight className="w-5 h-5" />

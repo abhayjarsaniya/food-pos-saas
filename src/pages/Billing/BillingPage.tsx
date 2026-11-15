@@ -382,7 +382,7 @@ export const BillingPage: React.FC = () => {
                     }
                   }
                 }}
-                className="w-full pl-12 pr-10 min-h-[52px] bg-zinc-50 hover:bg-zinc-100/70 border border-zinc-300 rounded-2xl text-sm sm:text-base font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all cursor-pointer"
+                className="w-full pl-12 pr-10 min-h-[52px] bg-zinc-50 hover:bg-zinc-100/70 border border-zinc-300 rounded-2xl text-sm sm:text-base font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white transition-all cursor-pointer"
               >
                 <option value="">No Table Selected</option>
                 {activeTables.map((tbl) => {
@@ -413,7 +413,7 @@ export const BillingPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search food, beverages, snacks..."
-              className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-100/90 hover:bg-zinc-100 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+              className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-100/90 hover:bg-zinc-100 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#145C43] transition-all"
             />
             {searchQuery && (
               <button
@@ -439,7 +439,7 @@ export const BillingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCustomItemModalOpen(true)}
-            className="min-h-[50px] px-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-xs transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
+            className="min-h-[50px] px-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-xs sm:text-sm rounded-2xl shadow-xs transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>+ Custom</span>
@@ -452,8 +452,8 @@ export const BillingPage: React.FC = () => {
             onClick={() => setSelectedCategory(null)}
             className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
               selectedCategory === null
-                ? 'bg-zinc-900 text-white shadow-xs'
-                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                ? 'bg-[#145C43] text-white shadow-xs'
+                : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
             }`}
           >
             All Items
@@ -465,8 +465,8 @@ export const BillingPage: React.FC = () => {
               onClick={() => setSelectedCategory(cat.id)}
               className={`min-h-[46px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${
                 selectedCategory === cat.id
-                  ? 'bg-zinc-900 text-white shadow-xs'
-                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                  ? 'bg-[#145C43] text-white shadow-xs'
+                  : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
               }`}
             >
               {cat.name}
@@ -495,7 +495,7 @@ export const BillingPage: React.FC = () => {
                     key={item.id}
                     onClick={() => handleItemClick(item)}
                     className={`p-3.5 bg-white border rounded-2xl flex flex-col justify-between transition-all select-none cursor-pointer relative shadow-xs hover:shadow-sm active:scale-[0.98] min-h-[110px] ${
-                      qtyInBill > 0 ? 'border-zinc-900 ring-2 ring-zinc-900' : 'border-zinc-200/90 hover:border-zinc-300'
+                      qtyInBill > 0 ? 'border-[#145C43] ring-2 ring-[#145C43]/30 bg-[#EAF5EF]/20' : 'border-[#E5EAE6] hover:border-[#CFE5D8]'
                     }`}
                   >
                     <div>
@@ -507,7 +507,7 @@ export const BillingPage: React.FC = () => {
                           title={item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'}
                         />
                         {qtyInBill > 0 && (
-                          <span className="text-[11px] font-bold bg-zinc-950 text-white px-2 py-0.5 rounded-full shadow-2xs">
+                          <span className="text-[11px] font-bold bg-[#145C43] text-white px-2 py-0.5 rounded-full shadow-2xs">
                             x{qtyInBill}
                           </span>
                         )}
@@ -553,14 +553,14 @@ export const BillingPage: React.FC = () => {
                           </span>
                           <button
                             onClick={() => updateItemQuantity(item.id, 1)}
-                            className="w-11 h-11 stepper-btn-mobile rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+                            className="w-11 h-11 stepper-btn-mobile rounded-xl bg-[#145C43] hover:bg-[#0F4935] text-white flex items-center justify-center transition-all active:scale-90 shadow-2xs"
                             title="Increase quantity"
                           >
                             <Plus className="w-5 h-5" />
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs sm:text-sm font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition-colors">
+                        <span className="text-xs sm:text-sm font-bold text-[#145C43] bg-[#EAF5EF] border border-[#CFE5D8]/80 px-2.5 py-1 rounded-xl hover:bg-[#CFE5D8] transition-colors">
                           + Add
                         </span>
                       )}
@@ -574,15 +574,15 @@ export const BillingPage: React.FC = () => {
       </div>
 
       {/* RIGHT / DESKTOP SIDEBAR: Current Bill List & Summary */}
-      <div className="hidden lg:flex flex-col w-96 bg-zinc-50 border border-zinc-200 rounded-2xl p-4 shadow-xs h-fit sticky top-6">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
+      <div className="hidden lg:flex flex-col w-96 bg-white border border-[#E5EAE6] rounded-2xl p-4 shadow-xs h-fit sticky top-6">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5EAE6]">
           <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-zinc-900" />
-            <h2 className="text-sm font-bold text-zinc-900">Current Bill</h2>
-            <span className="text-xs bg-zinc-200 px-2 py-0.5 rounded-full font-semibold text-zinc-700">
+            <Receipt className="w-4 h-4 text-[#145C43]" />
+            <h2 className="text-sm font-bold text-[#202923]">Current Bill</h2>
+            <span className="text-xs bg-[#EAF5EF] text-[#145C43] px-2 py-0.5 rounded-full font-bold">
               {items.length + extras.length}
             </span>
-            <span className="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded font-mono">
+            <span className="text-[10px] bg-[#145C43] text-white px-2 py-0.5 rounded font-mono font-bold">
               {tableNumber}
             </span>
           </div>
@@ -638,7 +638,7 @@ export const BillingPage: React.FC = () => {
                           />
                           <button
                             onClick={() => handlePriceEditSubmit(item.itemId)}
-                            className="text-[10px] bg-zinc-900 text-white px-1.5 py-0.5 rounded"
+                            className="text-[10px] bg-[#145C43] hover:bg-[#0F4935] text-white px-2 py-0.5 rounded font-bold transition-colors"
                           >
                             OK
                           </button>
@@ -776,7 +776,7 @@ export const BillingPage: React.FC = () => {
               <button
                 onClick={handleSaveUnpaidBill}
                 disabled={isSubmitting}
-                className="w-full py-3 bg-zinc-950 hover:bg-zinc-900 text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <Receipt className="w-4 h-4" />
                 <span>Save Bill (Open & Unpaid)</span>
@@ -792,7 +792,7 @@ export const BillingPage: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsCheckoutDrawerOpen(true)}
-                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-[#19865D] hover:bg-[#145C43] text-white font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Wallet className="w-3.5 h-3.5" />
                   <span>Collect Payment Now</span>
@@ -805,13 +805,13 @@ export const BillingPage: React.FC = () => {
 
       {/* MOBILE FIXED BOTTOM BILLING BAR */}
       {(items.length > 0 || extras.length > 0) && (
-        <div className="lg:hidden fixed bottom-16 sm:bottom-18 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-zinc-200 z-30 shadow-2xl safe-bottom">
+        <div className="lg:hidden fixed bottom-16 sm:bottom-18 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-[#E5EAE6] z-30 shadow-2xl safe-bottom">
           <div className="flex items-center justify-between gap-2.5 max-w-lg mx-auto">
             <div className="min-w-0 pr-1">
-              <p className="text-[11px] text-zinc-500 font-bold uppercase font-mono truncate">
+              <p className="text-[11px] text-[#68736D] font-bold uppercase font-mono truncate">
                 {tableNumber || tableName || 'Counter'} • {items.length + extras.length} Items
               </p>
-              <p className="text-xl font-black text-zinc-950 font-mono tracking-tight leading-tight">
+              <p className="text-xl font-black text-[#145C43] font-mono tracking-tight leading-tight">
                 {formatCurrency(grandTotal)}
               </p>
             </div>
@@ -819,7 +819,7 @@ export const BillingPage: React.FC = () => {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => clearBill()}
-                className="w-12 h-12 rounded-2xl border border-zinc-200 text-zinc-400 hover:text-rose-600 flex items-center justify-center transition-all active:scale-90"
+                className="w-12 h-12 rounded-2xl border border-[#E5EAE6] text-[#929B95] hover:text-rose-600 flex items-center justify-center transition-all active:scale-90"
                 title="Clear Bill"
               >
                 <Trash2 className="w-5 h-5" />
@@ -829,7 +829,7 @@ export const BillingPage: React.FC = () => {
               <button
                 onClick={handleSaveUnpaidBill}
                 disabled={isSubmitting}
-                className="min-h-[52px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all"
+                className="min-h-[52px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
               >
                 <Receipt className="w-4 h-4" />
                 <span>Save Bill</span>
@@ -839,7 +839,7 @@ export const BillingPage: React.FC = () => {
               {!(userRole === 'CASHIER' && !canCollectPayment) && (
                 <button
                   onClick={() => setIsCheckoutDrawerOpen(true)}
-                  className="min-h-[52px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all"
+                  className="min-h-[52px] px-4 bg-[#19865D] hover:bg-[#145C43] text-white font-bold text-sm sm:text-base rounded-2xl shadow-sm flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
                 >
                   <Wallet className="w-4 h-4" />
                   <span>Pay</span>
@@ -882,7 +882,7 @@ export const BillingPage: React.FC = () => {
                     value={customer.name || ''}
                     onChange={(e) => setCustomer((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Customer Name"
-                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
                 <div className="relative">
@@ -892,7 +892,7 @@ export const BillingPage: React.FC = () => {
                     value={customer.phone || ''}
                     onChange={(e) => setCustomer((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="Mobile (+91...)"
-                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full pl-10 pr-3 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -932,7 +932,7 @@ export const BillingPage: React.FC = () => {
                 value={discountValue || ''}
                 onChange={(e) => setDiscountValue(Math.max(0, parseFloat(e.target.value) || 0))}
                 placeholder={discountType === 'fixed' ? 'Enter flat discount (₹)' : 'Enter discount percentage (%)'}
-                className="w-full px-3.5 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono"
+                className="w-full px-3.5 min-h-[48px] text-sm sm:text-base bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] font-mono"
               />
             </div>
 
@@ -955,10 +955,10 @@ export const BillingPage: React.FC = () => {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`min-h-[56px] p-2.5 rounded-2xl border flex flex-col items-center justify-center transition-all active:scale-95 ${
+                      className={`min-h-[56px] p-2.5 rounded-2xl border flex flex-col items-center justify-center transition-all active:scale-95 cursor-pointer ${
                         isSelected
-                          ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
-                          : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                          ? 'border-[#145C43] bg-[#EAF5EF] text-[#145C43] shadow-xs'
+                          : 'border-zinc-200 bg-white text-zinc-700 hover:bg-[#F7F9F7]'
                       }`}
                     >
                       <Icon className="w-5 h-5 mb-1" />
@@ -978,10 +978,10 @@ export const BillingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPaymentStatus('PAID')}
-                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 ${
+                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 cursor-pointer ${
                     paymentStatus === 'PAID'
-                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
-                      : 'border-zinc-200 bg-white text-zinc-700'
+                      ? 'border-[#145C43] bg-[#EAF5EF] text-[#145C43] shadow-xs'
+                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-[#F7F9F7]'
                   }`}
                 >
                   Full ({formatCurrency(grandTotal)})
@@ -989,10 +989,10 @@ export const BillingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPaymentStatus('PARTIAL')}
-                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 ${
+                  className={`min-h-[50px] py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all active:scale-95 cursor-pointer ${
                     paymentStatus === 'PARTIAL'
-                      ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
-                      : 'border-zinc-200 bg-white text-zinc-700'
+                      ? 'border-amber-500 bg-amber-50 text-amber-900 shadow-xs'
+                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-[#F7F9F7]'
                   }`}
                 >
                   Partial Advance
@@ -1010,7 +1010,7 @@ export const BillingPage: React.FC = () => {
                       value={amountPaid || ''}
                       onChange={(e) => setAmountPaid(Math.max(0, parseFloat(e.target.value) || 0))}
                       placeholder="0.00"
-                      className="w-full px-3.5 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl font-mono"
+                      className="w-full px-3.5 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl font-mono focus:border-[#145C43] focus:ring-2 focus:ring-[#145C43]/20"
                     />
                   </div>
                   <div>
@@ -1030,7 +1030,7 @@ export const BillingPage: React.FC = () => {
               <button
                 onClick={handleCollectPaymentNow}
                 disabled={isSubmitting}
-                className="w-full min-h-[54px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+                className="w-full min-h-[54px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98 cursor-pointer"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>Confirm & Record Payment</span>
@@ -1087,7 +1087,7 @@ export const BillingPage: React.FC = () => {
               {/* Browser Print Button (Dialog) */}
               <button
                 onClick={() => handlePrintInBrowser(completedOrder, 'compact80')}
-                className="min-h-[52px] px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
+                className="min-h-[52px] px-3 bg-[#145C43] hover:bg-[#0F4935] text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs cursor-pointer"
               >
                 <Printer className="w-5 h-5" />
                 <span>Print Bill</span>
@@ -1096,7 +1096,7 @@ export const BillingPage: React.FC = () => {
               {/* WhatsApp Share Button */}
               <button
                 onClick={() => handleWhatsAppShare(completedOrder)}
-                className="min-h-[52px] px-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
+                className="min-h-[52px] px-3 bg-[#25D366] hover:bg-[#20ba59] text-white text-sm sm:text-base font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs cursor-pointer"
               >
                 <Share2 className="w-5 h-5" />
                 <span>WhatsApp</span>
@@ -1192,7 +1192,7 @@ export const BillingPage: React.FC = () => {
                   value={extraName}
                   onChange={(e) => setExtraName(e.target.value)}
                   placeholder="e.g. Extra Butter, Extra Cheese"
-                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white"
+                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white"
                 />
               </div>
 
@@ -1208,7 +1208,7 @@ export const BillingPage: React.FC = () => {
                     value={extraPrice}
                     onChange={(e) => setExtraPrice(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
 
@@ -1221,7 +1221,7 @@ export const BillingPage: React.FC = () => {
                     min="1"
                     value={extraQty}
                     onChange={(e) => setExtraQty(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
               </div>
@@ -1263,7 +1263,7 @@ export const BillingPage: React.FC = () => {
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="e.g. Special Gravy, Packaging Charge"
-                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white"
+                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white"
                 />
               </div>
 
@@ -1279,7 +1279,7 @@ export const BillingPage: React.FC = () => {
                     value={customPrice}
                     onChange={(e) => setCustomPrice(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
 
@@ -1292,14 +1292,14 @@ export const BillingPage: React.FC = () => {
                     min="1"
                     value={customQty}
                     onChange={(e) => setCustomQty(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:bg-white font-mono"
+                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#145C43] focus:bg-white font-mono"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs rounded-xl transition-colors shadow-2xs mt-2"
+                className="w-full py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white font-semibold text-xs rounded-xl transition-colors shadow-2xs mt-2 cursor-pointer"
               >
                 Add Custom Item to Bill
               </button>
@@ -1364,9 +1364,9 @@ export const BillingPage: React.FC = () => {
                   setTable({ id: null, name: '' });
                   setIsTableModalOpen(false);
                 }}
-                className={`p-3 rounded-2xl border text-center font-bold text-xs transition-all ${
+                className={`p-3 rounded-2xl border text-center font-bold text-xs transition-all cursor-pointer ${
                   orderType === 'DINE_IN' && !tableNumber
-                    ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
+                    ? 'bg-[#145C43] text-white border-[#145C43] shadow-xs'
                     : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100 text-zinc-700'
                 }`}
               >
@@ -1394,14 +1394,14 @@ export const BillingPage: React.FC = () => {
                         setTable({ id: tbl.id, name: tbl.name });
                         setIsTableModalOpen(false);
                       }}
-                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between min-h-[90px] transition-all ${
+                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between min-h-[90px] transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-zinc-950 bg-zinc-950 text-white shadow-md'
+                          ? 'border-[#145C43] bg-[#145C43] text-white shadow-md'
                           : isPending
                           ? 'border-amber-300 bg-amber-50/70 hover:bg-amber-100/70'
                           : !isAvailable
                           ? 'border-blue-200 bg-blue-50/70 hover:bg-blue-100/70'
-                          : 'border-zinc-200 bg-white hover:border-emerald-400'
+                          : 'border-zinc-200 bg-white hover:border-[#20A879]'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-1 w-full">
@@ -1474,7 +1474,7 @@ export const BillingPage: React.FC = () => {
                     }}
                     className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
                       isAvailable
-                        ? 'bg-zinc-50 hover:bg-zinc-900 hover:text-white border-zinc-200 hover:border-zinc-900 cursor-pointer shadow-2xs group'
+                        ? 'bg-zinc-50 hover:bg-[#145C43] hover:text-white border-zinc-200 hover:border-[#145C43] cursor-pointer shadow-2xs group'
                         : 'bg-zinc-100/60 border-zinc-200/60 text-zinc-400 cursor-not-allowed opacity-60'
                     }`}
                   >
@@ -1540,13 +1540,13 @@ export const BillingPage: React.FC = () => {
                   value={mrpPriceInput}
                   onChange={(e) => setMrpPriceInput(e.target.value)}
                   placeholder="e.g. 20 or 40"
-                  className="w-full px-4 py-3 text-base font-mono font-bold bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+                  className="w-full px-4 py-3 text-base font-mono font-bold bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm rounded-xl transition-colors shadow-sm"
+                className="w-full py-3 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm rounded-xl transition-colors shadow-sm cursor-pointer"
               >
                 Add to Bill
               </button>

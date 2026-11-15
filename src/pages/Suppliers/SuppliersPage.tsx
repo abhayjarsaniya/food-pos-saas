@@ -210,7 +210,7 @@ export const SuppliersPage: React.FC = () => {
 
         <button
           onClick={() => openModal()}
-          className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs w-fit"
+          className="px-4 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs w-fit"
         >
           <Plus className="w-4 h-4" />
           <span>+ Add Supplier</span>
@@ -226,7 +226,7 @@ export const SuppliersPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by vendor name, company, products, phone..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-50 focus:bg-white text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="w-full pl-9 pr-4 py-2 bg-zinc-50 focus:bg-white text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#145C43]"
           />
         </div>
 
@@ -478,7 +478,7 @@ export const SuppliersPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Save Supplier
                 </button>

@@ -263,7 +263,7 @@ export const PurchaseOrdersPage: React.FC = () => {
             setPoItems([]);
             setIsCreateModalOpen(true);
           }}
-          className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs w-fit"
+          className="px-4 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs w-fit"
         >
           <Plus className="w-4 h-4" />
           <span>+ Create Purchase Order</span>
@@ -279,7 +279,7 @@ export const PurchaseOrdersPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search PO number (e.g. PO-1001), supplier name..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-50 focus:bg-white text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="w-full pl-9 pr-4 py-2 bg-zinc-50 focus:bg-white text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#145C43]"
           />
         </div>
 
@@ -290,8 +290,8 @@ export const PurchaseOrdersPage: React.FC = () => {
               onClick={() => setStatusFilter(tab)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 statusFilter === tab
-                  ? 'bg-zinc-900 text-white shadow-2xs'
-                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'bg-[#F7F9F7] text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43] border border-[#E5EAE6]'
               }`}
             >
               {tab.replace('_', ' ')}
@@ -389,7 +389,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                     {!isReceived && po.status !== 'CANCELLED' && (
                       <button
                         onClick={() => openReceiptModal(po)}
-                        className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
+                        className="px-3 py-1.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
                       >
                         <PackageCheck className="w-3.5 h-3.5" />
                         <span>Receive Goods</span>
@@ -567,7 +567,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCreatePOSubmit('ORDERED')}
-                  className="flex-1 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Confirm & Place Purchase Order
                 </button>
@@ -643,7 +643,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-zinc-950 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Confirm & Update Stock
                 </button>
@@ -737,7 +737,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-2xs"
+                  className="flex-1 py-2.5 bg-[#19865D] hover:bg-[#145C43] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
                 >
                   Save Payment
                 </button>

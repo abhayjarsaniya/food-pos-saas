@@ -31,7 +31,7 @@ export const FeatureGuard: React.FC<FeatureGuardProps> = ({ feature, children })
         </p>
         <button
           onClick={() => navigate('/')}
-          className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-all"
+          className="px-4 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Return to Dashboard</span>

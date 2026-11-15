@@ -423,7 +423,7 @@ export const AdminShopsPage: React.FC = () => {
 
         <button
           onClick={() => navigate('/admin/create-shop')}
-          className="min-h-[48px] px-5 bg-zinc-950 hover:bg-zinc-900 text-white text-sm font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2 w-full sm:w-fit"
+          className="min-h-[48px] px-5 bg-[#145C43] hover:bg-[#0F4935] text-white text-sm font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2 w-full sm:w-fit cursor-pointer"
         >
           <span>+ Add New Shop</span>
         </button>
@@ -445,7 +445,7 @@ export const AdminShopsPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search shop, brand, owner, phone, login ID..."
-            className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-50 focus:bg-white text-sm rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+            className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-50 focus:bg-white text-sm rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#145C43] transition-all"
           />
         </div>
 
@@ -454,7 +454,7 @@ export const AdminShopsPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="flex-1 sm:flex-initial min-h-[50px] px-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs sm:text-sm font-bold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+            className="flex-1 sm:flex-initial min-h-[50px] px-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs sm:text-sm font-bold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active</option>
@@ -465,7 +465,7 @@ export const AdminShopsPage: React.FC = () => {
           <select
             value={planFilter}
             onChange={(e) => setPlanFilter(e.target.value)}
-            className="flex-1 sm:flex-initial min-h-[50px] px-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs sm:text-sm font-bold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+            className="flex-1 sm:flex-initial min-h-[50px] px-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs sm:text-sm font-bold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
           >
             <option value="ALL">All Plans</option>
             <option value="trial">Trial</option>
@@ -751,7 +751,7 @@ export const AdminShopsPage: React.FC = () => {
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -763,7 +763,7 @@ export const AdminShopsPage: React.FC = () => {
                   type="text"
                   value={editBrandName}
                   onChange={(e) => setEditBrandName(e.target.value)}
-                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -776,7 +776,7 @@ export const AdminShopsPage: React.FC = () => {
                     type="text"
                     value={editOwnerName}
                     onChange={(e) => setEditOwnerName(e.target.value)}
-                    className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
 
@@ -788,7 +788,7 @@ export const AdminShopsPage: React.FC = () => {
                     type="tel"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
               </div>
@@ -835,7 +835,7 @@ export const AdminShopsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[52px] bg-zinc-950 hover:bg-zinc-900 text-white font-bold rounded-2xl shadow-xs active:scale-95 transition-all text-sm"
+                  className="flex-1 min-h-[52px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl shadow-xs active:scale-95 transition-all text-sm cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -892,11 +892,11 @@ export const AdminShopsPage: React.FC = () => {
                   value={newOwnerLoginId}
                   onChange={(e) => setNewOwnerLoginId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                   placeholder="e.g. princeowner"
-                  className="flex-1 px-4 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="flex-1 px-4 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
                 <button
                   type="submit"
-                  className="min-h-[48px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition-all"
+                  className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition-all cursor-pointer"
                 >
                   Update ID
                 </button>
@@ -915,11 +915,11 @@ export const AdminShopsPage: React.FC = () => {
                   value={newOwnerEmail}
                   onChange={(e) => setNewOwnerEmail(e.target.value)}
                   placeholder="owner@foodpos.app"
-                  className="flex-1 px-4 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="flex-1 px-4 min-h-[48px] text-sm bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43]/20 focus:border-[#145C43]"
                 />
                 <button
                   type="submit"
-                  className="min-h-[48px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition-all"
+                  className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition-all cursor-pointer"
                 >
                   Update Email
                 </button>
@@ -935,7 +935,7 @@ export const AdminShopsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleGeneratePassword}
-                  className="min-h-[48px] px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="min-h-[48px] px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <KeyRound className="w-4 h-4" />
                   <span>Generate Temp Password</span>
@@ -944,7 +944,7 @@ export const AdminShopsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handlePasswordReset(ownerModalShop)}
-                  className="min-h-[48px] px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
                   <span>Send Reset Email</span>
@@ -991,10 +991,10 @@ export const AdminShopsPage: React.FC = () => {
                       key={p.key}
                       type="button"
                       onClick={() => setSubPlan(p.key)}
-                      className={`min-h-[48px] text-xs font-bold rounded-xl border transition-all active:scale-95 ${
+                      className={`min-h-[48px] text-xs font-bold rounded-xl border transition-all active:scale-95 cursor-pointer ${
                         subPlan === p.key
-                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs'
-                          : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-zinc-100'
+                          ? 'bg-[#145C43] text-white border-[#145C43] shadow-xs'
+                          : 'bg-zinc-50 text-[#68736D] border-zinc-200 hover:bg-[#EAF5EF] hover:text-[#145C43]'
                       }`}
                     >
                       {p.name}
@@ -1059,7 +1059,7 @@ export const AdminShopsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[52px] bg-zinc-950 hover:bg-zinc-900 text-white font-bold rounded-2xl shadow-xs active:scale-95 transition-all text-sm"
+                  className="flex-1 min-h-[52px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl shadow-xs active:scale-95 transition-all text-sm cursor-pointer"
                 >
                   Assign Subscription
                 </button>
@@ -1103,7 +1103,7 @@ export const AdminShopsPage: React.FC = () => {
                 type="text"
                 value={archiveReason}
                 onChange={(e) => setArchiveReason(e.target.value)}
-                className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
               />
             </div>
 
@@ -1189,7 +1189,7 @@ export const AdminShopsPage: React.FC = () => {
             <div className="p-4 border-t border-zinc-200 bg-zinc-50 flex justify-end">
               <button
                 onClick={() => setFeatureShop(null)}
-                className="min-h-[48px] px-6 bg-zinc-950 text-white font-bold rounded-2xl text-sm"
+                className="min-h-[48px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl text-sm cursor-pointer"
               >
                 Close
               </button>
@@ -1204,7 +1204,7 @@ export const AdminShopsPage: React.FC = () => {
           <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-zinc-200">
             <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-zinc-900 text-white flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-[#145C43] text-white flex items-center justify-center">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
@@ -1258,7 +1258,7 @@ export const AdminShopsPage: React.FC = () => {
             <div className="p-4 border-t border-zinc-200 bg-zinc-50 flex justify-end">
               <button
                 onClick={() => setMemberShop(null)}
-                className="min-h-[48px] px-6 bg-zinc-950 text-white font-bold rounded-2xl text-sm"
+                className="min-h-[48px] px-6 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl text-sm cursor-pointer"
               >
                 Close
               </button>

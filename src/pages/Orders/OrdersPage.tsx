@@ -169,7 +169,7 @@ export const OrdersPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by Bill No (e.g. BILL-1001) or customer phone / name..."
-            className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-50 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+            className="w-full pl-11 pr-4 min-h-[50px] bg-zinc-50 focus:bg-white text-sm sm:text-base rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#145C43] transition-all"
           />
         </div>
 
@@ -183,7 +183,7 @@ export const OrdersPage: React.FC = () => {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as any)}
-              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -201,7 +201,7 @@ export const OrdersPage: React.FC = () => {
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
             >
               <option value="all">All Methods</option>
               <option value="CASH">Cash</option>
@@ -219,7 +219,7 @@ export const OrdersPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 cursor-pointer"
+              className="w-full px-3.5 min-h-[48px] bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="OPEN">Open (In Progress)</option>
@@ -479,7 +479,7 @@ export const OrdersPage: React.FC = () => {
 
               <button
                 onClick={() => profile && downloadReceiptPdf(selectedOrder, profile, settings, 'compact80')}
-                className="py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                className="py-2.5 px-3 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download PDF</span>

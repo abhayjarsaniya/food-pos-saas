@@ -51,15 +51,15 @@ export const MorePage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-lg mx-auto pb-6">
       {/* Shop Profile Banner */}
-      <div className="p-4 bg-zinc-900 text-white rounded-2xl shadow-sm flex items-center justify-between">
+      <div className="p-4 bg-white border border-[#E5EAE6] rounded-2xl shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center font-bold text-lg">
+          <div className="w-12 h-12 rounded-xl bg-[#EAF5EF] border border-[#CFE5D8] text-[#145C43] flex items-center justify-center font-bold text-lg">
             {profile?.name?.charAt(0) || 'S'}
           </div>
           <div>
-            <h2 className="text-sm font-bold truncate">{profile?.name}</h2>
-            <p className="text-xs text-zinc-400 capitalize">{profile?.category?.replace('_', ' ')} Counter</p>
-            <span className="inline-block mt-1 text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold px-2 py-0.2 rounded-full">
+            <h2 className="text-sm font-bold text-[#202923] truncate">{profile?.name}</h2>
+            <p className="text-xs text-[#68736D] capitalize">{profile?.category?.replace('_', ' ')} Counter</p>
+            <span className="inline-block mt-1 text-[10px] bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8] font-semibold px-2 py-0.5 rounded-full">
               {profile?.status || 'ACTIVE'}
             </span>
           </div>

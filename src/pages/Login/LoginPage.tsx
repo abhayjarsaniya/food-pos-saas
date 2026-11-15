@@ -76,7 +76,7 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md bg-white border border-zinc-200/80 rounded-2xl shadow-sm p-6 sm:p-8">
         {/* App Logo & Branding */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 bg-zinc-950 text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <div className="w-14 h-14 bg-[#145C43] text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm shadow-[#145C43]/20">
             <Utensils className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Food POS & Billing</h1>
@@ -106,7 +106,7 @@ export const LoginPage: React.FC = () => {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="e.g. princeowner, shopowner01, or admin"
-                className="w-full pl-11 pr-4 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
+                className="w-full pl-11 pr-4 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
             </div>
           </div>
@@ -135,7 +135,7 @@ export const LoginPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-11 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
+                className="w-full pl-11 pr-11 min-h-[52px] text-base bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white transition-all text-zinc-900 placeholder-zinc-400"
               />
               <button
                 type="button"
@@ -150,7 +150,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full min-h-[52px] py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-sm mt-3 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-98"
+            className="w-full min-h-[52px] py-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-sm mt-3 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
           >
             {isSubmitting ? (
               <span>Authenticating...</span>
@@ -189,7 +189,7 @@ export const LoginPage: React.FC = () => {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="owner@yourfoodbusiness.com"
-                    className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -206,7 +206,7 @@ export const LoginPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="flex-1 py-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 py-2 text-xs font-semibold text-white bg-[#145C43] hover:bg-[#0F4935] rounded-lg transition-colors disabled:opacity-50"
                   >
                     {forgotLoading ? 'Sending...' : 'Send Link'}
                   </button>

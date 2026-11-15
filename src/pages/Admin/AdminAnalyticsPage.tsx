@@ -100,8 +100,8 @@ export const AdminAnalyticsPage: React.FC = () => {
             <button
               key={tab}
               onClick={() => setDateFilter(tab)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-                dateFilter === tab ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-100'
+              className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                dateFilter === tab ? 'bg-[#145C43] text-white shadow-2xs' : 'text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
               }`}
             >
               {tab}
@@ -112,13 +112,15 @@ export const AdminAnalyticsPage: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="col-span-2 sm:col-span-1 bg-zinc-950 text-white p-5 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between text-zinc-400 mb-1">
+        <div className="col-span-2 sm:col-span-1 bg-white border border-[#E5EAE6] text-[#202923] p-5 rounded-2xl shadow-2xs">
+          <div className="flex items-center justify-between text-[#68736D] mb-1">
             <span className="text-xs font-medium uppercase tracking-wider">Gross GMV</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <span className="p-1 rounded-lg bg-[#EAF5EF] text-[#145C43]">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </span>
           </div>
-          <span className="text-2xl font-bold font-mono">{formatCurrency(summary.sales)}</span>
-          <span className="text-[11px] text-zinc-400 block mt-1">{summary.count} completed bills</span>
+          <span className="text-2xl font-bold font-mono text-[#145C43]">{formatCurrency(summary.sales)}</span>
+          <span className="text-[11px] text-[#929B95] block mt-1">{summary.count} completed bills</span>
         </div>
 
         <div className="bg-white border border-zinc-200/90 p-4 rounded-2xl shadow-2xs">

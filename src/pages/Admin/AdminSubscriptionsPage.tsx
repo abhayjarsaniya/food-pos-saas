@@ -215,7 +215,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
         {activeTab === 'plans' && (
           <button
             onClick={openCreatePlanModal}
-            className="min-h-[48px] px-5 bg-zinc-950 hover:bg-zinc-900 text-white text-sm font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2 w-full sm:w-fit"
+            className="min-h-[48px] px-5 bg-[#145C43] hover:bg-[#0F4935] text-white text-sm font-bold rounded-2xl shadow-xs transition-all active:scale-95 flex items-center justify-center gap-2 w-full sm:w-fit cursor-pointer"
           >
             <Plus className="w-5 h-5" />
             <span>Add Subscription Plan</span>
@@ -234,10 +234,10 @@ export const AdminSubscriptionsPage: React.FC = () => {
       <div className="flex items-center gap-2">
         <button
           onClick={() => setActiveTab('tenants')}
-          className={`min-h-[48px] px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all active:scale-95 flex items-center gap-2 ${
+          className={`min-h-[48px] px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all active:scale-95 flex items-center gap-2 cursor-pointer ${
             activeTab === 'tenants'
-              ? 'bg-zinc-950 text-white shadow-xs'
-              : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+              ? 'bg-[#145C43] text-white shadow-xs'
+              : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -246,10 +246,10 @@ export const AdminSubscriptionsPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('plans')}
-          className={`min-h-[48px] px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all active:scale-95 flex items-center gap-2 ${
+          className={`min-h-[48px] px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all active:scale-95 flex items-center gap-2 cursor-pointer ${
             activeTab === 'plans'
-              ? 'bg-zinc-950 text-white shadow-xs'
-              : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+              ? 'bg-[#145C43] text-white shadow-xs'
+              : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
           }`}
         >
           <CreditCard className="w-4 h-4" />
@@ -315,7 +315,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openAssignModal(s)}
-                          className="min-h-[46px] px-4 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-sm font-bold rounded-xl transition-all active:scale-95 shadow-2xs"
+                          className="min-h-[46px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl transition-all active:scale-95 shadow-2xs cursor-pointer"
                         >
                           Renew / Change Plan
                         </button>
@@ -336,12 +336,12 @@ export const AdminSubscriptionsPage: React.FC = () => {
             <div
               key={p.id}
               className={`p-6 bg-white border rounded-3xl shadow-xs flex flex-col justify-between transition-all relative ${
-                p.isPopular ? 'border-zinc-950 ring-2 ring-zinc-950' : 'border-zinc-200/90'
+                p.isPopular ? 'border-[#145C43] ring-2 ring-[#145C43]' : 'border-zinc-200/90'
               }`}
             >
               <div>
                 {p.isPopular && (
-                  <span className="absolute -top-3 right-6 bg-zinc-950 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full shadow-xs">
+                  <span className="absolute -top-3 right-6 bg-[#145C43] text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full shadow-xs">
                     Most Popular
                   </span>
                 )}
@@ -437,7 +437,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                   value={planName}
                   onChange={(e) => setPlanName(e.target.value)}
                   placeholder="e.g. Starter Counter"
-                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                  className="w-full px-4 min-h-[50px] text-sm bg-zinc-50 border border-zinc-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -528,7 +528,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                   type="checkbox"
                   checked={planIsPopular}
                   onChange={(e) => setPlanIsPopular(e.target.checked)}
-                  className="w-6 h-6 rounded-lg text-zinc-950 focus:ring-zinc-900 cursor-pointer"
+                  className="w-6 h-6 rounded-lg text-[#145C43] focus:ring-[#145C43] cursor-pointer"
                 />
                 <span className="text-sm font-bold text-zinc-800">Mark as 'Most Popular' plan badge</span>
               </label>
@@ -543,7 +543,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[52px] bg-zinc-950 hover:bg-zinc-900 text-white font-bold rounded-2xl shadow-xs text-sm active:scale-95 transition-all"
+                  className="flex-1 min-h-[52px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl shadow-xs text-sm active:scale-95 transition-all cursor-pointer"
                 >
                   Save Plan
                 </button>
@@ -578,10 +578,10 @@ export const AdminSubscriptionsPage: React.FC = () => {
                       key={p.id}
                       type="button"
                       onClick={() => setSelectedPlanId(p.id)}
-                      className={`min-h-[48px] text-xs font-bold rounded-xl border transition-all active:scale-95 ${
+                      className={`min-h-[48px] text-xs font-bold rounded-xl border transition-all active:scale-95 cursor-pointer ${
                         selectedPlanId === p.id
-                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs'
-                          : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-zinc-100'
+                          ? 'bg-[#145C43] text-white border-[#145C43] shadow-xs'
+                          : 'bg-zinc-50 text-[#68736D] border-zinc-200 hover:bg-[#EAF5EF] hover:text-[#145C43]'
                       }`}
                     >
                       {p.name}
@@ -646,7 +646,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[52px] bg-zinc-950 hover:bg-zinc-900 text-white font-bold rounded-2xl shadow-xs text-sm active:scale-95 transition-all"
+                  className="flex-1 min-h-[52px] bg-[#145C43] hover:bg-[#0F4935] text-white font-bold rounded-2xl shadow-xs text-sm active:scale-95 transition-all cursor-pointer"
                 >
                   Confirm Renewal
                 </button>

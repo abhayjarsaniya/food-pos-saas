@@ -139,7 +139,7 @@ export const OnboardingPage: React.FC = () => {
     <div className="min-h-screen bg-zinc-50 flex flex-col justify-center items-center p-4 sm:p-6">
       <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 sm:p-8 my-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-zinc-950 text-white rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#145C43] text-white rounded-xl flex items-center justify-center">
             <Store className="w-6 h-6" />
           </div>
           <div>
@@ -168,7 +168,7 @@ export const OnboardingPage: React.FC = () => {
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder="e.g. Chai Shai Cafe, Mumbai Street Food"
-              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
             />
           </div>
 
@@ -183,7 +183,7 @@ export const OnboardingPage: React.FC = () => {
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 placeholder="Jenish Patel"
-                className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+                className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
               />
             </div>
 
@@ -196,7 +196,7 @@ export const OnboardingPage: React.FC = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="9876543210"
-                className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+                className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
               />
             </div>
           </div>
@@ -209,7 +209,7 @@ export const OnboardingPage: React.FC = () => {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as BusinessCategory)}
-              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
             >
               {categoriesList.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -229,7 +229,7 @@ export const OnboardingPage: React.FC = () => {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Shop No 4, Main Market, MG Road"
-              className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+              className="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
             />
           </div>
 
@@ -244,7 +244,7 @@ export const OnboardingPage: React.FC = () => {
                 type="button"
                 onClick={() => setGstEnabled(!gstEnabled)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  gstEnabled ? 'bg-zinc-900' : 'bg-zinc-300'
+                  gstEnabled ? 'bg-[#145C43]' : 'bg-zinc-300'
                 }`}
               >
                 <span
@@ -315,14 +315,14 @@ export const OnboardingPage: React.FC = () => {
               value={footerMessage}
               onChange={(e) => setFooterMessage(e.target.value)}
               placeholder="Thank you for visiting! Please visit again."
-              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+              className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] focus:bg-white"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-sm rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
+            className="w-full py-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white font-medium text-sm rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
           >
             <span>Complete Setup & Start Billing</span>
             <ArrowRight className="w-4 h-4" />
