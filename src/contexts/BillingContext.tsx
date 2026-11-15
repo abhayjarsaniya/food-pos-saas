@@ -37,6 +37,10 @@ interface BillingContextType {
 
   // Actions
   addItem: (item: MenuItem, selectedVariant?: MenuItemVariant, customPrice?: number) => void;
+  setProductVariants: (
+    menuItem: MenuItem,
+    variantQuantities: { variant: MenuItemVariant; quantity: number }[]
+  ) => void;
   addCustomItem: (name: string, price: number, quantity?: number, gstRate?: number) => void;
   updateItemQuantity: (itemId: string, delta: number) => void;
   setItemQuantity: (itemId: string, quantity: number) => void;
@@ -180,6 +184,7 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const gstRate = menuItem.gstRate ?? settings.tax.defaultGstRate;
         const newItem: OrderItem = {
           itemId: uniqueLineId,
+          productId: menuItem.id,
           name: displayName,
           quantity: 1,
           unitPrice: effectivePrice,
@@ -193,6 +198,90 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
         return [...prev, newItem];
       }
+    });
+  };
+
+  const setProductVariants = (
+    menuItem: MenuItem,
+    variantQuantities: { variant: MenuItemVariant; quantity: number }[]
+  ) => {
+    if (!menuItem.isActive || menuItem.isAvailable === false) {
+      alert('This item is currently disabled and cannot be added to bills.');
+      return;
+    }
+    if (menuItem.isPromotional && menuItem.confirmationStatus === 'Needs Owner Confirmation' && !menuItem.isActive) {
+      alert('This promotional combo item requires owner confirmation before live billing.');
+      return;
+    }
+
+    setItems((prev) => {
+      // Map desired quantity per variant line item id
+      const targetMap = new Map<string, { variant: MenuItemVariant; quantity: number }>();
+      variantQuantities.forEach(({ variant, quantity }) => {
+        const uniqueLineId = `${menuItem.id}_${variant.variantId}`;
+        targetMap.set(uniqueLineId, { variant, quantity });
+      });
+
+      const updated: OrderItem[] = [];
+      const handledLineIds = new Set<string>();
+
+      prev.forEach((item) => {
+        // Is this line item a variant of this menuItem?
+        const isMatch =
+          item.productId === menuItem.id ||
+          item.itemId.startsWith(`${menuItem.id}_`) ||
+          (item.variantId ? menuItem.variants?.some((v) => v.variantId === item.variantId) : false);
+
+        if (isMatch) {
+          const target = targetMap.get(item.itemId);
+          if (target) {
+            handledLineIds.add(item.itemId);
+            if (target.quantity > 0) {
+              const rawPrice = target.variant.price;
+              const effectivePrice = rawPrice > 1000 ? rawPrice / 100 : rawPrice;
+              updated.push({
+                ...item,
+                productId: menuItem.id,
+                quantity: target.quantity,
+                unitPrice: item.unitPrice || effectivePrice,
+                lineTotal: calculateItemTotal(item.unitPrice || effectivePrice, target.quantity),
+              });
+            }
+            // if target.quantity <= 0, it is omitted (removed)
+          } else {
+            // Variant of same product not in current edit list, keep it
+            updated.push(item);
+          }
+        } else {
+          updated.push(item);
+        }
+      });
+
+      // Add any selected variants that were not in prev
+      variantQuantities.forEach(({ variant, quantity }) => {
+        const uniqueLineId = `${menuItem.id}_${variant.variantId}`;
+        if (!handledLineIds.has(uniqueLineId) && quantity > 0) {
+          const rawPrice = variant.price;
+          const effectivePrice = rawPrice > 1000 ? rawPrice / 100 : rawPrice;
+          const gstRate = menuItem.gstRate ?? settings.tax.defaultGstRate;
+          updated.push({
+            itemId: uniqueLineId,
+            productId: menuItem.id,
+            name: `${menuItem.name} (${variant.name})`,
+            quantity,
+            unitPrice: effectivePrice,
+            originalPrice: effectivePrice,
+            gstRate,
+            lineTotal: calculateItemTotal(effectivePrice, quantity),
+            isVeg: menuItem.isVeg,
+            isCustom: false,
+            variantId: variant.variantId,
+            variantName: variant.name,
+          });
+        }
+      });
+
+      return updated;
     });
   };
 
@@ -490,6 +579,7 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         searchQuery,
         editingOrderId,
         addItem,
+        setProductVariants,
         addCustomItem,
         updateItemQuantity,
         setItemQuantity,

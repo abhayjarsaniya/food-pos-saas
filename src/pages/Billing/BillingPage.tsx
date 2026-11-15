@@ -9,6 +9,7 @@ import { formatCurrency } from '../../utils/calculations';
 import { shareBillToWhatsApp } from '../../services/whatsapp/whatsappService';
 import { downloadReceiptPdf } from '../../services/pdf/receiptGenerator';
 import { printReceiptInBrowser } from '../../utils/browserPrinter';
+import { MultiVariantModal } from '../../components/billing/MultiVariantModal';
 import { 
   Search, 
   Plus, 
@@ -52,6 +53,7 @@ export const BillingPage: React.FC = () => {
     searchQuery,
     editingOrderId,
     addItem,
+    setProductVariants,
     addCustomItem,
     updateItemQuantity,
     updateItemPrice,
@@ -134,11 +136,19 @@ export const BillingPage: React.FC = () => {
       setIsMrpModalOpen(true);
       return;
     }
-    if (item.variants && item.variants.length > 0) {
+    const availableVariants = item.variants?.filter((v) => v.isAvailable) || [];
+    // If the product has multiple price variants, open the one-popup multi-variant selector
+    if (availableVariants.length > 1) {
       setSelectedItemForVariant(item);
       setIsVariantModalOpen(true);
       return;
     }
+    // If the product has only 1 available variant, quick add directly with no popup
+    if (availableVariants.length === 1) {
+      addItem(item, availableVariants[0]);
+      return;
+    }
+    // Standard single-price product: quick add directly with 1 tap
     addItem(item);
   };
 
@@ -213,6 +223,16 @@ export const BillingPage: React.FC = () => {
   const billItemQtyMap = useMemo(() => {
     const map = new Map<string, number>();
     items.forEach((i) => map.set(i.itemId, i.quantity));
+    return map;
+  }, [items]);
+
+  // Total quantity per product (aggregating across all variants of that product)
+  const productTotalQtyMap = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((i) => {
+      const prodId = i.productId || (i.itemId.includes('_') ? i.itemId.split('_')[0] : i.itemId);
+      map.set(prodId, (map.get(prodId) || 0) + i.quantity);
+    });
     return map;
   }, [items]);
 
@@ -489,7 +509,11 @@ export const BillingPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {filteredMenuItems.map((item) => {
-                const qtyInBill = billItemQtyMap.get(item.id) || 0;
+                const availableVariants = item.variants?.filter((v) => v.isAvailable) || [];
+                const hasMultipleVariants = availableVariants.length > 1;
+                const qtyInBill = hasMultipleVariants
+                  ? (productTotalQtyMap.get(item.id) || 0)
+                  : (billItemQtyMap.get(item.id) || 0);
                 return (
                   <div
                     key={item.id}
@@ -536,7 +560,27 @@ export const BillingPage: React.FC = () => {
                       <span className="text-xs sm:text-sm font-bold text-zinc-950 font-mono">
                         {item.priceType === 'mrp' ? 'MRP' : formatCurrency(item.price)}
                       </span>
-                      {qtyInBill > 0 ? (
+                      {hasMultipleVariants ? (
+                        qtyInBill > 0 ? (
+                          <div
+                            className="flex items-center gap-1.5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedItemForVariant(item);
+                              setIsVariantModalOpen(true);
+                            }}
+                          >
+                            <span className="text-xs font-bold text-[#145C43] bg-[#EAF5EF] border border-[#CFE5D8] px-2.5 py-1.5 rounded-xl hover:bg-[#CFE5D8] transition-colors flex items-center gap-1 shadow-2xs">
+                              <Edit2 className="w-3 h-3 text-[#145C43]" />
+                              <span>Edit (x{qtyInBill})</span>
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs sm:text-sm font-bold text-[#145C43] bg-[#EAF5EF] border border-[#CFE5D8]/80 px-2.5 py-1 rounded-xl hover:bg-[#CFE5D8] transition-colors">
+                            + Variants
+                          </span>
+                        )
+                      ) : qtyInBill > 0 ? (
                         <div
                           className="flex items-center gap-1.5"
                           onClick={(e) => e.stopPropagation()}
@@ -1434,63 +1478,19 @@ export const BillingPage: React.FC = () => {
         </div>
       )}
 
-      {/* VARIANT SELECTION MODAL */}
-      {isVariantModalOpen && selectedItemForVariant && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-              <div>
-                <h3 className="font-bold text-base text-zinc-900">
-                  {selectedItemForVariant.name}
-                </h3>
-                <p className="text-xs text-zinc-500">Select Price Variant</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsVariantModalOpen(false);
-                  setSelectedItemForVariant(null);
-                }}
-                className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-2 py-1">
-              {selectedItemForVariant.variants?.map((variant) => {
-                const isAvailable = variant.isAvailable;
-                const priceInRupees = variant.price > 1000 ? variant.price / 100 : variant.price;
-
-                return (
-                  <button
-                    key={variant.variantId}
-                    type="button"
-                    disabled={!isAvailable}
-                    onClick={() => {
-                      addItem(selectedItemForVariant, variant);
-                      setIsVariantModalOpen(false);
-                      setSelectedItemForVariant(null);
-                    }}
-                    className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
-                      isAvailable
-                        ? 'bg-zinc-50 hover:bg-[#145C43] hover:text-white border-zinc-200 hover:border-[#145C43] cursor-pointer shadow-2xs group'
-                        : 'bg-zinc-100/60 border-zinc-200/60 text-zinc-400 cursor-not-allowed opacity-60'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">
-                      {variant.name}
-                    </span>
-                    <span className="font-mono font-bold text-sm">
-                      {isAvailable ? formatCurrency(priceInRupees) : 'Not Listed'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ONE-POPUP MULTI-VARIANT SELECTION MODAL */}
+      <MultiVariantModal
+        isOpen={isVariantModalOpen}
+        item={selectedItemForVariant}
+        currentBillItems={items}
+        onClose={() => {
+          setIsVariantModalOpen(false);
+          setSelectedItemForVariant(null);
+        }}
+        onApply={(menuItem, variantQuantities) => {
+          setProductVariants(menuItem, variantQuantities);
+        }}
+      />
 
       {/* MRP MANUAL PRICE ENTRY MODAL */}
       {isMrpModalOpen && selectedItemForMrp && (

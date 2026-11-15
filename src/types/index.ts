@@ -214,6 +214,7 @@ export interface MenuItem {
 
 export interface OrderItem {
   itemId: string;
+  productId?: string;
   name: string;
   quantity: number;
   unitPrice: number;
