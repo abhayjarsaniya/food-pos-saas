@@ -1,6 +1,7 @@
 import { 
   collection, 
   doc, 
+  getDoc,
   getDocs, 
   setDoc, 
   updateDoc, 
@@ -296,6 +297,65 @@ export async function recordSupplierPayment(
   }
 
   return payment;
+}
+
+export async function cancelPurchaseOrder(
+  businessId: string,
+  poId: string,
+  reason?: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  const localPOs = getLocalPOs(businessId);
+  let po = localPOs.find((p) => p.id === poId);
+  if (!po) {
+    try {
+      const snap = await withTimeout(getDoc(doc(db, 'businesses', businessId, 'purchaseOrders', poId)), 2000);
+      if (snap.exists()) {
+        po = { id: snap.id, ...(snap.data() as any) };
+      }
+    } catch {}
+  }
+  if (!po) throw new Error('Purchase order not found');
+
+  if (po.status === 'RECEIVED') {
+    throw new Error('Cannot cancel a fully received purchase order. Goods have already been added to inventory.');
+  }
+
+  const updatedPOs = localPOs.map((p) => 
+    p.id === poId ? { ...p, status: 'CANCELLED' as const, notes: reason ? `${p.notes || ''} [Cancelled: ${reason}]` : p.notes, updatedAt: now } : p
+  );
+  saveLocalPOs(businessId, updatedPOs);
+
+  try {
+    const poRef = doc(db, 'businesses', businessId, 'purchaseOrders', poId);
+    await withTimeout(updateDoc(poRef, { 
+      status: 'CANCELLED', 
+      notes: reason ? `${po.notes || ''} [Cancelled: ${reason}]` : po.notes, 
+      updatedAt: now 
+    }), 2000);
+  } catch (err) {
+    console.warn('Could not cancel PO in cloud immediately, saved offline:', err);
+  }
+}
+
+export async function updatePurchaseOrder(
+  businessId: string,
+  poId: string,
+  updates: Partial<PurchaseOrder>
+): Promise<void> {
+  const now = new Date().toISOString();
+  const localPOs = getLocalPOs(businessId);
+  const updatedPOs = localPOs.map((p) => 
+    p.id === poId ? { ...p, ...updates, updatedAt: now } : p
+  );
+  saveLocalPOs(businessId, updatedPOs);
+
+  try {
+    const poRef = doc(db, 'businesses', businessId, 'purchaseOrders', poId);
+    await withTimeout(updateDoc(poRef, { ...updates, updatedAt: now }), 2000);
+  } catch (err) {
+    console.warn('Could not update PO in cloud immediately, saved offline:', err);
+  }
 }
 
 export async function getSupplierPayments(businessId: string, supplierId?: string): Promise<SupplierPayment[]> {

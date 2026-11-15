@@ -14,7 +14,9 @@ import {
   ShieldCheck,
   Wallet,
   Users,
-  LayoutGrid
+  LayoutGrid,
+  UserCheck,
+  Banknote
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBilling } from '../../contexts/BillingContext';
@@ -39,6 +41,8 @@ export const DesktopSidebar: React.FC = () => {
     { to: '/suppliers', label: 'Suppliers & Vendors', icon: Truck, feature: 'suppliers' as const },
     { to: '/purchases', label: 'Purchase Orders', icon: ClipboardList, feature: 'purchaseOrders' as const },
     { to: '/reports', label: 'Reports & Analytics', icon: BarChart3, feature: 'reports' as const },
+    { to: '/expenses', label: 'Expenses & Petty Cash', icon: Banknote, feature: 'expenses' as const },
+    { to: '/customers', label: 'Customer Directory', icon: UserCheck, feature: 'customerManagement' as const },
     { to: '/members', label: 'Staff & Members', icon: Users, feature: 'memberManagement' as const },
     { to: '/settings', label: 'Settings', icon: Settings, feature: null },
   ];

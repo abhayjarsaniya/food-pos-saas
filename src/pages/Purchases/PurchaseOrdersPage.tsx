@@ -4,7 +4,8 @@ import {
   createPurchaseOrder, 
   getPurchaseOrders, 
   recordGoodsReceipt, 
-  recordSupplierPayment 
+  recordSupplierPayment,
+  cancelPurchaseOrder 
 } from '../../services/purchases/purchaseOrderService';
 import { getSuppliers } from '../../services/suppliers/supplierService';
 import { getInventoryItems } from '../../services/inventory/inventoryService';
@@ -179,6 +180,18 @@ export const PurchaseOrdersPage: React.FC = () => {
       setSelectedSupplierId('');
     } catch (err: any) {
       alert(err.message || 'Failed to create PO');
+    }
+  };
+
+  const handleCancelPO = async (po: PurchaseOrder) => {
+    if (!profile) return;
+    if (!confirm(`Are you sure you want to cancel purchase order #${po.poNumber}?`)) return;
+
+    try {
+      await cancelPurchaseOrder(profile.id, po.id, 'Cancelled by user');
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel purchase order');
     }
   };
 
@@ -385,24 +398,35 @@ export const PurchaseOrdersPage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {!isReceived && po.status !== 'CANCELLED' && (
                       <button
                         onClick={() => openReceiptModal(po)}
-                        className="px-3 py-1.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
+                        className="min-h-[44px] px-3 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
                       >
                         <PackageCheck className="w-3.5 h-3.5" />
                         <span>Receive Goods</span>
                       </button>
                     )}
 
-                    {po.balanceDue > 0 && (
+                    {po.balanceDue > 0 && po.status !== 'CANCELLED' && (
                       <button
                         onClick={() => openPaymentModal(po)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
+                        className="min-h-[44px] px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
                       >
                         <Wallet className="w-3.5 h-3.5" />
                         <span>Pay Supplier</span>
+                      </button>
+                    )}
+
+                    {!isReceived && po.status !== 'CANCELLED' && (
+                      <button
+                        onClick={() => handleCancelPO(po)}
+                        className="min-h-[44px] px-2.5 bg-zinc-100 hover:bg-rose-50 text-zinc-600 hover:text-rose-600 text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors cursor-pointer border border-zinc-200"
+                        title="Cancel Purchase Order"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Cancel</span>
                       </button>
                     )}
                   </div>

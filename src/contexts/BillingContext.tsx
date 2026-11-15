@@ -227,10 +227,12 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       prev.forEach((item) => {
         // Is this line item a variant of this menuItem?
+        // STRICT CHECK: The cart line must belong to THIS product only.
+        // Never match by variantId alone across different products.
         const isMatch =
           item.productId === menuItem.id ||
           item.itemId.startsWith(`${menuItem.id}_`) ||
-          (item.variantId ? menuItem.variants?.some((v) => v.variantId === item.variantId) : false);
+          item.itemId === menuItem.id;
 
         if (isMatch) {
           const target = targetMap.get(item.itemId);

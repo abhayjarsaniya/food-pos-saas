@@ -27,18 +27,21 @@ export const MultiVariantModal: React.FC<MultiVariantModalProps> = ({
     return item.variants.filter((v) => v.isAvailable);
   }, [item]);
 
-  // Current quantities already in the bill for each variant of this item
+  // Current quantities already in the bill for each variant of THIS SPECIFIC item
   const inCartQuantities = useMemo(() => {
     const map: Record<string, number> = {};
     if (!item) return map;
 
     currentBillItems.forEach((orderItem) => {
-      const isMatch =
+      // STRICT CHECK: The order item MUST belong to THIS exact product!
+      // Never match by variantId alone without confirming product ownership,
+      // as multiple menu products share generic variant names/IDs (e.g. 'var_oil', 'var_butter').
+      const isThisProduct =
         orderItem.productId === item.id ||
         orderItem.itemId.startsWith(`${item.id}_`) ||
-        (orderItem.variantId && item.variants?.some((v) => v.variantId === orderItem.variantId));
+        orderItem.itemId === item.id;
 
-      if (isMatch && orderItem.variantId) {
+      if (isThisProduct && orderItem.variantId) {
         map[orderItem.variantId] = (map[orderItem.variantId] || 0) + orderItem.quantity;
       }
     });
@@ -46,18 +49,20 @@ export const MultiVariantModal: React.FC<MultiVariantModalProps> = ({
     return map;
   }, [item, currentBillItems]);
 
-  // Local state tracking selected quantity for each variant
+  // Local state tracking selected quantity for each variant - completely isolated to this product
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  // Reset or initialize quantities when modal opens for an item
+  // Reset and strictly initialize quantities when modal opens for an item
   useEffect(() => {
     if (item && isOpen) {
       const initial: Record<string, number> = {};
       availableVariants.forEach((v) => {
-        // Pre-fill with existing cart quantity if already present, or default to 0
+        // Pre-fill only with existing cart quantity if already present for THIS product, or default to 0
         initial[v.variantId] = inCartQuantities[v.variantId] || 0;
       });
       setQuantities(initial);
+    } else {
+      setQuantities({});
     }
   }, [item, isOpen, inCartQuantities, availableVariants]);
 

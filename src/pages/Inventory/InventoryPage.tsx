@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { 
   addInventoryItem, 
   adjustStock, 
+  deleteInventoryItem,
   getInventoryItems, 
   getStockMovements, 
   updateInventoryItem 
@@ -23,7 +24,10 @@ import {
   History, 
   X, 
   Check, 
-  Filter 
+  Trash2,
+  Eye,
+  EyeOff,
+  MoreVertical
 } from 'lucide-react';
 
 export const InventoryPage: React.FC = () => {
@@ -44,9 +48,10 @@ export const InventoryPage: React.FC = () => {
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [adjustingItem, setAdjustingItem] = useState<InventoryItem | null>(null);
   const [newStockInput, setNewStockInput] = useState('');
-  const [adjustReason, setAdjustReason] = useState('Physical audit count');
+  const [adjustReason, setAdjustReason] = useState('Correction');
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Item Form Fields
   const [name, setName] = useState('');
@@ -57,6 +62,8 @@ export const InventoryPage: React.FC = () => {
   const [minimumStock, setMinimumStock] = useState('5');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [supplierName, setSupplierName] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     if (profile?.id) {
@@ -118,6 +125,8 @@ export const InventoryPage: React.FC = () => {
       setMinimumStock(item.minimumStock.toString());
       setPurchasePrice(item.purchasePrice.toString());
       setSupplierName(item.supplierName || '');
+      setNotes(item.notes || '');
+      setIsActive(item.isActive !== false);
     } else {
       setEditingItem(null);
       setName('');
@@ -128,6 +137,8 @@ export const InventoryPage: React.FC = () => {
       setMinimumStock('5');
       setPurchasePrice('');
       setSupplierName(suppliers[0]?.companyName || '');
+      setNotes('');
+      setIsActive(true);
     }
     setIsItemModalOpen(true);
   };
@@ -151,6 +162,8 @@ export const InventoryPage: React.FC = () => {
           minimumStock: min,
           purchasePrice: price,
           supplierName: supplierName.trim(),
+          notes: notes.trim(),
+          isActive,
         });
       } else {
         await addInventoryItem(profile.id, {
@@ -162,6 +175,8 @@ export const InventoryPage: React.FC = () => {
           minimumStock: min,
           purchasePrice: price,
           supplierName: supplierName.trim(),
+          notes: notes.trim(),
+          isActive,
         });
       }
       await loadData();
@@ -171,11 +186,44 @@ export const InventoryPage: React.FC = () => {
     }
   };
 
+  const handleDeleteItem = async (itemId: string, itemName: string) => {
+    if (!profile) return;
+    if (!confirm(`Are you sure you want to delete "${itemName}"? Historical stock movement records will remain preserved.`)) {
+      return;
+    }
+
+    try {
+      await deleteInventoryItem(profile.id, itemId);
+      await loadData();
+      setActiveMenuId(null);
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete item');
+    }
+  };
+
+  const handleToggleActive = async (item: InventoryItem) => {
+    if (!profile) return;
+    const nextState = item.isActive === false ? true : false;
+    try {
+      await updateInventoryItem(profile.id, item.id, { isActive: nextState });
+      await loadData();
+      setActiveMenuId(null);
+    } catch {
+      alert('Failed to update status');
+    }
+  };
+
   const openAdjustModal = (item: InventoryItem) => {
     setAdjustingItem(item);
     setNewStockInput(item.currentStock.toString());
-    setAdjustReason('Physical audit discrepancy');
+    setAdjustReason('Physical audit count');
     setIsAdjustModalOpen(true);
+  };
+
+  const handleDeltaChange = (delta: number) => {
+    const cur = parseFloat(newStockInput) || 0;
+    const next = Math.max(0, cur + delta);
+    setNewStockInput(next.toString());
   };
 
   const handleAdjustSubmit = async (e: React.FormEvent) => {
@@ -210,17 +258,17 @@ export const InventoryPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsHistoryModalOpen(true)}
-            className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
+            className="min-h-[48px] px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
           >
-            <History className="w-4 h-4" />
+            <History className="w-5 h-5" />
             <span>Audit Trail</span>
           </button>
 
           <button
             onClick={() => openItemModal()}
-            className="px-4 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all shadow-xs active:scale-95 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             <span>+ Add Material</span>
           </button>
         </div>
@@ -275,7 +323,7 @@ export const InventoryPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search material name, category, SKU..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-50 focus:bg-white text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+            className="w-full pl-9 pr-4 min-h-[48px] bg-zinc-50 focus:bg-white text-xs sm:text-sm rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#145C43]"
           />
         </div>
 
@@ -285,7 +333,7 @@ export const InventoryPage: React.FC = () => {
             <button
               key={tab}
               onClick={() => setStatusFilter(tab)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 statusFilter === tab
                   ? 'bg-[#145C43] text-white shadow-2xs'
                   : 'bg-[#F7F9F7] text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43] border border-[#E5EAE6]'
@@ -297,7 +345,7 @@ export const InventoryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Items Table / Cards */}
+      {/* Items Grid (Mobile Cards Pattern) */}
       {loading ? (
         <div className="text-center py-12 text-zinc-400 text-xs">
           Loading inventory...
@@ -315,11 +363,15 @@ export const InventoryPage: React.FC = () => {
           {filteredItems.map((item) => {
             const isOut = item.stockStatus === 'OUT_OF_STOCK';
             const isLow = item.stockStatus === 'LOW_STOCK';
+            const isMenuOpen = activeMenuId === item.id;
+
             return (
               <div
                 key={item.id}
-                className={`p-4 bg-white border rounded-2xl shadow-2xs flex flex-col justify-between transition-all ${
-                  isOut
+                className={`p-4 bg-white border rounded-2xl shadow-2xs flex flex-col justify-between transition-all relative ${
+                  item.isActive === false
+                    ? 'opacity-60 bg-zinc-50 border-dashed border-zinc-300'
+                    : isOut
                     ? 'border-rose-300 bg-rose-50/15'
                     : isLow
                     ? 'border-amber-300 bg-amber-50/15'
@@ -328,15 +380,22 @@ export const InventoryPage: React.FC = () => {
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-bold text-zinc-950">{item.name}</h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-zinc-950 truncate">{item.name}</h3>
+                        {item.isActive === false && (
+                          <span className="text-[10px] bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded">
+                            Deactivated
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-zinc-400 font-mono">
                         {item.category} {item.sku ? `• ${item.sku}` : ''}
                       </p>
                     </div>
 
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                         isOut
                           ? 'bg-rose-100 text-rose-700'
                           : isLow
@@ -349,9 +408,9 @@ export const InventoryPage: React.FC = () => {
                   </div>
 
                   {/* Stock Quantity Meter */}
-                  <div className="mt-4 p-3 bg-zinc-50 rounded-xl border border-zinc-100 space-y-1">
+                  <div className="mt-3.5 p-3 bg-zinc-50 rounded-xl border border-zinc-100 space-y-1">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-zinc-500">Current Stock</span>
+                      <span className="text-xs text-zinc-500 font-medium">Current Stock</span>
                       <span className="text-lg font-bold font-mono text-zinc-950">
                         {item.currentStock} {item.unit}
                       </span>
@@ -364,28 +423,62 @@ export const InventoryPage: React.FC = () => {
 
                   {item.supplierName && (
                     <p className="text-[11px] text-zinc-400 mt-2 truncate">
-                      Primary Supplier: <span className="text-zinc-600 font-medium">{item.supplierName}</span>
+                      Supplier: <span className="text-zinc-600 font-medium">{item.supplierName}</span>
+                    </p>
+                  )}
+                  {item.notes && (
+                    <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1 italic">
+                      {item.notes}
                     </p>
                   )}
                 </div>
 
-                {/* Card Actions */}
-                <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between">
+                {/* Card Actions (Mobile First) */}
+                <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center gap-2">
                   <button
-                    onClick={() => openAdjustModal(item)}
-                    className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors"
+                    onClick={() => openItemModal(item)}
+                    className="flex-1 min-h-[46px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
-                    <ArrowUpDown className="w-3.5 h-3.5" />
-                    <span>Adjust Stock</span>
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
                   </button>
 
                   <button
-                    onClick={() => openItemModal(item)}
-                    className="p-1.5 text-zinc-500 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 transition-colors"
-                    title="Edit Item Details"
+                    onClick={() => openAdjustModal(item)}
+                    className="flex-1 min-h-[46px] bg-[#EAF5EF] hover:bg-[#CFE5D8] text-[#145C43] text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all border border-[#CFE5D8] cursor-pointer"
                   >
-                    <Edit className="w-4 h-4" />
+                    <ArrowUpDown className="w-4 h-4" />
+                    <span>Adjust Stock</span>
                   </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setActiveMenuId(isMenuOpen ? null : item.id)}
+                      className="min-h-[46px] min-w-[46px] flex items-center justify-center text-zinc-500 hover:text-zinc-900 rounded-xl hover:bg-zinc-100 transition-colors cursor-pointer border border-zinc-200"
+                      title="More actions"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+
+                    {isMenuOpen && (
+                      <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl shadow-lg border border-zinc-200 p-1 z-30 space-y-1">
+                        <button
+                          onClick={() => handleToggleActive(item)}
+                          className="w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          {item.isActive === false ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
+                          <span>{item.isActive === false ? 'Activate Item' : 'Deactivate'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id, item.name)}
+                          className="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Delete Item</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -399,20 +492,71 @@ export const InventoryPage: React.FC = () => {
           <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-200">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900">Adjust Stock Count</h3>
+                <h3 className="text-base font-bold text-zinc-900">Adjust Stock Count</h3>
                 <p className="text-xs text-zinc-500">{adjustingItem.name}</p>
               </div>
-              <button onClick={() => setIsAdjustModalOpen(false)} className="p-1 text-zinc-400">
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsAdjustModalOpen(false)} className="p-1 text-zinc-400 cursor-pointer">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAdjustSubmit} className="space-y-3.5">
-              <div className="p-3 bg-zinc-50 rounded-xl text-xs flex justify-between items-center">
-                <span className="text-zinc-500">Recorded Stock:</span>
-                <span className="font-bold font-mono text-zinc-900">
+            <form onSubmit={handleAdjustSubmit} className="space-y-4">
+              <div className="p-3 bg-zinc-50 rounded-xl text-xs flex justify-between items-center border border-zinc-100">
+                <span className="text-zinc-500 font-medium">Recorded Stock:</span>
+                <span className="font-bold font-mono text-zinc-900 text-sm">
                   {adjustingItem.currentStock} {adjustingItem.unit}
                 </span>
+              </div>
+
+              {/* Quick Stepper Buttons */}
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-1.5">
+                  Quick Adjust ({adjustingItem.unit})
+                </label>
+                <div className="grid grid-cols-6 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(-10)}
+                    className="min-h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-mono font-bold text-xs rounded-xl border border-rose-200"
+                  >
+                    -10
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(-5)}
+                    className="min-h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-mono font-bold text-xs rounded-xl border border-rose-200"
+                  >
+                    -5
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(-1)}
+                    className="min-h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-mono font-bold text-xs rounded-xl border border-rose-200"
+                  >
+                    -1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(1)}
+                    className="min-h-[44px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-mono font-bold text-xs rounded-xl border border-emerald-200"
+                  >
+                    +1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(5)}
+                    className="min-h-[44px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-mono font-bold text-xs rounded-xl border border-emerald-200"
+                  >
+                    +5
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeltaChange(10)}
+                    className="min-h-[44px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-mono font-bold text-xs rounded-xl border border-emerald-200"
+                  >
+                    +10
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -426,7 +570,7 @@ export const InventoryPage: React.FC = () => {
                   autoFocus
                   value={newStockInput}
                   onChange={(e) => setNewStockInput(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:bg-white"
+                  className="w-full px-3 min-h-[48px] text-base bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -437,14 +581,14 @@ export const InventoryPage: React.FC = () => {
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white"
+                  className="w-full px-3 min-h-[48px] text-xs sm:text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 >
-                  <option value="Physical audit count">Physical audit count / routine verification</option>
-                  <option value="Kitchen preparation usage">Kitchen bulk preparation usage</option>
-                  <option value="Spillage or transit damage">Spillage or transit damage</option>
-                  <option value="Shelf life expiry / spoilage">Shelf life expiry / spoilage</option>
-                  <option value="Direct supplier intake adjustment">Direct intake adjustment</option>
-                  <option value="Other discrepancy">Other discrepancy (audited)</option>
+                  <option value="Correction">Correction</option>
+                  <option value="Stock Received">Stock Received</option>
+                  <option value="Stock Consumed">Stock Consumed</option>
+                  <option value="Manual Increase">Manual Increase</option>
+                  <option value="Manual Decrease">Manual Decrease</option>
+                  <option value="Purchase Received">Purchase Received</option>
                 </select>
               </div>
 
@@ -452,15 +596,15 @@ export const InventoryPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAdjustModalOpen(false)}
-                  className="flex-1 py-2.5 border border-zinc-300 text-zinc-700 text-xs font-semibold rounded-xl"
+                  className="flex-1 min-h-[48px] border border-zinc-300 text-zinc-700 text-xs sm:text-sm font-semibold rounded-xl hover:bg-zinc-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
+                  className="flex-1 min-h-[48px] bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
                 >
-                  Confirm Adjustment
+                  Confirm
                 </button>
               </div>
             </form>
@@ -476,7 +620,7 @@ export const InventoryPage: React.FC = () => {
               <h3 className="text-base font-bold text-zinc-900">
                 {editingItem ? 'Edit Raw Material' : 'Add New Raw Material'}
               </h3>
-              <button onClick={() => setIsItemModalOpen(false)} className="p-1 text-zinc-400">
+              <button onClick={() => setIsItemModalOpen(false)} className="p-1 text-zinc-400 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -492,7 +636,7 @@ export const InventoryPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Full Cream Milk, Basmati Rice"
-                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white"
+                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -506,7 +650,7 @@ export const InventoryPage: React.FC = () => {
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     placeholder="Dairy, Veg, Spices..."
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white"
+                    className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                   />
                 </div>
 
@@ -517,15 +661,19 @@ export const InventoryPage: React.FC = () => {
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as InventoryUnit)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white"
+                    className="w-full px-3 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                   >
-                    <option value="kg">Kilograms (kg)</option>
-                    <option value="g">Grams (g)</option>
-                    <option value="l">Litres (l)</option>
-                    <option value="ml">Millilitres (ml)</option>
-                    <option value="pcs">Pieces (pcs)</option>
-                    <option value="packets">Packets</option>
-                    <option value="boxes">Boxes</option>
+                    <option value="kg">kg (Kilograms)</option>
+                    <option value="g">g (Grams)</option>
+                    <option value="l">l (Litres)</option>
+                    <option value="litre">litre (Full word)</option>
+                    <option value="ml">ml (Millilitres)</option>
+                    <option value="pcs">pcs (Pieces)</option>
+                    <option value="piece">piece (Full word)</option>
+                    <option value="packets">packets</option>
+                    <option value="packet">packet</option>
+                    <option value="boxes">boxes</option>
+                    <option value="box">box</option>
                   </select>
                 </div>
               </div>
@@ -540,7 +688,7 @@ export const InventoryPage: React.FC = () => {
                     step="0.01"
                     value={currentStock}
                     onChange={(e) => setCurrentStock(e.target.value)}
-                    className="w-full px-2.5 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono"
+                    className="w-full px-2.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold"
                   />
                 </div>
 
@@ -553,7 +701,7 @@ export const InventoryPage: React.FC = () => {
                     step="0.01"
                     value={minimumStock}
                     onChange={(e) => setMinimumStock(e.target.value)}
-                    className="w-full px-2.5 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono"
+                    className="w-full px-2.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold"
                   />
                 </div>
 
@@ -567,7 +715,7 @@ export const InventoryPage: React.FC = () => {
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(e.target.value)}
                     placeholder="0.00"
-                    className="w-full px-2.5 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl font-mono"
+                    className="w-full px-2.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold"
                   />
                 </div>
               </div>
@@ -579,7 +727,7 @@ export const InventoryPage: React.FC = () => {
                 <select
                   value={supplierName}
                   onChange={(e) => setSupplierName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white"
+                  className="w-full px-3 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 >
                   <option value="">None / Open Market</option>
                   {suppliers.map((s) => (
@@ -590,17 +738,30 @@ export const InventoryPage: React.FC = () => {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                  Notes / Storage Location (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Deep freezer shelf 2"
+                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                />
+              </div>
+
               <div className="flex items-center gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsItemModalOpen(false)}
-                  className="flex-1 py-2.5 border border-zinc-300 text-zinc-700 text-xs font-semibold rounded-xl"
+                  className="flex-1 min-h-[48px] border border-zinc-300 text-zinc-700 text-xs sm:text-sm font-semibold rounded-xl hover:bg-zinc-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors"
+                  className="flex-1 min-h-[48px] bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
                 >
                   Save Material
                 </button>
@@ -619,7 +780,7 @@ export const InventoryPage: React.FC = () => {
                 <History className="w-5 h-5 text-zinc-900" />
                 <h3 className="text-base font-bold text-zinc-900">Stock Movements & Audit Trail</h3>
               </div>
-              <button onClick={() => setIsHistoryModalOpen(false)} className="p-1 text-zinc-400">
+              <button onClick={() => setIsHistoryModalOpen(false)} className="p-1 text-zinc-400 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>

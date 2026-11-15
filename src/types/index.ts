@@ -380,7 +380,7 @@ export interface Supplier {
 // INVENTORY MANAGEMENT
 // ========================
 
-export type InventoryUnit = 'kg' | 'g' | 'l' | 'ml' | 'pcs' | 'packets' | 'boxes';
+export type InventoryUnit = 'kg' | 'g' | 'l' | 'litre' | 'ml' | 'pcs' | 'piece' | 'packets' | 'packet' | 'boxes' | 'box';
 export type StockStatus = 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
 
 export interface InventoryItem {
@@ -397,11 +397,22 @@ export interface InventoryItem {
   supplierName?: string;
   lastPurchaseDate?: string;
   stockStatus: StockStatus;
+  isActive?: boolean;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type StockMovementType = 'PURCHASE_RECEIPT' | 'MANUAL_ADJUSTMENT' | 'USAGE' | 'WASTAGE';
+export type StockMovementType = 
+  | 'PURCHASE_RECEIPT' 
+  | 'MANUAL_ADJUSTMENT' 
+  | 'USAGE' 
+  | 'WASTAGE'
+  | 'STOCK_RECEIVED'
+  | 'STOCK_CONSUMED'
+  | 'MANUAL_INCREASE'
+  | 'MANUAL_DECREASE'
+  | 'CORRECTION';
 
 export interface StockMovement {
   id: string;
@@ -471,6 +482,26 @@ export interface SupplierPayment {
 }
 
 // ========================
+// CUSTOMERS & CRM
+// ========================
+
+export interface Customer {
+  id: string;
+  businessId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  totalOrders: number;
+  totalSpent: number;
+  lastVisit?: string;
+  isArchived?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ========================
 // EXPENSES & ACTIVITY LOGS
 // ========================
 
@@ -484,6 +515,11 @@ export interface Expense {
   date: string;
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
+  isVoided?: boolean;
+  voidReason?: string;
+  voidedAt?: string;
+  voidedBy?: string;
 }
 
 export interface ActivityLog {

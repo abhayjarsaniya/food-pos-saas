@@ -1,6 +1,7 @@
 import { 
   collection, 
   doc, 
+  getDoc,
   getDocs, 
   setDoc, 
   updateDoc, 
@@ -169,4 +170,48 @@ export async function toggleArchiveSupplier(businessId: string, supplierId: stri
   const nextArchived = !target.isArchived;
   await updateSupplier(businessId, supplierId, { isArchived: nextArchived });
   return nextArchived;
+}
+
+export async function deleteSupplier(
+  businessId: string, 
+  supplierId: string, 
+  hasHistoricalRecords = false
+): Promise<{ deleted: boolean; archived: boolean; message: string }> {
+  const local = getLocalSuppliers(businessId);
+  let target = local.find((s) => s.id === supplierId);
+  if (!target) {
+    try {
+      const snap = await withTimeout(getDoc(doc(db, 'businesses', businessId, 'suppliers', supplierId)), 2000);
+      if (snap.exists()) {
+        target = { id: snap.id, ...(snap.data() as any) };
+      }
+    } catch {}
+  }
+
+  if (!target) {
+    return { deleted: false, archived: false, message: 'Supplier not found' };
+  }
+
+  // If there are purchase orders or payments, protect historical records via archival
+  if (hasHistoricalRecords) {
+    await updateSupplier(businessId, supplierId, { isArchived: true });
+    return { 
+      deleted: false, 
+      archived: true, 
+      message: `"${target.companyName}" has historical purchase orders or payments and was safely archived to protect tax records.` 
+    };
+  }
+
+  // Safe permanent deletion if no transactions exist
+  const remaining = local.filter((s) => s.id !== supplierId);
+  saveLocalSuppliers(businessId, remaining);
+
+  try {
+    const docRef = doc(db, 'businesses', businessId, 'suppliers', supplierId);
+    await withTimeout(deleteDoc(docRef), 2000);
+  } catch (err) {
+    console.warn('Could not delete supplier from cloud immediately, deleted locally:', err);
+  }
+
+  return { deleted: true, archived: false, message: `"${target.companyName}" was permanently removed.` };
 }

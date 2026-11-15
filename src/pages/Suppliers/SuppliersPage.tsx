@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   addSupplier, 
+  deleteSupplier,
   getSuppliers, 
   toggleArchiveSupplier, 
   updateSupplier 
@@ -24,7 +25,8 @@ import {
   X, 
   FileText, 
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 
 export const SuppliersPage: React.FC = () => {
@@ -191,6 +193,23 @@ export const SuppliersPage: React.FC = () => {
     }
   };
 
+  const handleDeleteSupplier = async (sup: Supplier) => {
+    if (!profile) return;
+    const hasPOs = purchaseOrders.some((po) => po.supplierId === sup.id);
+    const prompt = hasPOs
+      ? `"${sup.companyName}" has historical purchase orders. Archiving this supplier preserves past transaction and tax audit records. Proceed?`
+      : `Are you sure you want to permanently delete supplier "${sup.companyName}"?`;
+    if (!confirm(prompt)) return;
+
+    try {
+      const res = await deleteSupplier(profile.id, sup.id, hasPOs);
+      alert(res.message);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete supplier');
+    }
+  };
+
   const openWhatsAppChat = (phone: string, supName: string) => {
     const cleanPhone = formatWhatsAppPhone(phone);
     const msg = encodeURIComponent(`Hello ${supName}, contacting regarding order from ${profile?.name || 'our food shop'}.`);
@@ -311,27 +330,34 @@ export const SuppliersPage: React.FC = () => {
                 <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
                   <button
                     onClick={() => openWhatsAppChat(supplier.whatsapp || supplier.mobile, supplier.name)}
-                    className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                    className="min-h-[44px] px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="Chat on WhatsApp"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
+                    <MessageSquare className="w-4 h-4 text-emerald-700" />
                     <span>WhatsApp</span>
                   </button>
 
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => openModal(supplier)}
-                      className="p-2 text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
                       title="Edit Supplier"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleToggleArchive(supplier)}
-                      className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-xl transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
                       title={supplier.isArchived ? 'Unarchive' : 'Archive'}
                     >
                       <Archive className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSupplier(supplier)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      title="Delete Supplier"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

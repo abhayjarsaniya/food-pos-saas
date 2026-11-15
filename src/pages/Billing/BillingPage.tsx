@@ -1480,6 +1480,7 @@ export const BillingPage: React.FC = () => {
 
       {/* ONE-POPUP MULTI-VARIANT SELECTION MODAL */}
       <MultiVariantModal
+        key={selectedItemForVariant?.id || 'none'}
         isOpen={isVariantModalOpen}
         item={selectedItemForVariant}
         currentBillItems={items}
@@ -1489,6 +1490,8 @@ export const BillingPage: React.FC = () => {
         }}
         onApply={(menuItem, variantQuantities) => {
           setProductVariants(menuItem, variantQuantities);
+          setIsVariantModalOpen(false);
+          setSelectedItemForVariant(null);
         }}
       />
 

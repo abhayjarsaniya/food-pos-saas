@@ -19,6 +19,8 @@ import { SettingsPage } from './pages/Settings/SettingsPage';
 import { PendingPaymentsPage } from './pages/Payments/PendingPaymentsPage';
 import { MembersPage } from './pages/Members/MembersPage';
 import { TableManagementPage } from './pages/Tables/TableManagementPage';
+import { CustomersPage } from './pages/Customers/CustomersPage';
+import { ExpensesPage } from './pages/Expenses/ExpensesPage';
 import { LoginPage } from './pages/Login/LoginPage';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
 
@@ -226,6 +228,22 @@ export const AppContent: React.FC = () => {
             element={
               <FeatureGuard feature="memberManagement">
                 <MembersPage />
+              </FeatureGuard>
+            } 
+          />
+          <Route 
+            path="/customers" 
+            element={
+              <FeatureGuard feature="customerManagement">
+                <CustomersPage />
+              </FeatureGuard>
+            } 
+          />
+          <Route 
+            path="/expenses" 
+            element={
+              <FeatureGuard feature="expenses">
+                <ExpensesPage />
               </FeatureGuard>
             } 
           />

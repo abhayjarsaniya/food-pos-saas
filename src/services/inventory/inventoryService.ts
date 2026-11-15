@@ -1,6 +1,7 @@
 import { 
   collection, 
   doc, 
+  getDoc,
   getDocs, 
   setDoc, 
   updateDoc, 
@@ -252,12 +253,28 @@ export async function updateInventoryItem(
 
   try {
     const docRef = doc(db, 'businesses', businessId, 'inventory', itemId);
-    const item = updated.find((i) => i.id === itemId);
-    if (item) {
-      await withTimeout(updateDoc(docRef, { ...item }), 2000);
-    }
+    await withTimeout(updateDoc(docRef, { ...updates, updatedAt: now }), 2000);
   } catch (err) {
     console.warn('Could not update inventory in cloud immediately:', err);
+  }
+}
+
+/**
+ * Delete inventory item
+ */
+export async function deleteInventoryItem(
+  businessId: string,
+  itemId: string
+): Promise<void> {
+  const local = getLocalInventory(businessId);
+  const remaining = local.filter((i) => i.id !== itemId);
+  saveLocalInventory(businessId, remaining);
+
+  try {
+    const docRef = doc(db, 'businesses', businessId, 'inventory', itemId);
+    await withTimeout(deleteDoc(docRef), 2000);
+  } catch (err) {
+    console.warn('Could not delete inventory item in cloud immediately, deleted locally:', err);
   }
 }
 
@@ -275,12 +292,37 @@ export async function adjustStock(
   }
 
   const local = getLocalInventory(businessId);
-  const item = local.find((i) => i.id === itemId);
+  let item = local.find((i) => i.id === itemId);
+  if (!item) {
+    try {
+      const snap = await withTimeout(getDoc(doc(db, 'businesses', businessId, 'inventory', itemId)), 2000);
+      if (snap.exists()) {
+        item = { id: snap.id, ...(snap.data() as any) };
+      }
+    } catch {}
+  }
   if (!item) throw new Error('Inventory item not found');
 
   const previousStock = item.currentStock;
   const quantityChange = newQuantity - previousStock;
-  const movementType: StockMovementType = quantityChange >= 0 ? 'MANUAL_ADJUSTMENT' : 'WASTAGE';
+  
+  let movementType: StockMovementType;
+  const cleanReason = reason.trim();
+  if (cleanReason.toLowerCase().includes('stock received')) {
+    movementType = 'STOCK_RECEIVED';
+  } else if (cleanReason.toLowerCase().includes('stock consumed')) {
+    movementType = 'STOCK_CONSUMED';
+  } else if (cleanReason.toLowerCase().includes('manual increase')) {
+    movementType = 'MANUAL_INCREASE';
+  } else if (cleanReason.toLowerCase().includes('manual decrease')) {
+    movementType = 'MANUAL_DECREASE';
+  } else if (cleanReason.toLowerCase().includes('purchase received') || cleanReason.toLowerCase().includes('purchase receipt')) {
+    movementType = 'PURCHASE_RECEIPT';
+  } else if (cleanReason.toLowerCase().includes('correction')) {
+    movementType = 'CORRECTION';
+  } else {
+    movementType = quantityChange >= 0 ? 'MANUAL_ADJUSTMENT' : 'WASTAGE';
+  }
 
   await updateInventoryItem(businessId, itemId, { currentStock: newQuantity });
 
@@ -291,7 +333,7 @@ export async function adjustStock(
     quantityChange,
     previousStock,
     newStock: newQuantity,
-    reason: reason.trim(),
+    reason: cleanReason,
   });
 }
 

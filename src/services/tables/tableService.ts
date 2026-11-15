@@ -173,7 +173,7 @@ export async function createTable(
     businessId,
     name: cleanName,
     description: data.description?.trim() || '',
-    seatingCapacity: data.seatingCapacity && data.seatingCapacity > 0 ? Number(data.seatingCapacity) : undefined,
+    seatingCapacity: data.seatingCapacity && data.seatingCapacity > 0 ? Number(data.seatingCapacity) : 4,
     isActive: data.isActive !== undefined ? data.isActive : true,
     sortOrder,
     createdAt: now,
@@ -203,7 +203,15 @@ export async function updateTable(
   updates: Partial<Omit<RestaurantTable, 'id' | 'businessId' | 'createdAt'>>
 ): Promise<RestaurantTable> {
   const existingTables = await getTables(businessId);
-  const target = existingTables.find(t => t.id === tableId);
+  let target = existingTables.find(t => t.id === tableId);
+  if (!target) {
+    try {
+      const snap = await withTimeout(getDoc(doc(db, 'businesses', businessId, 'tables', tableId)), 2500);
+      if (snap.exists()) {
+        target = { id: snap.id, ...(snap.data() as any) };
+      }
+    } catch {}
+  }
   if (!target) {
     throw new Error('Table not found.');
   }

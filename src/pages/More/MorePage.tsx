@@ -12,7 +12,9 @@ import {
   LogOut, 
   ChevronRight,
   Wallet,
-  Users
+  Users,
+  UserCheck,
+  Banknote
 } from 'lucide-react';
 
 export const MorePage: React.FC = () => {
@@ -35,6 +37,8 @@ export const MorePage: React.FC = () => {
       title: 'Business & Management',
       items: [
         { label: 'Revenue Reports', icon: BarChart3, path: '/reports', desc: 'Sales, GST, collections & dues', feature: 'reports' as const },
+        { label: 'Expenses & Petty Cash', icon: Banknote, path: '/expenses', desc: 'Petty cash, LPG, utilities & vouchers', feature: 'expenses' as const },
+        { label: 'Customer Directory', icon: UserCheck, path: '/customers', desc: 'Patron profiles, WhatsApp & spends', feature: 'customerManagement' as const },
         { label: 'Staff & Members', icon: Users, path: '/members', desc: 'Staff roles & cashier permissions', feature: 'memberManagement' as const },
         { label: 'Shop Settings', icon: Settings, path: '/settings', desc: 'Tables, tax, receipt format & profile', feature: null },
       ],

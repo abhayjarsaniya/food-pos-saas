@@ -214,8 +214,8 @@ export async function addCategory(businessId: string, name: string, sortOrder: n
 
   if (!isDemo(businessId)) {
     try {
-      const colRef = collection(db, 'businesses', businessId, 'categories');
-      await withTimeout(addDoc(colRef, { name, sortOrder, isActive: true, businessId }));
+      const docRef = doc(db, 'businesses', businessId, 'categories', catId);
+      await withTimeout(setDoc(docRef, docData));
     } catch (err) {
       console.warn('Failed to add category to Firestore, saved offline:', err);
     }
@@ -279,8 +279,8 @@ export async function addMenuItem(businessId: string, item: Omit<MenuItem, 'id'>
 
   if (!isDemo(businessId)) {
     try {
-      const colRef = collection(db, 'businesses', businessId, 'menuItems');
-      await withTimeout(addDoc(colRef, item));
+      const docRef = doc(db, 'businesses', businessId, 'menuItems', itemId);
+      await withTimeout(setDoc(docRef, newItem));
     } catch (err) {
       console.warn('Failed to add menuItem to Firestore, saved offline:', err);
     }
