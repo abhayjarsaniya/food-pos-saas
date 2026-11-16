@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../contexts/OrdersContext';
 import { voidOrder, normalizeOrderStatus, normalizePaymentStatus } from '../../services/orders/orderService';
@@ -22,11 +23,13 @@ import {
   Clock,
   Printer,
   Sparkles,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Wallet
 } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
   const { profile, settings } = useAuth();
+  const navigate = useNavigate();
   const { orders, loading, refreshOrders } = useOrders();
 
   // Filters
@@ -312,6 +315,17 @@ export const OrdersPage: React.FC = () => {
 
                   {/* Action Buttons (Touch Friendly min 44x44px) */}
                   <div className="flex items-center gap-2">
+                    {order.balanceDue > 0 && !isVoided && (
+                      <button
+                        onClick={() => navigate('/pending-payments')}
+                        className="min-h-[44px] px-3 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-2xs active:scale-95 cursor-pointer"
+                        title="Collect outstanding balance"
+                      >
+                        <Wallet className="w-4 h-4" />
+                        <span className="hidden md:inline">Collect Due</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => setSelectedOrder(order)}
                       className="w-11 h-11 min-w-[44px] min-h-[44px] bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl flex items-center justify-center transition-all active:scale-90"

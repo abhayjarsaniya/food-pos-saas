@@ -5,6 +5,7 @@ import {
   getDocs, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   query, 
   orderBy, 
   limit 
@@ -94,6 +95,7 @@ export async function createPurchaseOrder(
     orderDate?: string;
     expectedDeliveryDate?: string;
     notes?: string;
+    updateDefaultPrices?: boolean;
   }
 ): Promise<PurchaseOrder> {
   const localPOs = getLocalPOs(businessId);
@@ -125,6 +127,21 @@ export async function createPurchaseOrder(
   };
 
   saveLocalPOs(businessId, [newPO, ...localPOs]);
+
+  // Update default inventory prices if explicitly requested
+  if (data.updateDefaultPrices) {
+    try {
+      for (const item of data.items) {
+        if (item.inventoryItemId && item.unitCost > 0) {
+          await updateInventoryItem(businessId, item.inventoryItemId, {
+            purchasePrice: item.unitCost,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Could not update default inventory prices:', err);
+    }
+  }
 
   try {
     const docRef = doc(db, 'businesses', businessId, 'purchaseOrders', poId);
@@ -356,6 +373,58 @@ export async function updatePurchaseOrder(
   } catch (err) {
     console.warn('Could not update PO in cloud immediately, saved offline:', err);
   }
+}
+
+export async function deleteDraftPurchaseOrder(
+  businessId: string,
+  poId: string
+): Promise<void> {
+  const localPOs = getLocalPOs(businessId);
+  const po = localPOs.find((p) => p.id === poId);
+  if (!po) throw new Error('Purchase order not found');
+
+  if (po.status !== 'DRAFT') {
+    throw new Error(`Only Draft purchase orders can be deleted. Current status is ${po.status}. Please cancel it instead.`);
+  }
+
+  const remaining = localPOs.filter((p) => p.id !== poId);
+  saveLocalPOs(businessId, remaining);
+
+  try {
+    const docRef = doc(db, 'businesses', businessId, 'purchaseOrders', poId);
+    await withTimeout(deleteDoc(docRef), 2000);
+  } catch (err) {
+    console.warn('Could not delete draft PO from cloud immediately:', err);
+  }
+}
+
+export async function duplicatePurchaseOrder(
+  businessId: string,
+  poId: string
+): Promise<PurchaseOrder> {
+  const localPOs = getLocalPOs(businessId);
+  const po = localPOs.find((p) => p.id === poId);
+  if (!po) throw new Error('Purchase order not found');
+
+  return createPurchaseOrder(businessId, {
+    supplierId: po.supplierId,
+    supplierName: po.supplierName,
+    items: po.items.map((i) => ({
+      inventoryItemId: i.inventoryItemId,
+      itemName: i.itemName,
+      unit: i.unit,
+      quantityOrdered: i.quantityOrdered,
+      quantityReceived: 0,
+      unitCost: i.unitCost,
+      lineTotal: i.lineTotal,
+    })),
+    subtotal: po.subtotal,
+    discount: po.discount,
+    taxAmount: po.taxAmount,
+    totalAmount: po.totalAmount,
+    status: 'DRAFT',
+    notes: `Copy of ${po.poNumber}${po.notes ? ` - ${po.notes}` : ''}`,
+  });
 }
 
 export async function getSupplierPayments(businessId: string, supplierId?: string): Promise<SupplierPayment[]> {

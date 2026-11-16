@@ -94,15 +94,27 @@ export const HomePage: React.FC = () => {
           </h1>
         </div>
 
-        <button
-          onClick={() => navigate('/settings')}
-          className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
-          title="Settings & Profile"
-        >
-          <span className="font-bold text-base">
-            {profile?.ownerName?.charAt(0) || 'O'}
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* 1-Tap All Orders Shortcut */}
+          <button
+            onClick={() => navigate('/orders')}
+            className="min-h-[46px] px-3.5 py-2 rounded-2xl bg-[#EAF5EF] hover:bg-[#CFE5D8] text-[#145C43] border border-[#CFE5D8] flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+            title="One-tap access to all customer orders"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span className="hidden sm:inline">All Orders</span>
+          </button>
+
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+            title="Settings & Profile"
+          >
+            <span className="font-bold text-base">
+              {profile?.ownerName?.charAt(0) || 'O'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Prominent Action - NEW BILL (Highest Priority - Touch friendly >= 64px) */}
@@ -198,11 +210,11 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('/orders')}
-            className="min-h-[72px] p-4 bg-white border border-zinc-200/90 rounded-2xl hover:bg-zinc-50 transition-all active:scale-95 flex flex-col items-center text-center shadow-xs"
+            className="min-h-[72px] p-4 bg-white border border-[#E5EAE6] hover:border-[#CFE5D8] rounded-2xl hover:bg-[#EAF5EF]/40 transition-all active:scale-95 flex flex-col items-center text-center shadow-2xs group cursor-pointer"
           >
-            <ShoppingBag className="w-6 h-6 text-zinc-800 mb-1.5" />
-            <span className="text-xs sm:text-sm font-bold text-zinc-900">Orders</span>
-            <span className="text-[11px] text-zinc-400 mt-0.5">History & Bills</span>
+            <ShoppingBag className="w-6 h-6 text-[#145C43] mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs sm:text-sm font-bold text-[#202923]">All Orders</span>
+            <span className="text-[11px] text-[#68736D] mt-0.5">1-Tap History</span>
           </button>
 
           <button

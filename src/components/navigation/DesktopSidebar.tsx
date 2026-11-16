@@ -38,7 +38,7 @@ export const DesktopSidebar: React.FC = () => {
     { to: '/billing', label: 'POS & Billing', icon: Receipt, badge: totalItemCount > 0 ? totalItemCount : null, navKey: 'billing' as keyof MemberNavigationVisibility, feature: 'billing' as const },
     { to: '/tables', label: 'Table Management', icon: LayoutGrid, navKey: 'tables' as keyof MemberNavigationVisibility, feature: 'tableManagement' as const },
     { to: '/pending-payments', label: 'Pending Payments', icon: Wallet, badge: pendingPaymentCount > 0 ? pendingPaymentCount : null, navKey: 'pendingPayments' as keyof MemberNavigationVisibility, feature: 'pendingPayments' as const },
-    { to: '/orders', label: 'Orders History', icon: ShoppingBag, navKey: 'orders' as keyof MemberNavigationVisibility, feature: 'orders' as const },
+    { to: '/orders', label: 'All Customer Orders', icon: ShoppingBag, navKey: 'orders' as keyof MemberNavigationVisibility, feature: 'orders' as const },
     { to: '/menu', label: 'Menu Management', icon: UtensilsCrossed, navKey: 'menu' as keyof MemberNavigationVisibility, feature: 'menuManagement' as const },
     { to: '/inventory', label: 'Inventory & Materials', icon: Boxes, navKey: 'inventory' as keyof MemberNavigationVisibility, feature: 'inventory' as const },
     { to: '/suppliers', label: 'Suppliers & Vendors', icon: Truck, navKey: 'suppliers' as keyof MemberNavigationVisibility, feature: 'suppliers' as const },
@@ -64,7 +64,7 @@ export const DesktopSidebar: React.FC = () => {
     <aside className="hidden md:flex flex-col w-64 border-r border-[#E5EAE6] bg-white h-screen sticky top-0 shrink-0 p-3.5 justify-between select-none overflow-y-auto z-20">
       <div className="flex flex-col min-h-0">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-2 py-2.5 mb-3 border-b border-[#E5EAE6]/60 pb-3">
+        <div className="flex items-center gap-3 px-2 py-2.5 mb-2.5 border-b border-[#E5EAE6]/60 pb-3">
           <div className="w-10 h-10 rounded-xl bg-[#145C43] flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
             {profile?.name ? profile.name.charAt(0).toUpperCase() : 'F'}
           </div>
@@ -77,6 +77,25 @@ export const DesktopSidebar: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* 1-Tap All Customer Orders Shortcut */}
+        {(userRole === 'OWNER' || userRole === 'SUPER_ADMIN' || hasNavAccess('orders')) && (
+          <div className="px-1 mb-2">
+            <button
+              onClick={() => navigate('/orders')}
+              className="w-full flex items-center justify-between px-3 py-2 bg-[#145C43] hover:bg-[#0F4935] text-white rounded-xl text-xs font-bold transition-all shadow-2xs group cursor-pointer"
+              title="One-tap shortcut to view all customer orders"
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                <span>All Orders</span>
+              </div>
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-mono">
+                View
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Navigation links */}
         <nav className="space-y-0.5 pr-0.5">

@@ -29,7 +29,9 @@ import {
   Printer, 
   Share2, 
   X, 
-  AlertCircle 
+  AlertCircle,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 
 export const PendingPaymentsPage: React.FC = () => {
@@ -38,6 +40,16 @@ export const PendingPaymentsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'PENDING' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'ALL'>('PENDING');
   const [tableFilter, setTableFilter] = useState<string>('ALL');
+  const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>(() => {
+    return (localStorage.getItem('food_pos_pending_view') as any) || 'GRID';
+  });
+
+  const handleSetViewMode = (mode: 'GRID' | 'LIST') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('food_pos_pending_view', mode);
+    } catch {}
+  };
 
   // Receive Payment Modal State
   const [activeOrderForPayment, setActiveOrderForPayment] = useState<Order | null>(null);
@@ -269,6 +281,37 @@ export const PendingPaymentsPage: React.FC = () => {
               ))}
             </select>
           )}
+
+          {/* View Mode Switcher: Cards vs Table List */}
+          <div className="flex items-center gap-1 bg-[#F7F9F7] p-1 rounded-xl border border-[#E5EAE6] shadow-2xs self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => handleSetViewMode('GRID')}
+              className={`min-h-[38px] px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'GRID'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'text-[#68736D] hover:bg-white hover:text-[#202923]'
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetViewMode('LIST')}
+              className={`min-h-[38px] px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'LIST'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'text-[#68736D] hover:bg-white hover:text-[#202923]'
+              }`}
+              title="Table List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>List</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -281,8 +324,8 @@ export const PendingPaymentsPage: React.FC = () => {
           <p className="font-bold text-zinc-700">No matching orders found</p>
           <p>All matching bills are paid or no active bills match this filter.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+      ) : viewMode === 'GRID' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredOrders.map((ord) => {
             const isFullyPaid = ord.paymentStatus === 'PAID';
             const isPartial = ord.paymentStatus === 'PARTIAL' || ord.paymentStatus === 'PARTIALLY_PAID';
@@ -465,6 +508,104 @@ export const PendingPaymentsPage: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      ) : (
+        /* TABLE LIST VIEW - Clean desktop table view for pending bills */
+        <div className="bg-white border border-[#E5EAE6] rounded-2xl shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="bg-[#F7F9F7] border-b border-[#E5EAE6] text-[11px] font-bold text-[#68736D] uppercase tracking-wider">
+                  <th className="py-3.5 px-4">Bill #</th>
+                  <th className="py-3.5 px-4">Table</th>
+                  <th className="py-3.5 px-4">Customer</th>
+                  <th className="py-3.5 px-4">Time</th>
+                  <th className="py-3.5 px-4">Items Summary</th>
+                  <th className="py-3.5 px-4 text-right">Total</th>
+                  <th className="py-3.5 px-4 text-right">Balance Due</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5EAE6]">
+                {filteredOrders.map((ord) => {
+                  const isFullyPaid = ord.paymentStatus === 'PAID';
+                  return (
+                    <tr key={ord.id} className="hover:bg-[#F7F9F7]/70 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#202923]">
+                        {ord.billNumber}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {ord.tableNumber ? (
+                          <span className="font-bold text-[#145C43] bg-[#EAF5EF] px-2 py-0.5 rounded-full text-[11px]">
+                            {ord.tableNumber}
+                          </span>
+                        ) : (
+                          <span className="text-[#929B95]">—</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-[#202923] block">
+                          {ord.customer?.name || ord.customerName || 'Walk-in'}
+                        </span>
+                        {ord.customer?.phone && (
+                          <span className="text-[11px] text-[#68736D] font-mono">{ord.customer.phone}</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[#68736D] text-[11px] whitespace-nowrap">
+                        {formatDateTime(ord.createdAt)}
+                      </td>
+                      <td className="py-3.5 px-4 max-w-xs truncate text-[#202923]">
+                        {ord.items.map((i) => `${i.quantity}x ${i.name}`).join(', ')}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-[#202923]">
+                        {formatCurrency(ord.grandTotal)}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono">
+                        {ord.balanceDue > 0 ? (
+                          <span className="text-sm font-extrabold text-rose-600">
+                            {formatCurrency(ord.balanceDue)}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-600">Cleared</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {!isFullyPaid && (canCollectPayment || userRole === 'OWNER' || userRole === 'SUPER_ADMIN') && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenReceiveModal(ord)}
+                                className="min-h-[38px] px-3 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+                              >
+                                Receive
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickMarkReceived(ord)}
+                                className="min-h-[38px] px-2.5 bg-[#F7F9F7] hover:bg-[#EAF5EF] text-[#202923] hover:text-[#145C43] text-xs font-semibold rounded-xl border border-[#E5EAE6] cursor-pointer"
+                                title="Mark full payment"
+                              >
+                                Mark Full
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => profile && printReceiptInBrowser(ord, profile, settings, 'compact80')}
+                            className="min-h-[38px] min-w-[38px] flex items-center justify-center text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43] rounded-xl border border-[#E5EAE6] cursor-pointer"
+                            title="Print receipt"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

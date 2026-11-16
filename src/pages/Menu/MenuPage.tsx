@@ -27,7 +27,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 
 export const MenuPage: React.FC = () => {
@@ -40,6 +42,16 @@ export const MenuPage: React.FC = () => {
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCatFilter, setSelectedCatFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>(() => {
+    return (localStorage.getItem('food_pos_menu_view') as any) || 'GRID';
+  });
+
+  const handleSetViewMode = (mode: 'GRID' | 'LIST') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('food_pos_menu_view', mode);
+    } catch {}
+  };
 
   // Modals
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -452,136 +464,328 @@ export const MenuPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Search & Food Items Grid */}
+      {/* Search & Food Items Grid / List View */}
       <div className="space-y-4">
-        <div className="relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search food items by name..."
-            className="w-full pl-9 pr-4 min-h-[48px] bg-white text-sm rounded-xl border border-zinc-200/90 focus:outline-none focus:ring-2 focus:ring-[#145C43] shadow-2xs transition-all"
-          />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search food items by name, category..."
+              className="w-full pl-9 pr-4 min-h-[44px] bg-white text-xs sm:text-sm rounded-xl border border-[#E5EAE6] focus:outline-none focus:ring-2 focus:ring-[#145C43] shadow-2xs transition-all"
+            />
+          </div>
+
+          {/* View Mode Toggle: Grid vs List */}
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E5EAE6] shadow-2xs self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => handleSetViewMode('GRID')}
+              className={`min-h-[38px] px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'GRID'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'text-[#68736D] hover:bg-[#F7F9F7] hover:text-[#202923]'
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetViewMode('LIST')}
+              className={`min-h-[38px] px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'LIST'
+                  ? 'bg-[#145C43] text-white shadow-2xs'
+                  : 'text-[#68736D] hover:bg-[#F7F9F7] hover:text-[#202923]'
+              }`}
+              title="Table List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>List</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-zinc-400 text-xs">
+          <div className="text-center py-12 text-[#68736D] text-xs">
             Loading menu items...
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-12 bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl p-6">
-            <UtensilsCrossed className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-zinc-700">No food items found</p>
-            <p className="text-xs text-zinc-400 mt-1">
+          <div className="text-center py-12 bg-white border border-dashed border-[#E5EAE6] rounded-2xl p-6">
+            <UtensilsCrossed className="w-10 h-10 text-zinc-300 mx-auto mb-2" />
+            <p className="text-sm font-bold text-[#202923]">No food items found</p>
+            <p className="text-xs text-[#68736D] mt-1">
               Tap "+ Food Item" above to add your first menu item.
             </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5">
+        ) : viewMode === 'GRID' ? (
+          /* CARD GRID VIEW - 1 to 4 responsive columns with ample card width and full product names */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className={`p-4 bg-white border rounded-2xl shadow-2xs flex items-center justify-between gap-3 transition-all ${
-                  !item.isActive ? 'opacity-60 bg-zinc-50 border-dashed' : 'border-zinc-200/90'
+                className={`p-4 bg-white border rounded-2xl shadow-2xs flex flex-col justify-between transition-all space-y-3 ${
+                  !item.isActive ? 'opacity-60 bg-zinc-50 border-dashed border-zinc-300' : 'border-[#E5EAE6] hover:border-[#CFE5D8]'
                 }`}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                <div>
+                  {/* Top Bar: Veg/Non-Veg & Category & Status */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`w-3.5 h-3.5 border flex items-center justify-center rounded-xs shrink-0 ${
+                          item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
+                          }`}
+                        />
+                      </span>
+                      <span className="text-[11px] font-semibold text-[#68736D] bg-[#F7F9F7] px-2 py-0.5 rounded-md border border-[#E5EAE6]">
+                        {item.categoryName || 'General'}
+                      </span>
+                    </div>
+
                     <span
-                      className={`w-3.5 h-3.5 border flex items-center justify-center rounded-xs shrink-0 ${
-                        item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        item.isActive
+                          ? 'bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8]'
+                          : 'bg-zinc-100 text-zinc-500'
                       }`}
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
-                        }`}
-                      />
+                      {item.isActive ? 'Available' : 'Hidden'}
                     </span>
-                    <h3 className="text-sm font-bold text-zinc-900 truncate">
-                      {item.name}
-                    </h3>
                   </div>
 
+                  {/* Product Full Name (No truncation to B..., O..., K...) */}
+                  <h3 className="text-sm sm:text-base font-bold text-[#202923] leading-snug line-clamp-2">
+                    {item.name}
+                  </h3>
+
                   {item.description && (
-                    <p className="text-[11px] text-zinc-500 line-clamp-1 mb-1">
+                    <p className="text-[11px] text-[#68736D] line-clamp-1 mt-0.5">
                       {item.description}
                     </p>
                   )}
 
-                  <p className="text-xs text-zinc-400">
-                    {item.categoryName} {item.gstRate ? `• GST ${item.gstRate}%` : ''}
-                  </p>
-
+                  {/* Variants & Pricing Block */}
                   {item.variants && item.variants.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {item.variants.map((v) => {
-                        const priceInRupees = v.price > 1000 ? v.price / 100 : v.price;
-                        return (
-                          <span
-                            key={v.variantId}
-                            className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${
-                              v.isAvailable
-                                ? 'bg-zinc-100 text-zinc-800'
-                                : 'bg-zinc-50 text-zinc-400 line-through'
-                            }`}
-                          >
-                            {v.name}: {v.isAvailable ? formatCurrency(priceInRupees) : 'N/A'}
-                          </span>
-                        );
-                      })}
+                    <div className="mt-2.5 p-2 bg-[#F7F9F7] rounded-xl border border-[#E5EAE6] space-y-1">
+                      <div className="text-[10px] uppercase font-bold text-[#929B95] tracking-wider">
+                        Price Variants
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {item.variants.map((v) => {
+                          const priceInRupees = v.price > 1000 ? v.price / 100 : v.price;
+                          return (
+                            <div
+                              key={v.variantId}
+                              className={`flex items-center justify-between text-xs px-1.5 py-0.5 rounded ${
+                                v.isAvailable ? 'bg-white border border-[#E5EAE6]' : 'bg-zinc-100 text-zinc-400 line-through'
+                              }`}
+                            >
+                              <span className="font-semibold text-[#202923] truncate mr-1">{v.name}</span>
+                              <span className="font-mono font-bold text-[#145C43]">
+                                {v.isAvailable ? formatCurrency(priceInRupees) : 'N/A'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : item.priceType === 'mrp' ? (
-                    <div className="text-xs text-amber-700 font-semibold mt-1.5">
-                      MRP (Configurable at billing)
+                    <div className="mt-2 text-xs text-amber-800 font-semibold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg inline-block">
+                      MRP (Entered at billing)
                     </div>
                   ) : (
-                    <div className="text-base font-bold text-zinc-950 font-mono mt-1.5">
+                    <div className="mt-2 text-lg font-black text-[#145C43] font-mono">
                       {formatCurrency(item.price)}
                     </div>
                   )}
 
-                  {item.isPromotional && (
-                    <div className="mt-1">
-                      <span className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-full inline-block">
-                        {item.confirmationStatus || 'Needs Owner Confirmation'}
-                      </span>
-                    </div>
-                  )}
+                  {item.gstRate ? (
+                    <p className="text-[10px] text-[#929B95] mt-1.5">
+                      GST: {item.gstRate}% included
+                    </p>
+                  ) : null}
                 </div>
 
-                <div className="flex items-center gap-1">
+                {/* Card Actions Toolbar */}
+                <div className="pt-2.5 border-t border-[#E5EAE6] flex items-center justify-between gap-1">
                   <button
+                    type="button"
                     onClick={() => handleToggleItemActive(item)}
-                    className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-xs transition-colors ${
+                    className={`min-h-[40px] px-2.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
                       item.isActive
-                        ? 'text-zinc-600 hover:bg-zinc-100'
-                        : 'text-zinc-400 hover:bg-zinc-100'
+                        ? 'text-[#145C43] hover:bg-[#EAF5EF]'
+                        : 'text-zinc-500 hover:bg-zinc-100'
                     }`}
-                    title={item.isActive ? 'Hide from billing' : 'Show in billing'}
+                    title={item.isActive ? 'Hide item from billing' : 'Show item in billing'}
                   >
-                    {item.isActive ? <Eye className="w-5 h-5 text-emerald-600" /> : <EyeOff className="w-5 h-5 text-zinc-400" />}
+                    {item.isActive ? (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Active</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
+                        <span className="hidden sm:inline">Hidden</span>
+                      </>
+                    )}
                   </button>
 
-                  <button
-                    onClick={() => openItemModal(item)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
-                    title="Edit Item"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openItemModal(item)}
+                      className="min-h-[40px] px-3 bg-[#F7F9F7] hover:bg-[#EAF5EF] text-[#202923] hover:text-[#145C43] text-xs font-bold rounded-xl border border-[#E5EAE6] flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Edit Item & Variants"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
 
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                    title="Delete Item"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItem(item.id)}
+                      className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      title="Delete Item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        ) : (
+          /* TABLE LIST VIEW - Dense, highly readable desktop tabular view */
+          <div className="bg-white border border-[#E5EAE6] rounded-2xl shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-[#F7F9F7] border-b border-[#E5EAE6] text-[11px] font-bold text-[#68736D] uppercase tracking-wider">
+                    <th className="py-3 px-4">Item Name</th>
+                    <th className="py-3 px-4">Category</th>
+                    <th className="py-3 px-4">Pricing / Variants</th>
+                    <th className="py-3 px-4">GST</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5EAE6]">
+                  {filteredItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-[#F7F9F7]/70 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-3 h-3 border flex items-center justify-center rounded-xs shrink-0 ${
+                              item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
+                              }`}
+                            />
+                          </span>
+                          <div>
+                            <span className="font-bold text-[#202923] text-sm">{item.name}</span>
+                            {item.description && (
+                              <p className="text-[11px] text-[#68736D] truncate max-w-xs">{item.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4 text-[#68736D] font-medium">
+                        {item.categoryName || 'General'}
+                      </td>
+
+                      <td className="py-3 px-4">
+                        {item.variants && item.variants.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {item.variants.map((v) => {
+                              const p = v.price > 1000 ? v.price / 100 : v.price;
+                              return (
+                                <span
+                                  key={v.variantId}
+                                  className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium ${
+                                    v.isAvailable ? 'bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8]' : 'bg-zinc-100 text-zinc-400 line-through'
+                                  }`}
+                                >
+                                  {v.name}: {formatCurrency(p)}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : item.priceType === 'mrp' ? (
+                          <span className="text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                            MRP
+                          </span>
+                        ) : (
+                          <span className="font-mono font-bold text-[#145C43] text-sm">
+                            {formatCurrency(item.price)}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-4 text-[#68736D] font-mono">
+                        {item.gstRate ? `${item.gstRate}%` : '—'}
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            item.isActive
+                              ? 'bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8]'
+                              : 'bg-zinc-100 text-zinc-500'
+                          }`}
+                        >
+                          {item.isActive ? 'Available' : 'Hidden'}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleItemActive(item)}
+                            className="p-1.5 text-[#68736D] hover:text-[#145C43] hover:bg-[#EAF5EF] rounded-lg transition-colors"
+                            title={item.isActive ? 'Hide item' : 'Show item'}
+                          >
+                            {item.isActive ? <Eye className="w-4 h-4 text-[#145C43]" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openItemModal(item)}
+                            className="p-1.5 text-[#68736D] hover:text-[#145C43] hover:bg-[#EAF5EF] rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
