@@ -31,11 +31,11 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-zinc-50 w-full overflow-x-hidden">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-zinc-200 bg-white min-h-screen p-4 justify-between select-none">
-        <div>
+      {/* Desktop Fixed Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 fixed top-0 left-0 h-[100dvh] z-30 border-r border-[#E5EAE6] bg-white p-4 justify-between select-none">
+        <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center gap-2.5 px-2 py-3 mb-6">
+          <div className="shrink-0 flex items-center gap-2.5 px-2 py-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -47,8 +47,8 @@ export const AdminLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="space-y-1">
+          {/* Navigation - Scrollable internally if height is exceeded */}
+          <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 no-scrollbar pr-0.5">
             {adminNav.map((link) => {
               const Icon = link.icon;
               return (
@@ -72,13 +72,13 @@ export const AdminLayout: React.FC = () => {
           </nav>
         </div>
 
-        <div className="pt-4 border-t border-zinc-100">
+        <div className="shrink-0 pt-4 border-t border-zinc-100">
           <button
             onClick={async () => {
               await logout();
               navigate('/admin/login');
             }}
-            className="w-full p-2 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+            className="w-full p-2 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -87,7 +87,7 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-full pb-16 md:pb-6 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 max-w-full md:ml-64 pb-16 md:pb-6 overflow-y-auto overflow-x-hidden">
         {/* Mobile Header */}
         <header className="md:hidden bg-white border-b border-zinc-200 p-4 sticky top-0 z-30 flex items-center justify-between">
           <div className="flex items-center gap-2">

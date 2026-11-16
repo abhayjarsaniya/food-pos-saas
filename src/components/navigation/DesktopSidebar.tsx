@@ -61,10 +61,10 @@ export const DesktopSidebar: React.FC = () => {
   const displayRoleOrPosition = currentMember?.position || (userRole === 'OWNER' ? 'Shop Owner' : userRole === 'KITCHEN' ? 'Cook' : userRole === 'CASHIER' ? 'Cashier' : 'Staff');
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-[#E5EAE6] bg-white h-screen sticky top-0 shrink-0 p-3.5 justify-between select-none overflow-y-auto z-20">
-      <div className="flex flex-col min-h-0">
+    <aside className="hidden md:flex flex-col w-64 fixed top-0 left-0 h-[100dvh] z-30 border-r border-[#E5EAE6] bg-white p-3.5 justify-between select-none">
+      <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-2 py-2.5 mb-2.5 border-b border-[#E5EAE6]/60 pb-3">
+        <div className="shrink-0 flex items-center gap-3 px-2 py-2.5 mb-2.5 border-b border-[#E5EAE6]/60 pb-3">
           <div className="w-10 h-10 rounded-xl bg-[#145C43] flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
             {profile?.name ? profile.name.charAt(0).toUpperCase() : 'F'}
           </div>
@@ -80,7 +80,7 @@ export const DesktopSidebar: React.FC = () => {
 
         {/* 1-Tap All Customer Orders Shortcut */}
         {(userRole === 'OWNER' || userRole === 'SUPER_ADMIN' || hasNavAccess('orders')) && (
-          <div className="px-1 mb-2">
+          <div className="shrink-0 px-1 mb-2">
             <button
               onClick={() => navigate('/orders')}
               className="w-full flex items-center justify-between px-3 py-2 bg-[#145C43] hover:bg-[#0F4935] text-white rounded-xl text-xs font-bold transition-all shadow-2xs group cursor-pointer"
@@ -97,8 +97,8 @@ export const DesktopSidebar: React.FC = () => {
           </div>
         )}
 
-        {/* Navigation links */}
-        <nav className="space-y-0.5 pr-0.5">
+        {/* Navigation links - Scrollable independently if height is exceeded */}
+        <nav className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-0.5 no-scrollbar">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
@@ -128,8 +128,8 @@ export const DesktopSidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* User Footer */}
-      <div className="pt-3 mt-3 border-t border-[#E5EAE6]">
+      {/* User Footer - Pinned at the bottom */}
+      <div className="shrink-0 pt-3 mt-2 border-t border-[#E5EAE6]">
         <div className="flex items-center justify-between px-2">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-[#202923] truncate">
