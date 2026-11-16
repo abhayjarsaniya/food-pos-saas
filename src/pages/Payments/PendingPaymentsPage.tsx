@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 
 export const PendingPaymentsPage: React.FC = () => {
-  const { profile, settings, user, userRole, canCollectPayment } = useAuth();
+  const { profile, settings, user, userRole, canCollectPayment, currentMember } = useAuth();
   const { orders, loading, refreshOrders } = useOrders();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'PENDING' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'ALL'>('PENDING');
@@ -135,8 +135,8 @@ export const PendingPaymentsPage: React.FC = () => {
       return;
     }
 
-    // Permission check for cashiers
-    if (userRole === 'CASHIER' && !canCollectPayment) {
+    // Permission check for cashiers & staff
+    if (!canCollectPayment && userRole !== 'OWNER' && userRole !== 'SUPER_ADMIN') {
       setPaymentError('You do not have permission to record payments. Please request an owner or manager.');
       return;
     }
@@ -150,8 +150,9 @@ export const PendingPaymentsPage: React.FC = () => {
         paymentMethod,
         paymentReference: paymentRef,
         notes: paymentNotes,
-        receivedBy: user?.uid || 'cashier',
-        receivedByName: user?.displayName || user?.email || 'Counter Staff',
+        receivedBy: currentMember?.id || user?.uid || 'cashier',
+        receivedByName: currentMember?.name || user?.displayName || user?.email || 'Counter Staff',
+        memberPermissions: currentMember?.permissions?.pendingPayments || (canCollectPayment ? undefined : { canCollectPayment: false }),
       });
 
       await refreshOrders();
@@ -166,8 +167,8 @@ export const PendingPaymentsPage: React.FC = () => {
   // Owner Quick Action: Mark Full Payment as Received
   const handleQuickMarkReceived = async (order: Order) => {
     if (!profile?.id) return;
-    if (userRole === 'CASHIER' && !canCollectPayment) {
-      alert('Cashier is not authorized to clear outstanding payments.');
+    if (!canCollectPayment && userRole !== 'OWNER' && userRole !== 'SUPER_ADMIN') {
+      alert('Staff is not authorized to clear outstanding payments.');
       return;
     }
 
@@ -187,20 +188,20 @@ export const PendingPaymentsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto pb-16">
+    <div className="space-y-4 w-full min-w-0 pb-12">
       {/* Header & Outstanding KPI */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-zinc-200 rounded-2xl shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-[#E5EAE6] rounded-2xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-zinc-900" />
-            <h1 className="text-lg font-bold text-zinc-900">Payment Collection & Pending Bills</h1>
+            <Wallet className="w-5 h-5 text-[#145C43]" />
+            <h1 className="text-lg font-bold text-[#202923]">Payment Collection & Pending Bills</h1>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="hidden md:block text-xs text-[#68736D] mt-0.5">
             Collect customer payments for open bills, view dues by table, and print receipts
           </p>
         </div>
 
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between sm:justify-end gap-3">
+        <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl flex items-center justify-between sm:justify-end gap-3">
           <div>
             <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
               Total Outstanding Balance
@@ -213,8 +214,8 @@ export const PendingPaymentsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 bg-white border border-zinc-200 rounded-2xl space-y-3 shadow-xs">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="p-4 bg-white border border-[#E5EAE6] rounded-2xl space-y-3 shadow-xs">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
           {/* Search */}
           <div className="relative flex-1">
             <Search className="w-5 h-5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -223,18 +224,18 @@ export const PendingPaymentsPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search bill #, customer, table, mobile..."
-              className="w-full pl-11 pr-4 min-h-[50px] text-sm sm:text-base bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
+              className="w-full pl-11 pr-4 min-h-[48px] text-sm bg-zinc-50 border border-[#E5EAE6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43]"
             />
           </div>
 
           {/* Status Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
             {(['PENDING', 'UNPAID', 'PARTIAL', 'PAID', 'ALL'] as const).map((st) => (
               <button
                 key={st}
                 type="button"
                 onClick={() => setStatusFilter(st)}
-                className={`min-h-[46px] px-4 py-2 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
+                className={`min-h-[44px] px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
                   statusFilter === st
                     ? 'bg-[#145C43] text-white shadow-xs'
                     : 'bg-zinc-100 text-[#68736D] hover:bg-[#EAF5EF] hover:text-[#145C43]'
@@ -258,7 +259,7 @@ export const PendingPaymentsPage: React.FC = () => {
             <select
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
-              className="min-h-[48px] text-sm font-bold px-4 py-2 bg-zinc-50 border border-zinc-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
+              className="min-h-[44px] text-xs font-bold px-3 py-2 bg-zinc-50 border border-[#E5EAE6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#145C43] cursor-pointer"
             >
               <option value="ALL">All Tables</option>
               {availableTables.map((t) => (
@@ -275,13 +276,13 @@ export const PendingPaymentsPage: React.FC = () => {
       {loading ? (
         <div className="p-8 text-center text-zinc-400 text-xs">Loading payment orders...</div>
       ) : filteredOrders.length === 0 ? (
-        <div className="p-12 text-center bg-white border border-zinc-200 rounded-2xl text-zinc-400 text-xs space-y-1">
+        <div className="p-12 text-center bg-white border border-[#E5EAE6] rounded-2xl text-zinc-400 text-xs space-y-1">
           <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500 mb-2 opacity-80" />
           <p className="font-bold text-zinc-700">No matching orders found</p>
           <p>All matching bills are paid or no active bills match this filter.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
           {filteredOrders.map((ord) => {
             const isFullyPaid = ord.paymentStatus === 'PAID';
             const isPartial = ord.paymentStatus === 'PARTIAL' || ord.paymentStatus === 'PARTIALLY_PAID';
@@ -391,9 +392,9 @@ export const PendingPaymentsPage: React.FC = () => {
                   <div className="flex items-center gap-2 pt-2">
                     {!isFullyPaid && (
                       <>
-                        {userRole === 'CASHIER' && !canCollectPayment ? (
+                        {!canCollectPayment && userRole !== 'OWNER' && userRole !== 'SUPER_ADMIN' ? (
                           <div className="flex-1 min-h-[52px] px-3 bg-zinc-100 text-zinc-500 rounded-2xl flex items-center justify-center text-xs font-medium">
-                            Payment collection requires owner authorization
+                            Payment collection requires authorization
                           </div>
                         ) : (
                           <>

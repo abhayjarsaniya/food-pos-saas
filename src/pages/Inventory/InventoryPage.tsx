@@ -250,7 +250,7 @@ export const InventoryPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-zinc-950 tracking-tight">Inventory Management</h1>
-          <p className="text-xs text-zinc-500">
+          <p className="hidden md:block text-xs text-zinc-500">
             Track ingredients, raw materials, stock levels, low-stock alerts & audit history
           </p>
         </div>
@@ -359,7 +359,7 @@ export const InventoryPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5">
           {filteredItems.map((item) => {
             const isOut = item.stockStatus === 'OUT_OF_STOCK';
             const isLow = item.stockStatus === 'LOW_STOCK';

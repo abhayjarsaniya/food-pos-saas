@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../contexts/OrdersContext';
 import { Order } from '../../types';
@@ -21,9 +21,14 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { profile, settings } = useAuth();
+  const { profile, settings, userRole } = useAuth();
   const navigate = useNavigate();
   const { orders, loading } = useOrders();
+
+  // Cook / Kitchen Staff auto-redirect to Kitchen Orders
+  if (userRole === 'KITCHEN') {
+    return <Navigate to="/kitchen" replace />;
+  }
 
   // Compute Today's Stats from actual orders
   const todayStats = useMemo(() => {

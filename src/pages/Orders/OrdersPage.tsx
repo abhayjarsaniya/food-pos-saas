@@ -130,7 +130,7 @@ export const OrdersPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-zinc-950 tracking-tight">Order History</h1>
-          <p className="text-xs text-zinc-500">
+          <p className="hidden md:block text-xs text-zinc-500">
             Search historical bills, download receipts, re-share via WhatsApp or void orders
           </p>
         </div>

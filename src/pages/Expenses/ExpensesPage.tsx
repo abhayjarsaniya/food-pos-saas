@@ -221,7 +221,7 @@ export const ExpensesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-zinc-950 tracking-tight">Expense Management</h1>
-          <p className="text-xs text-zinc-500">
+          <p className="hidden md:block text-xs text-zinc-500">
             Record kitchen petty cash, daily utilities, salaries and maintain immutable expense audit records
           </p>
         </div>

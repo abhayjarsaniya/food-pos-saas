@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
 import { AuthUser, loginWithEmail, logoutUser, signupWithEmail, subscribeToAuth } from '../services/auth/authService';
-import { BusinessFeatures, BusinessProfile, BusinessSettings, DEFAULT_BUSINESS_FEATURES, UserRole } from '../types';
+import { BusinessFeatures, BusinessProfile, BusinessSettings, DEFAULT_BUSINESS_FEATURES, UserRole, BusinessMember, MemberPermissions, MemberNavigationVisibility } from '../types';
 import { 
   DEFAULT_BUSINESS_SETTINGS, 
   getBusinessProfile, 
@@ -12,6 +12,7 @@ import {
 } from '../services/business/businessService';
 import { getBusinessFeatures } from '../services/features/featureService';
 import { resolveStaffLoginId, ResolvedStaffIdentity } from '../services/members/memberService';
+import { hasMemberPermission, getDefaultNavigationForRole } from '../services/members/permissionService';
 import { clearLocalShopCache } from '../services/offline/indexedDb';
 
 /**
@@ -71,6 +72,7 @@ async function findBusinessForUser(uid: string, email: string): Promise<Business
 interface AuthContextType {
   user: AuthUser | null;
   profile: BusinessProfile | null;
+  currentMember: BusinessMember | null;
   settings: BusinessSettings;
   features: BusinessFeatures;
   loading: boolean;
@@ -79,6 +81,8 @@ interface AuthContextType {
   isShopSuspended: boolean;
   userRole: UserRole;
   canCollectPayment: boolean;
+  hasPermission: (moduleKey: keyof MemberPermissions, actionKey?: 'view' | 'create' | 'edit' | 'delete' | 'special', specialKey?: string) => boolean;
+  hasNavAccess: (navKey: keyof MemberNavigationVisibility) => boolean;
   login: (identifier: string, pass: string) => Promise<UserRole>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -96,6 +100,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const [currentMember, setCurrentMember] = useState<BusinessMember | null>(null);
   const [settings, setSettings] = useState<BusinessSettings>(DEFAULT_BUSINESS_SETTINGS);
   const [features, setFeatures] = useState<BusinessFeatures>(DEFAULT_BUSINESS_FEATURES);
   const [loading, setLoading] = useState<boolean>(true);
@@ -103,6 +108,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [userRole, setUserRole] = useState<UserRole>('OWNER');
   const [canCollectPayment, setCanCollectPayment] = useState<boolean>(true);
+
+  const hasPermission = (
+    moduleKey: keyof MemberPermissions,
+    actionKey: 'view' | 'create' | 'edit' | 'delete' | 'special' = 'view',
+    specialKey?: string
+  ): boolean => {
+    return hasMemberPermission(currentMember, userRole, moduleKey, actionKey, specialKey);
+  };
+
+  const hasNavAccess = (navKey: keyof MemberNavigationVisibility): boolean => {
+    if (userRole === 'OWNER' || userRole === 'SUPER_ADMIN') return true;
+    if (currentMember?.navigationVisibility) {
+      return !!currentMember.navigationVisibility[navKey];
+    }
+    const defaults = getDefaultNavigationForRole(userRole);
+    return !!defaults[navKey];
+  };
 
   const loadShopContext = async (targetBusinessId: string) => {
     try {
@@ -153,7 +175,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const staffMeta = JSON.parse(staffMetaRaw);
             setUserRole(staffMeta.role || 'CASHIER');
-            setCanCollectPayment(staffMeta.canCollectPayment ?? true);
+            setCanCollectPayment(staffMeta.canCollectPayment ?? (staffMeta.role !== 'KITCHEN'));
+            if (staffMeta.member) {
+              setCurrentMember(staffMeta.member);
+            }
             await loadShopContext(staffMeta.businessId);
             setLoading(false);
             return;
@@ -292,36 +317,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return 'OWNER';
       }
 
-      // 5. Staff Member Verification (Manager / Cashier)
-      if (resolvedIdentity && (resolvedIdentity.role === 'CASHIER' || resolvedIdentity.role === 'MANAGER')) {
+      // 5. Staff Member Verification (Manager / Cashier / Cook / Kitchen / Custom)
+      if (resolvedIdentity && (
+        resolvedIdentity.role === 'CASHIER' || 
+        resolvedIdentity.role === 'MANAGER' || 
+        resolvedIdentity.role === 'KITCHEN' || 
+        resolvedIdentity.role === 'CUSTOM'
+      )) {
         const staffBizId = resolvedIdentity.businessId || targetBiz?.id || 'biz_prince_pavbhaji_01';
         localStorage.removeItem('food_pos_is_super_admin');
+
+        const activeMemberObj: BusinessMember = {
+          id: resolvedIdentity.memberId || authUser.uid,
+          businessId: staffBizId,
+          name: resolvedIdentity.name || resolvedIdentity.loginId,
+          loginId: resolvedIdentity.loginId,
+          email: targetEmail,
+          position: resolvedIdentity.position || (resolvedIdentity.role === 'KITCHEN' ? 'Cook' : resolvedIdentity.role === 'CASHIER' ? 'Cashier' : 'Staff'),
+          role: resolvedIdentity.role,
+          canCollectPayment: resolvedIdentity.role === 'KITCHEN' ? false : (resolvedIdentity.canCollectPayment ?? true),
+          status: 'ACTIVE',
+          permissions: resolvedIdentity.permissions,
+          navigationVisibility: resolvedIdentity.navigationVisibility,
+          invitedAt: new Date().toISOString(),
+          joinedAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        };
+
+        setCurrentMember(activeMemberObj);
+
         localStorage.setItem(
           'food_pos_staff_session',
           JSON.stringify({
             loginId: resolvedIdentity.loginId,
             businessId: staffBizId,
             role: resolvedIdentity.role,
-            canCollectPayment: resolvedIdentity.canCollectPayment ?? true,
+            canCollectPayment: activeMemberObj.canCollectPayment,
+            member: activeMemberObj,
           })
         );
         localStorage.setItem('food_pos_active_shop_id', staffBizId);
         setUser({
           uid: authUser.uid,
           email: targetEmail,
-          displayName: resolvedIdentity.name || resolvedIdentity.loginId,
+          displayName: activeMemberObj.name,
           isAnonymous: false,
           emailVerified: true,
         });
         setIsSuperAdmin(false);
         setUserRole(resolvedIdentity.role);
-        setCanCollectPayment(resolvedIdentity.canCollectPayment ?? true);
+        setCanCollectPayment(activeMemberObj.canCollectPayment);
         await loadShopContext(staffBizId);
         return resolvedIdentity.role;
       }
 
       // 6. Check if email-based staff
-      const staffByEmail = targetEmail.includes('cashier') ? 'CASHIER' : targetEmail.includes('manager') ? 'MANAGER' : null;
+      const staffByEmail = 
+        targetEmail.includes('cook') || targetEmail.includes('chef') ? 'KITCHEN' :
+        targetEmail.includes('cashier') ? 'CASHIER' : 
+        targetEmail.includes('manager') ? 'MANAGER' : null;
       if (staffByEmail && targetBiz) {
         localStorage.removeItem('food_pos_is_super_admin');
         localStorage.setItem(
@@ -521,6 +575,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         profile,
+        currentMember,
         settings,
         features,
         loading,
@@ -529,6 +584,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isShopSuspended,
         userRole,
         canCollectPayment,
+        hasPermission,
+        hasNavAccess,
         login,
         signup,
         logout,

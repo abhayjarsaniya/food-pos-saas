@@ -23,6 +23,7 @@ import { CustomersPage } from './pages/Customers/CustomersPage';
 import { ExpensesPage } from './pages/Expenses/ExpensesPage';
 import { LoginPage } from './pages/Login/LoginPage';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
+import { KitchenOrdersPage } from './pages/Kitchen/KitchenOrdersPage';
 
 // Multi-Portal Login Components
 import { SuperAdminLoginPage } from './pages/Auth/SuperAdminLoginPage';
@@ -150,6 +151,7 @@ export const AppContent: React.FC = () => {
           }
         >
           <Route path="/" element={<HomePage />} />
+          <Route path="/kitchen" element={<KitchenOrdersPage />} />
           <Route 
             path="/billing" 
             element={

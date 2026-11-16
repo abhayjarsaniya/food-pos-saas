@@ -11,7 +11,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Order, OrderPayment, OrderStatus, PaymentMethod, PaymentStatus } from '../../types';
+import { Order, OrderPayment, OrderStatus, PaymentMethod, PaymentStatus, KitchenOrderStatus } from '../../types';
 import { 
   getOrdersFromIndexedDB, 
   saveOrderToIndexedDB, 
@@ -19,6 +19,7 @@ import {
   markOrderSyncedInIndexedDB
 } from '../offline/indexedDb';
 import { round2 } from '../../utils/calculations';
+import { logActivity } from '../activity/activityService';
 
 function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
   return Promise.race([
@@ -207,13 +208,18 @@ export async function createOrder(
   const tableId = orderData.tableId || null;
   const tableName = orderData.tableName || orderData.tableNumber || null;
 
+  const itemsWithKitchenStatus = (orderData.items || []).map((it) => ({
+    ...it,
+    kitchenStatus: it.kitchenStatus || 'NEW' as KitchenOrderStatus,
+  }));
+
   const order: Order = {
     ...orderData,
     id: orderId,
     orderId,
     billNumber,
     businessId,
-    items: orderData.items || [],
+    items: itemsWithKitchenStatus,
     extras: orderData.extras || [],
     payments: orderData.payments || [],
     subtotal,
@@ -226,6 +232,7 @@ export async function createOrder(
     balanceDue,
     status,
     orderStatus: orderStatusStr,
+    kitchenStatus: orderData.kitchenStatus || ('NEW' as KitchenOrderStatus),
     paymentStatus,
     canonicalPaymentStatus,
     paymentMethod: orderData.paymentMethod || 'CASH',
@@ -402,10 +409,35 @@ export async function recordOrderPayment(
     receivedBy: string;
     receivedByName?: string;
     notes?: string;
+    memberPermissions?: {
+      canCollectPayment?: boolean;
+      collectCash?: boolean;
+      collectUpi?: boolean;
+      collectCard?: boolean;
+      collectOther?: boolean;
+      partialPayment?: boolean;
+      [key: string]: any;
+    };
   }
 ): Promise<{ order: Order; payment: OrderPayment }> {
   if (params.amount <= 0) {
     throw new Error('Payment amount must be greater than zero.');
+  }
+
+  // Enforce payment collection permissions at service boundary
+  if (params.memberPermissions) {
+    if (params.memberPermissions.canCollectPayment === false) {
+      throw new Error('Permission Denied: Your staff account is not authorized to collect customer payments.');
+    }
+    if (params.paymentMethod === 'CASH' && params.memberPermissions.collectCash === false) {
+      throw new Error('Permission Denied: Your staff account is not authorized to collect Cash payments.');
+    }
+    if (params.paymentMethod === 'UPI' && params.memberPermissions.collectUpi === false) {
+      throw new Error('Permission Denied: Your staff account is not authorized to collect UPI payments.');
+    }
+    if (params.paymentMethod === 'CARD' && params.memberPermissions.collectCard === false) {
+      throw new Error('Permission Denied: Your staff account is not authorized to collect Card payments.');
+    }
   }
 
   // 1. Fetch current order from Firestore first (or IndexedDB if offline)
@@ -506,8 +538,120 @@ export async function recordOrderPayment(
     }
   }
 
+  logActivity({
+    id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    businessId,
+    action: `Payment Recorded: ₹${roundedAmount} via ${params.paymentMethod} for Bill #${existing.billNumber}`,
+    module: 'PAYMENTS',
+    performedBy: params.receivedByName || params.receivedBy,
+    details: { orderId, billNumber: existing.billNumber, amount: roundedAmount, method: params.paymentMethod, balanceDue: newBalanceDue },
+    createdAt: now,
+  });
+
   onOrderSaved(updatedOrder);
   return { order: updatedOrder, payment };
+}
+
+/**
+ * Updates Kitchen preparation status independently of payment/order financial status.
+ * Life cycle: NEW -> ACCEPTED -> PREPARING -> READY -> SERVED
+ */
+export async function updateOrderKitchenStatus(
+  businessId: string,
+  orderId: string,
+  kitchenStatus: KitchenOrderStatus,
+  options?: {
+    itemIndex?: number;
+    itemStatus?: KitchenOrderStatus;
+    performedBy?: string;
+    notes?: string;
+  }
+): Promise<Order> {
+  let existing: Order | null = null;
+  const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
+
+  try {
+    const snap = await withTimeout(getDoc(orderDocRef), 3000);
+    if (snap.exists()) {
+      existing = { id: snap.id, ...(snap.data() as any) };
+    }
+  } catch {}
+
+  if (!existing) {
+    const localOrders = await getOrdersFromIndexedDB();
+    existing = localOrders.find((o) => o.id === orderId) || null;
+  }
+
+  if (!existing) {
+    throw new Error('Order not found');
+  }
+
+  const now = new Date().toISOString();
+  const updatedItems = [...existing.items];
+
+  // Update specific item if itemIndex provided
+  if (options?.itemIndex !== undefined && updatedItems[options.itemIndex]) {
+    updatedItems[options.itemIndex] = {
+      ...updatedItems[options.itemIndex],
+      kitchenStatus: options.itemStatus || kitchenStatus,
+    };
+  } else {
+    // Update all items when changing whole order preparation status
+    for (let i = 0; i < updatedItems.length; i++) {
+      updatedItems[i] = {
+        ...updatedItems[i],
+        kitchenStatus,
+      };
+    }
+  }
+
+  const timestamps: Partial<Order> = {};
+  if (kitchenStatus === 'ACCEPTED') timestamps.kitchenAcceptedAt = now;
+  else if (kitchenStatus === 'PREPARING') timestamps.kitchenPreparingAt = now;
+  else if (kitchenStatus === 'READY') timestamps.kitchenReadyAt = now;
+  else if (kitchenStatus === 'SERVED') timestamps.kitchenServedAt = now;
+
+  const updatedOrder: Order = {
+    ...existing,
+    kitchenStatus,
+    items: updatedItems,
+    kitchenNotes: options?.notes !== undefined ? options.notes : existing.kitchenNotes,
+    ...timestamps,
+    updatedAt: now,
+  };
+
+  // 1. Update IndexedDB
+  await saveOrderToIndexedDB(updatedOrder);
+
+  // 2. Persist to Firestore
+  if (!isDemo(businessId)) {
+    try {
+      const payload = sanitizeFirestoreData({
+        kitchenStatus,
+        items: updatedItems,
+        kitchenNotes: updatedOrder.kitchenNotes || null,
+        ...timestamps,
+        updatedAt: now,
+      });
+      await withTimeout(updateDoc(orderDocRef, payload), 3000);
+    } catch (err) {
+      console.warn('Could not sync kitchen status to cloud immediately:', err);
+    }
+  }
+
+  // 3. Log Activity
+  logActivity({
+    id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    businessId,
+    action: `Kitchen Order #${existing.billNumber} marked ${kitchenStatus}`,
+    module: 'KITCHEN',
+    performedBy: options?.performedBy || 'Kitchen Staff',
+    details: { orderId, billNumber: existing.billNumber, kitchenStatus },
+    createdAt: now,
+  });
+
+  onOrderSaved(updatedOrder);
+  return updatedOrder;
 }
 
 /**

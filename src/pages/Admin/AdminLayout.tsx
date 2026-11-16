@@ -127,7 +127,7 @@ export const AdminLayout: React.FC = () => {
           ))}
         </div>
 
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 min-w-0 overflow-x-hidden">
+        <main className="flex-1 w-full min-w-0 max-w-none p-3.5 sm:p-5 md:p-6 lg:p-7 xl:p-8 box-border overflow-x-hidden">
           <Outlet />
         </main>
       </div>

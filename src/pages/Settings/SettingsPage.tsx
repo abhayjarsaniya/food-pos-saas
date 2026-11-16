@@ -233,11 +233,11 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="space-y-6 w-full min-w-0 pb-12">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">Shop Settings</h1>
-        <p className="text-xs sm:text-sm text-zinc-500 mt-1">
+        <p className="hidden md:block text-xs sm:text-sm text-zinc-500 mt-1">
           Manage your business profile, GST tax rates, receipt layouts, staff credentials and subscription
         </p>
       </div>

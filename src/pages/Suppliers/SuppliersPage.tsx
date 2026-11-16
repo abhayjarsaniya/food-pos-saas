@@ -222,7 +222,7 @@ export const SuppliersPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-zinc-950 tracking-tight">Supplier Management</h1>
-          <p className="text-xs text-zinc-500">
+          <p className="hidden md:block text-xs text-zinc-500">
             Manage raw material vendors, track purchases, balances & direct WhatsApp communications
           </p>
         </div>
@@ -274,7 +274,7 @@ export const SuppliersPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {filteredSuppliers.map((supplier) => {
             const fin = supplierFinancials.get(supplier.id) || { totalPurchases: 0, amountPaid: 0, balanceDue: 0 };
             return (

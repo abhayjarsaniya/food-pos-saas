@@ -11,20 +11,93 @@ export type BusinessCategory =
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED';
 export type AccessPlan = 'trial' | 'starter' | 'pro' | 'enterprise';
 
-export type UserRole = 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER';
+export type UserRole = 'SUPER_ADMIN' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'KITCHEN' | 'CUSTOM';
+
+export type KitchenOrderStatus = 'NEW' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'SERVED';
+
+export interface PaymentPermissions {
+  canCollectPayment: boolean;
+  collectCash: boolean;
+  collectUpi: boolean;
+  collectCard: boolean;
+  collectOther: boolean;
+  partialPayment: boolean;
+  markFullPaid: boolean;
+  viewPaymentHistory: boolean;
+  issueRefunds: boolean;
+}
+
+export interface ModuleActionPermissions {
+  view: boolean;
+  create?: boolean;
+  edit?: boolean;
+  delete?: boolean;
+}
+
+export interface KitchenPermissions {
+  view: boolean;
+  accept: boolean;
+  prepare: boolean;
+  markReady: boolean;
+  markServed: boolean;
+}
+
+export interface MemberPermissions {
+  dashboard: ModuleActionPermissions;
+  billing: ModuleActionPermissions;
+  orders: ModuleActionPermissions & { voidOrder?: boolean };
+  pendingPayments: PaymentPermissions;
+  kitchenOrders: KitchenPermissions;
+  menuManagement: ModuleActionPermissions;
+  tableManagement: ModuleActionPermissions;
+  inventory: ModuleActionPermissions;
+  suppliers: ModuleActionPermissions;
+  purchaseOrders: ModuleActionPermissions;
+  reports: ModuleActionPermissions & { exportReports?: boolean };
+  customerManagement: ModuleActionPermissions;
+  memberManagement: ModuleActionPermissions;
+  expenses: ModuleActionPermissions;
+  settings: ModuleActionPermissions;
+}
+
+export interface MemberNavigationVisibility {
+  dashboard: boolean;
+  billing: boolean;
+  kitchen: boolean;
+  tables: boolean;
+  pendingPayments: boolean;
+  orders: boolean;
+  menu: boolean;
+  inventory: boolean;
+  suppliers: boolean;
+  purchases: boolean;
+  reports: boolean;
+  expenses: boolean;
+  customers: boolean;
+  members: boolean;
+  settings: boolean;
+}
 
 export interface BusinessMember {
   id: string; // memberId or uid
   businessId: string;
   email: string;
-  loginId?: string; // custom staff login ID, e.g. "cashier01", "counter02", "manager01"
+  loginId?: string; // custom staff login ID, e.g. "cashier01", "counter02", "cook01"
   name: string;
+  position?: string; // e.g. "Head Chef", "Cook", "Cashier", "Floor Manager", etc.
+  phone?: string;
   role: UserRole;
-  canCollectPayment: boolean; // Cashiers can only record payment if permitted
-  status: 'INVITED' | 'ACTIVE' | 'DEACTIVATED';
+  canCollectPayment: boolean; // Quick master toggle
+  status: 'INVITED' | 'ACTIVE' | 'DEACTIVATED' | 'ARCHIVED';
+  permissions?: MemberPermissions;
+  navigationVisibility?: MemberNavigationVisibility;
   invitedAt: string;
   joinedAt?: string;
+  lastLogin?: string;
   temporaryPassword?: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ========================
@@ -225,6 +298,8 @@ export interface OrderItem {
   isVeg?: boolean;
   variantId?: string;
   variantName?: string;
+  kitchenStatus?: KitchenOrderStatus;
+  notes?: string;
 }
 
 export interface TaxCalculationResult {
@@ -298,6 +373,12 @@ export interface Order {
   balanceDue: number;
   status: OrderStatus;
   orderStatus?: string; // Canonical display status ('Open', 'Completed', 'Cancelled', 'Draft')
+  kitchenStatus?: KitchenOrderStatus; // Independent kitchen prep status ('NEW' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'SERVED')
+  kitchenAcceptedAt?: string;
+  kitchenPreparingAt?: string;
+  kitchenReadyAt?: string;
+  kitchenServedAt?: string;
+  kitchenNotes?: string;
   voidReason?: string;
   createdBy?: string;
   createdByName?: string;

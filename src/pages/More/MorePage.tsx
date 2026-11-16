@@ -53,7 +53,7 @@ export const MorePage: React.FC = () => {
     .filter((sec) => sec.items.length > 0);
 
   return (
-    <div className="space-y-6 max-w-lg mx-auto pb-6">
+    <div className="space-y-6 w-full max-w-2xl mx-auto pb-6">
       {/* Shop Profile Banner */}
       <div className="p-4 bg-white border border-[#E5EAE6] rounded-2xl shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-3">

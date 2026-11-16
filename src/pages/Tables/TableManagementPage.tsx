@@ -235,8 +235,8 @@ export const TableManagementPage: React.FC = () => {
   return (
     <div className={`min-h-screen pb-24 ${themePreference === 'dark' ? 'dark bg-slate-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
       {/* Top Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-zinc-200 dark:border-slate-800 sticky top-0 z-30 px-4 py-3 sm:py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 border-b border-zinc-200 dark:border-slate-800 sticky top-0 z-30 px-3 sm:px-4 py-3 sm:py-4">
+        <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-900 dark:text-zinc-100 font-bold">
@@ -246,7 +246,7 @@ export const TableManagementPage: React.FC = () => {
                 <h1 className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
                   Table Management
                 </h1>
-                <p className="text-xs sm:text-sm text-zinc-500 dark:text-slate-400">
+                <p className="hidden md:block text-xs sm:text-sm text-zinc-500 dark:text-slate-400">
                   Real-time restaurant table status, seating capacity & active bill tracking
                 </p>
               </div>
@@ -310,7 +310,7 @@ export const TableManagementPage: React.FC = () => {
         </div>
 
         {/* View Switcher Tabs (Min 48px touch friendly) */}
-        <div className="max-w-7xl mx-auto flex items-center gap-2 mt-4">
+        <div className="w-full flex items-center gap-2 mt-4">
           <button
             onClick={() => setActiveTab('OVERVIEW')}
             className={`flex-1 sm:flex-initial px-5 min-h-[48px] text-xs sm:text-sm font-bold rounded-2xl transition-all active:scale-95 cursor-pointer ${
@@ -334,7 +334,7 @@ export const TableManagementPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-5 space-y-5">
+      <div className="w-full px-3 sm:px-4 py-5 space-y-5">
         {/* Real-time Status Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div 
@@ -459,7 +459,7 @@ export const TableManagementPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
                 {filteredTables.map((tbl) => {
                   const isAvailable = tbl.status === 'AVAILABLE';
                   const isOccupied = tbl.status === 'OCCUPIED';
