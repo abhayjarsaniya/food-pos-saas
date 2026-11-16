@@ -38,7 +38,7 @@ export const DesktopSidebar: React.FC = () => {
     { to: '/billing', label: 'POS & Billing', icon: Receipt, badge: totalItemCount > 0 ? totalItemCount : null, navKey: 'billing' as keyof MemberNavigationVisibility, feature: 'billing' as const },
     { to: '/tables', label: 'Table Management', icon: LayoutGrid, navKey: 'tables' as keyof MemberNavigationVisibility, feature: 'tableManagement' as const },
     { to: '/pending-payments', label: 'Pending Payments', icon: Wallet, badge: pendingPaymentCount > 0 ? pendingPaymentCount : null, navKey: 'pendingPayments' as keyof MemberNavigationVisibility, feature: 'pendingPayments' as const },
-    { to: '/orders', label: 'All Customer Orders', icon: ShoppingBag, navKey: 'orders' as keyof MemberNavigationVisibility, feature: 'orders' as const },
+    { to: '/orders', label: 'Orders History', icon: ShoppingBag, navKey: 'orders' as keyof MemberNavigationVisibility, feature: 'orders' as const },
     { to: '/menu', label: 'Menu Management', icon: UtensilsCrossed, navKey: 'menu' as keyof MemberNavigationVisibility, feature: 'menuManagement' as const },
     { to: '/inventory', label: 'Inventory & Materials', icon: Boxes, navKey: 'inventory' as keyof MemberNavigationVisibility, feature: 'inventory' as const },
     { to: '/suppliers', label: 'Suppliers & Vendors', icon: Truck, navKey: 'suppliers' as keyof MemberNavigationVisibility, feature: 'suppliers' as const },
@@ -77,25 +77,6 @@ export const DesktopSidebar: React.FC = () => {
             </p>
           </div>
         </div>
-
-        {/* 1-Tap All Customer Orders Shortcut */}
-        {(userRole === 'OWNER' || userRole === 'SUPER_ADMIN' || hasNavAccess('orders')) && (
-          <div className="shrink-0 px-1 mb-2">
-            <button
-              onClick={() => navigate('/orders')}
-              className="w-full flex items-center justify-between px-3 py-2 bg-[#145C43] hover:bg-[#0F4935] text-white rounded-xl text-xs font-bold transition-all shadow-2xs group cursor-pointer"
-              title="One-tap shortcut to view all customer orders"
-            >
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" />
-                <span>All Orders</span>
-              </div>
-              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-mono">
-                View
-              </span>
-            </button>
-          </div>
-        )}
 
         {/* Navigation links - Scrollable independently if height is exceeded */}
         <nav className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-0.5 no-scrollbar">

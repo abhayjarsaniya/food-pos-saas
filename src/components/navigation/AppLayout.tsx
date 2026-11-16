@@ -10,8 +10,8 @@ export const AppLayout: React.FC = () => {
       <DesktopSidebar />
 
       {/* Main Content Area - Full width right beside fixed sidebar with md:ml-64 */}
-      <div className="flex-1 flex flex-col min-w-0 w-full md:ml-64 pb-24 md:pb-8 overflow-y-auto overflow-x-hidden">
-        <main className="flex-1 w-full min-w-0 max-w-none p-3.5 sm:p-5 md:p-6 lg:p-7 xl:p-8 box-border overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 w-full md:ml-64 pb-20 md:pb-6 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 w-full min-w-0 max-w-none p-3.5 sm:p-5 md:p-6 box-border overflow-x-hidden">
           <Outlet />
         </main>
       </div>

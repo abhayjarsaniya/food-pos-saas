@@ -200,7 +200,7 @@ export const PendingPaymentsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 w-full min-w-0 pb-12">
+    <div className="space-y-4 w-full min-w-0 pb-6">
       {/* Header & Outstanding KPI */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-[#E5EAE6] rounded-2xl shadow-2xs">
         <div>

@@ -177,9 +177,9 @@ export async function createOrder(
   businessId: string, 
   orderData: Omit<Order, 'id' | 'billNumber' | 'createdAt' | 'updatedAt' | 'businessId'>
 ): Promise<Order> {
-  const billNumber = await getNextBillNumber(businessId);
   const now = new Date().toISOString();
   const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  let billNumber = `BILL-${Date.now().toString().slice(-4)}`;
 
   const grandTotal = round2(orderData.grandTotal || 0);
   const amountPaid = round2(orderData.amountPaid || 0);
@@ -268,48 +268,92 @@ export async function createOrder(
     order.payments = [initialPayment];
   }
 
-  // 1. Immediately cache to local IndexedDB for zero latency & offline resilience
+  // 1. Immediately cache to local IndexedDB for instant UI responsiveness
   await saveOrderToIndexedDB(order);
 
   // 2. Persist to Firestore: businesses/{businessId}/orders/{orderId}
   if (!isDemo(businessId)) {
     try {
+      const counterRef = doc(db, 'businesses', businessId, 'meta', 'counters');
       const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
-      const sanitizedDoc = sanitizeFirestoreData({
-        ...order,
-        syncedWithCloud: true,
-      });
 
+      // Single atomic transaction: increments counter, writes order doc, and writes payment in ONE round-trip
       await withTimeout(
-        setDoc(orderDocRef, sanitizedDoc),
-        8000
+        runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(counterRef);
+          let currentNumber = 1001;
+          let prefix = 'BILL-';
+
+          if (snap.exists()) {
+            const data = snap.data();
+            currentNumber = (data.lastBillNumber || 1000) + 1;
+            prefix = data.prefix || 'BILL-';
+          }
+
+          billNumber = `${prefix}${currentNumber}`;
+          order.billNumber = billNumber;
+
+          transaction.set(counterRef, {
+            lastBillNumber: currentNumber,
+            prefix: prefix,
+            updatedAt: now,
+          }, { merge: true });
+
+          const sanitizedDoc = sanitizeFirestoreData({
+            ...order,
+            billNumber,
+            syncedWithCloud: true,
+          });
+          transaction.set(orderDocRef, sanitizedDoc);
+
+          if (order.payments && order.payments.length > 0) {
+            const payment = order.payments[0];
+            const payRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', payment.id);
+            transaction.set(payRef, sanitizeFirestoreData(payment));
+          }
+        }),
+        4500
       );
 
-      // If initial payment exists, save subcollection document
-      if (order.payments && order.payments.length > 0) {
-        const payment = order.payments[0];
-        const payRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', payment.id);
-        await setDoc(payRef, sanitizeFirestoreData(payment)).catch(() => {});
-      }
-
-      await markOrderSyncedInIndexedDB(orderId);
+      // Update local storage with finalized billNumber and synced flag
       order.syncedWithCloud = true;
+      await saveOrderToIndexedDB(order);
+      await markOrderSyncedInIndexedDB(orderId);
       onOrderSaved(order);
     } catch (err: any) {
-      console.error('Firestore save failed:', err);
-      if (typeof navigator !== 'undefined' && navigator.onLine) {
-        throw new Error(`Failed to save bill to cloud database: ${err.message || 'Write timed out or was rejected'}`);
+      console.warn('Atomic transaction timed out or failed, falling back to direct write / offline queue:', err);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        order.syncedWithCloud = false;
+        await saveOrderToIndexedDB(order);
+        onOrderSaved(order);
+      } else {
+        try {
+          const orderDocRef = doc(db, 'businesses', businessId, 'orders', orderId);
+          await setDoc(orderDocRef, sanitizeFirestoreData({ ...order, syncedWithCloud: true }));
+          if (order.payments && order.payments.length > 0) {
+            const payment = order.payments[0];
+            const payRef = doc(db, 'businesses', businessId, 'orders', orderId, 'payments', payment.id);
+            await setDoc(payRef, sanitizeFirestoreData(payment)).catch(() => {});
+          }
+          order.syncedWithCloud = true;
+          await saveOrderToIndexedDB(order);
+          await markOrderSyncedInIndexedDB(orderId);
+          onOrderSaved(order);
+        } catch (directErr) {
+          order.syncedWithCloud = false;
+          await saveOrderToIndexedDB(order);
+          onOrderSaved(order);
+        }
       }
-      order.syncedWithCloud = false;
-      onOrderSaved(order);
     }
   } else {
-    await markOrderSyncedInIndexedDB(orderId);
+    const localOrders = await getOrdersFromIndexedDB();
+    order.billNumber = `BILL-${1001 + localOrders.length}`;
     order.syncedWithCloud = true;
+    await saveOrderToIndexedDB(order);
+    await markOrderSyncedInIndexedDB(orderId);
     onOrderSaved(order);
   }
-
-  return order;
 
   return order;
 }
