@@ -207,68 +207,71 @@ export const CustomersPage: React.FC = () => {
   }, [selectedCustomerForHistory, orders]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 w-full min-w-0 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-[#E5EAE6] rounded-2xl shadow-2xs">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-950 tracking-tight">Customer Directory</h1>
-          <p className="hidden md:block text-xs text-zinc-500">
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-[#145C43]" />
+            <h1 className="text-lg sm:text-xl font-bold text-[#202923]">Customer Directory</h1>
+          </div>
+          <p className="hidden md:block text-xs text-[#68736D] mt-0.5">
             View customer contact records, visit history, total spends & direct WhatsApp messaging
           </p>
         </div>
 
         <button
           onClick={() => openCustomerModal()}
-          className="min-h-[48px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-all shadow-xs active:scale-95 cursor-pointer w-fit"
+          className="min-h-[44px] px-4 bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl flex items-center gap-2 transition-all shadow-2xs active:scale-95 cursor-pointer w-fit self-start sm:self-auto"
         >
-          <Plus className="w-5 h-5" />
-          <span>+ Add Customer</span>
+          <Plus className="w-4 h-4" />
+          <span>Add Customer</span>
         </button>
       </div>
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-white border border-zinc-200/90 p-4 rounded-2xl shadow-2xs">
-          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider block mb-1">
+        <div className="bg-white border border-[#E5EAE6] p-4 rounded-2xl shadow-2xs">
+          <span className="text-[10px] font-bold text-[#68736D] uppercase tracking-wider block mb-1">
             Total Customers
           </span>
-          <span className="text-2xl font-bold text-zinc-900 font-mono">{customers.length}</span>
-          <span className="text-[11px] text-zinc-400 block mt-1">Saved contact records</span>
+          <span className="text-xl sm:text-2xl font-bold text-[#202923] font-mono">{customers.length}</span>
+          <span className="text-[11px] text-[#929B95] block mt-1">Saved contact records</span>
         </div>
 
-        <div className="bg-white border border-emerald-200 bg-emerald-50/20 p-4 rounded-2xl shadow-2xs">
-          <span className="text-xs font-medium text-emerald-800 uppercase tracking-wider block mb-1">
+        <div className="bg-[#EAF5EF] border border-[#CFE5D8] p-4 rounded-2xl shadow-2xs">
+          <span className="text-[10px] font-bold text-[#145C43] uppercase tracking-wider block mb-1">
             Active Directory
           </span>
-          <span className="text-2xl font-bold text-emerald-950 font-mono">
+          <span className="text-xl sm:text-2xl font-bold text-[#145C43] font-mono">
             {customers.filter((c) => !c.isArchived).length}
           </span>
-          <span className="text-[11px] text-emerald-700 block mt-1">Regular restaurant patrons</span>
+          <span className="text-[11px] text-[#145C43]/80 block mt-1">Regular restaurant patrons</span>
         </div>
 
-        <div className="bg-white border border-zinc-200/90 p-4 rounded-2xl shadow-2xs col-span-2 sm:col-span-1">
-          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider block mb-1">
+        <div className="bg-white border border-[#E5EAE6] p-4 rounded-2xl shadow-2xs col-span-2 sm:col-span-1">
+          <span className="text-[10px] font-bold text-[#68736D] uppercase tracking-wider block mb-1">
             Total Orders Linked
           </span>
-          <span className="text-2xl font-bold text-zinc-900 font-mono">{orders.length}</span>
-          <span className="text-[11px] text-zinc-400 block mt-1">Lifetime customer bills</span>
+          <span className="text-xl sm:text-2xl font-bold text-[#202923] font-mono">{orders.length}</span>
+          <span className="text-[11px] text-[#929B95] block mt-1">Lifetime customer bills</span>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-zinc-200/90 rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white border border-[#E5EAE6] rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:max-w-md">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#929B95] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by customer name, phone, address..."
-            className="w-full pl-9 pr-4 min-h-[48px] bg-zinc-50 focus:bg-white text-xs sm:text-sm rounded-xl border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+            className="w-full pl-9 pr-4 min-h-[44px] bg-[#F7F9F7] focus:bg-white text-xs sm:text-sm rounded-xl border border-[#E5EAE6] focus:outline-none focus:ring-1 focus:ring-[#145C43]"
           />
         </div>
 
-        <label className="flex items-center gap-2 text-xs font-semibold text-zinc-700 cursor-pointer self-start sm:self-center">
+        <label className="flex items-center gap-2 text-xs font-semibold text-[#202923] cursor-pointer self-start sm:self-center">
           <input
             type="checkbox"
             checked={showArchived}
@@ -279,124 +282,137 @@ export const CustomersPage: React.FC = () => {
         </label>
       </div>
 
-      {/* Customer List / Cards */}
+      {/* Customer List / Cards Grid */}
       {loading ? (
-        <div className="text-center py-12 text-zinc-400 text-xs">
+        <div className="text-center py-12 text-[#929B95] text-xs">
           Loading customer directory...
         </div>
       ) : filteredCustomers.length === 0 ? (
-        <div className="text-center py-12 bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl p-6">
-          <Users className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
-          <p className="text-sm font-semibold text-zinc-700">No customers found</p>
-          <p className="text-xs text-zinc-400 mt-1">
+        <div className="text-center py-12 bg-white border border-dashed border-[#E5EAE6] rounded-2xl p-6">
+          <Users className="w-8 h-8 text-[#929B95] mx-auto mb-2" />
+          <p className="text-sm font-semibold text-[#202923]">No customers found</p>
+          <p className="text-xs text-[#68736D] mt-1">
             Tap "+ Add Customer" or save contact numbers during checkout billing.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredCustomers.map((cust) => {
             const stats = customerStats.get(cust.id) || { count: 0, spend: 0, lastDate: null };
 
             return (
               <div
                 key={cust.id}
-                className={`p-4 bg-white border rounded-2xl shadow-2xs flex flex-col justify-between transition-all ${
-                  cust.isArchived ? 'opacity-60 bg-zinc-50 border-dashed' : 'border-zinc-200/90'
+                className={`p-4 sm:p-5 bg-white border rounded-2xl shadow-2xs hover:shadow-sm flex flex-col justify-between transition-all min-w-0 max-w-full box-border ${
+                  cust.isArchived ? 'opacity-70 bg-[#F7F9F7] border-dashed border-[#E5EAE6]' : 'border-[#E5EAE6]'
                 }`}
               >
                 <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-[#EAF5EF] text-[#145C43] font-bold text-sm flex items-center justify-center shrink-0">
+                  {/* Card Header: Avatar, Name, Phone & Status */}
+                  <div className="flex items-start justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#EAF5EF] text-[#145C43] font-bold text-base flex items-center justify-center shrink-0 shadow-2xs">
                         {cust.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-zinc-950 truncate">{cust.name}</h3>
-                        <p className="text-xs text-zinc-500 font-mono">{cust.phone}</p>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-bold text-[#202923] truncate leading-tight" title={cust.name}>
+                          {cust.name}
+                        </h3>
+                        <p className="text-xs text-[#68736D] font-mono mt-0.5 flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-[#929B95] shrink-0" />
+                          <span>{cust.phone}</span>
+                        </p>
                       </div>
                     </div>
 
                     {cust.isArchived ? (
-                      <span className="text-[10px] bg-zinc-200 text-zinc-700 px-2 py-0.5 rounded-full font-semibold">
+                      <span className="text-[10px] bg-zinc-100 text-zinc-600 border border-zinc-200 px-2.5 py-0.5 rounded-full font-semibold shrink-0">
                         Archived
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-[#EAF5EF] text-[#145C43] px-2 py-0.5 rounded-full font-semibold">
+                      <span className="text-[10px] bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8] px-2.5 py-0.5 rounded-full font-bold shrink-0">
                         Active
                       </span>
                     )}
                   </div>
 
-                  {/* Address and details */}
-                  <div className="mt-3 space-y-1 text-xs text-zinc-600">
-                    {cust.address && (
-                      <div className="flex items-center gap-1.5 text-zinc-500">
-                        <MapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+                  {/* Location and Notes */}
+                  <div className="mt-3 space-y-1 text-xs text-[#68736D] min-w-0">
+                    {cust.address ? (
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-[#929B95]" />
                         <span className="truncate">{cust.address}</span>
                       </div>
-                    )}
-                    {cust.notes && (
-                      <p className="text-[11px] text-zinc-400 italic line-clamp-1">
+                    ) : null}
+                    {cust.notes ? (
+                      <p className="text-[11px] text-[#929B95] italic line-clamp-1">
                         "{cust.notes}"
                       </p>
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Orders & Total Spend Meter */}
-                  <div className="mt-3.5 p-2.5 bg-zinc-50 rounded-xl border border-zinc-100 grid grid-cols-2 gap-2 text-xs">
+                  <div className="mt-3.5 p-3 bg-[#F7F9F7] rounded-xl border border-[#E5EAE6] grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span className="text-[10px] text-zinc-400 block uppercase">Total Bills</span>
-                      <span className="font-bold font-mono text-zinc-900">{stats.count} orders</span>
+                      <span className="text-[10px] font-bold text-[#68736D] block uppercase tracking-wider">Total Bills</span>
+                      <span className="font-bold font-mono text-[#202923] text-sm block mt-0.5">{stats.count} orders</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-zinc-400 block uppercase">Total Spend</span>
-                      <span className="font-bold font-mono text-emerald-700">
+                      <span className="text-[10px] font-bold text-[#68736D] block uppercase tracking-wider">Total Spend</span>
+                      <span className="font-bold font-mono text-[#145C43] text-sm block mt-0.5">
                         {formatCurrency(stats.spend)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Actions (Mobile-First) */}
-                <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                {/* Card Actions: Action Hierarchy with Strict Card Containment */}
+                <div className="mt-4 pt-3.5 border-t border-[#E5EAE6] flex flex-wrap items-center justify-between gap-2 min-w-0 max-w-full">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    {/* Primary: WhatsApp */}
                     <button
                       onClick={() => openWhatsApp(cust.phone, cust.name)}
-                      className="min-h-[44px] px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      title="Chat on WhatsApp"
+                      className="min-h-[44px] px-3.5 bg-[#145C43] hover:bg-[#0F4935] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-2xs active:scale-95 cursor-pointer shrink-0"
+                      title="Send WhatsApp Message"
                     >
-                      <MessageSquare className="w-4 h-4 text-emerald-700" />
+                      <MessageSquare className="w-4 h-4 text-emerald-300 shrink-0" />
                       <span>WhatsApp</span>
                     </button>
 
+                    {/* Secondary: History */}
                     <button
                       onClick={() => setSelectedCustomerForHistory(cust)}
-                      className="min-h-[44px] px-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      className="min-h-[44px] px-3 bg-white hover:bg-[#F7F9F7] text-[#202923] border border-[#E5EAE6] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
                       title="View Order History"
                     >
-                      <ShoppingBag className="w-4 h-4 text-zinc-600" />
+                      <ShoppingBag className="w-4 h-4 text-[#68736D] shrink-0" />
                       <span>History</span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Secondary: Edit */}
                     <button
                       onClick={() => openCustomerModal(cust)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#202923] hover:bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl transition-colors cursor-pointer"
                       title="Edit Customer"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-4 h-4 text-[#68736D]" />
                     </button>
+
+                    {/* Secondary: Archive */}
                     <button
                       onClick={() => handleToggleArchive(cust)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
-                      title={cust.isArchived ? 'Unarchive' : 'Archive'}
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#68736D] hover:bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl transition-colors cursor-pointer"
+                      title={cust.isArchived ? 'Unarchive customer' : 'Archive customer'}
                     >
                       <Archive className="w-4 h-4" />
                     </button>
+
+                    {/* Destructive: Delete with Confirmation */}
                     <button
                       onClick={() => handleDeleteCustomer(cust)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl transition-colors cursor-pointer"
                       title="Delete Customer"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -412,19 +428,19 @@ export const CustomersPage: React.FC = () => {
       {/* ADD / EDIT CUSTOMER MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-xs p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-200">
-              <h3 className="text-base font-bold text-zinc-900">
+          <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto border border-[#E5EAE6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5EAE6]">
+              <h3 className="text-base font-bold text-[#202923]">
                 {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-zinc-400 hover:text-zinc-700 cursor-pointer">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 text-[#929B95] hover:text-[#202923] cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveCustomer} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[#202923] uppercase tracking-wider mb-1">
                   Customer Full Name *
                 </label>
                 <input
@@ -434,12 +450,12 @@ export const CustomersPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Ramesh Patel"
-                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                  className="w-full px-3.5 min-h-[44px] text-sm bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[#202923] uppercase tracking-wider mb-1">
                   Mobile Number *
                 </label>
                 <input
@@ -448,12 +464,12 @@ export const CustomersPage: React.FC = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                  className="w-full px-3.5 min-h-[44px] text-sm bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[#202923] uppercase tracking-wider mb-1">
                   Email Address (Optional)
                 </label>
                 <input
@@ -461,12 +477,12 @@ export const CustomersPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="customer@example.com"
-                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                  className="w-full px-3.5 min-h-[44px] text-sm bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[#202923] uppercase tracking-wider mb-1">
                   Delivery Address / Area
                 </label>
                 <input
@@ -474,12 +490,12 @@ export const CustomersPage: React.FC = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Street address, flat #, landmark..."
-                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                  className="w-full px-3.5 min-h-[44px] text-sm bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-[#202923] uppercase tracking-wider mb-1">
                   Customer Preferences / Notes
                 </label>
                 <input
@@ -487,7 +503,7 @@ export const CustomersPage: React.FC = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Less spicy, extra butter"
-                  className="w-full px-3.5 min-h-[48px] text-sm bg-zinc-50 border border-zinc-300 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
+                  className="w-full px-3.5 min-h-[44px] text-sm bg-[#F7F9F7] border border-[#E5EAE6] rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#145C43]"
                 />
               </div>
 
@@ -495,13 +511,13 @@ export const CustomersPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 min-h-[48px] border border-zinc-300 text-zinc-700 text-xs sm:text-sm font-semibold rounded-xl hover:bg-zinc-100 cursor-pointer"
+                  className="flex-1 min-h-[44px] border border-[#E5EAE6] text-[#202923] text-xs sm:text-sm font-semibold rounded-xl hover:bg-[#F7F9F7] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[48px] bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
+                  className="flex-1 min-h-[44px] bg-[#145C43] hover:bg-[#0F4935] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
                 >
                   Save Customer
                 </button>
@@ -514,53 +530,53 @@ export const CustomersPage: React.FC = () => {
       {/* CUSTOMER ORDER HISTORY MODAL */}
       {selectedCustomerForHistory && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-xs p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-200">
+          <div className="w-full max-w-xl bg-white rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 border border-[#E5EAE6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5EAE6]">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-[#145C43]" />
                 <div>
-                  <h3 className="text-base font-bold text-zinc-900">{selectedCustomerForHistory.name}</h3>
-                  <p className="text-xs text-zinc-500 font-mono">{selectedCustomerForHistory.phone}</p>
+                  <h3 className="text-base font-bold text-[#202923]">{selectedCustomerForHistory.name}</h3>
+                  <p className="text-xs text-[#68736D] font-mono">{selectedCustomerForHistory.phone}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedCustomerForHistory(null)}
-                className="p-1 text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                className="p-1 text-[#929B95] hover:text-[#202923] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {customerOrdersList.length === 0 ? (
-              <div className="text-center py-8 text-zinc-400 text-xs">
+              <div className="text-center py-8 text-[#929B95] text-xs">
                 No orders recorded under phone number {selectedCustomerForHistory.phone} yet.
               </div>
             ) : (
-              <div className="divide-y divide-zinc-100 space-y-2">
+              <div className="divide-y divide-[#E5EAE6] space-y-2">
                 {customerOrdersList.map((order) => (
                   <div key={order.id} className="pt-2.5 pb-2 flex items-center justify-between gap-3 text-xs">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-zinc-900 font-mono">#{order.billNumber}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                        <span className="font-bold text-[#202923] font-mono">#{order.billNumber}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                           order.paymentStatus === 'PAID'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-amber-100 text-amber-800'
+                            ? 'bg-[#EAF5EF] text-[#145C43] border border-[#CFE5D8]'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
                         }`}>
                           {order.paymentStatus}
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                      <p className="text-[11px] text-[#68736D] mt-0.5">
                         {order.items.length} items • {order.tableName || 'Takeaway'}
                       </p>
-                      <span className="text-[10px] text-zinc-400">{formatDateTime(order.createdAt)}</span>
+                      <span className="text-[10px] text-[#929B95]">{formatDateTime(order.createdAt)}</span>
                     </div>
 
                     <div className="text-right">
-                      <span className="font-mono font-bold text-sm text-zinc-900 block">
+                      <span className="font-mono font-bold text-sm text-[#202923] block">
                         {formatCurrency(order.grandTotal || (order as any).totalAmount || 0)}
                       </span>
-                      <span className="text-[10px] text-zinc-400">
+                      <span className="text-[10px] text-[#68736D] uppercase">
                         {order.paymentMethod}
                       </span>
                     </div>

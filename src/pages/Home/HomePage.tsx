@@ -21,13 +21,21 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { profile, settings, userRole } = useAuth();
+  const { profile, settings, userRole, hasNavAccess } = useAuth();
   const navigate = useNavigate();
   const { orders, loading } = useOrders();
 
   // Cook / Kitchen Staff auto-redirect to Kitchen Orders
   if (userRole === 'KITCHEN') {
     return <Navigate to="/kitchen" replace />;
+  }
+
+  // If user does not have permission for dashboard, route to first accessible module
+  if (!hasNavAccess('dashboard')) {
+    if (hasNavAccess('billing')) return <Navigate to="/billing" replace />;
+    if (hasNavAccess('kitchen')) return <Navigate to="/kitchen" replace />;
+    if (hasNavAccess('orders')) return <Navigate to="/orders" replace />;
+    if (hasNavAccess('tables')) return <Navigate to="/tables" replace />;
   }
 
   // Compute Today's Stats from actual orders

@@ -22,7 +22,9 @@ export const MemberLoginPage: React.FC = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      if (userRole === 'CASHIER') {
+      if (userRole === 'KITCHEN') {
+        navigate('/kitchen', { replace: true });
+      } else if (userRole === 'CASHIER') {
         navigate('/billing', { replace: true });
       } else if (userRole === 'MANAGER') {
         navigate('/', { replace: true });
@@ -41,10 +43,12 @@ export const MemberLoginPage: React.FC = () => {
         await logout();
         throw new Error('Super Admin accounts must use the administration portal.');
       }
-      if (detectedRole === 'CASHIER') {
-        navigate('/billing');
+      if (detectedRole === 'KITCHEN') {
+        navigate('/kitchen', { replace: true });
+      } else if (detectedRole === 'CASHIER') {
+        navigate('/billing', { replace: true });
       } else {
-        navigate('/');
+        navigate('/', { replace: true });
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify Staff Login ID & Password.');

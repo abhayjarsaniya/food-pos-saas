@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '../services/firebase/config';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { db, firebaseConfig } from '../services/firebase/config';
 import { AuthUser, loginWithEmail, logoutUser, signupWithEmail, subscribeToAuth } from '../services/auth/authService';
 import { BusinessFeatures, BusinessProfile, BusinessSettings, DEFAULT_BUSINESS_FEATURES, UserRole, BusinessMember, MemberPermissions, MemberNavigationVisibility } from '../types';
 import { 
@@ -11,8 +13,8 @@ import {
   saveBusinessSettings 
 } from '../services/business/businessService';
 import { getBusinessFeatures } from '../services/features/featureService';
-import { resolveStaffLoginId, ResolvedStaffIdentity } from '../services/members/memberService';
-import { hasMemberPermission, getDefaultNavigationForRole } from '../services/members/permissionService';
+import { resolveStaffLoginId, ResolvedStaffIdentity, STATIC_LOGIN_IDENTITIES } from '../services/members/memberService';
+import { hasMemberPermission, getDefaultNavigationForRole, getDefaultPermissionsForRole } from '../services/members/permissionService';
 import { clearLocalShopCache } from '../services/offline/indexedDb';
 
 /**
@@ -79,6 +81,7 @@ interface AuthContextType {
   isOnboarded: boolean;
   isSuperAdmin: boolean;
   isShopSuspended: boolean;
+  isMemberDeactivated: boolean;
   userRole: UserRole;
   canCollectPayment: boolean;
   hasPermission: (moduleKey: keyof MemberPermissions, actionKey?: 'view' | 'create' | 'edit' | 'delete' | 'special', specialKey?: string) => boolean;
@@ -105,6 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [features, setFeatures] = useState<BusinessFeatures>(DEFAULT_BUSINESS_FEATURES);
   const [loading, setLoading] = useState<boolean>(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
+  const [isMemberDeactivated, setIsMemberDeactivated] = useState<boolean>(false);
 
   const [userRole, setUserRole] = useState<UserRole>('OWNER');
   const [canCollectPayment, setCanCollectPayment] = useState<boolean>(true);
@@ -152,8 +156,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize Auth Listener
   useEffect(() => {
     const unsubscribe = subscribeToAuth(async (authUser) => {
+      if (!authUser) {
+        // If active staff session exists in localStorage, maintain session on page reload!
+        const staffMetaRaw = localStorage.getItem('food_pos_staff_session');
+        if (staffMetaRaw) {
+          try {
+            const staffMeta = JSON.parse(staffMetaRaw);
+            if (staffMeta.businessId && staffMeta.member) {
+              const activeMember = staffMeta.member;
+              setUser({
+                uid: activeMember.id || 'staff_session',
+                email: activeMember.email || `${staffMeta.loginId}@staff.foodpos.app`,
+                displayName: activeMember.name || staffMeta.loginId,
+                isAnonymous: false,
+                emailVerified: true,
+              });
+              setCurrentMember(activeMember);
+              setUserRole(activeMember.role || staffMeta.role || 'CASHIER');
+              setCanCollectPayment(activeMember.canCollectPayment ?? (activeMember.role !== 'KITCHEN'));
+              setIsMemberDeactivated(activeMember.status === 'DEACTIVATED');
+              await loadShopContext(staffMeta.businessId);
+              setLoading(false);
+              return;
+            }
+          } catch {}
+        }
+
+        const adminFlag = localStorage.getItem('food_pos_is_super_admin') === 'true';
+        setIsSuperAdmin(adminFlag);
+        setUser(null);
+        setProfile(null);
+        setCurrentMember(null);
+        setIsMemberDeactivated(false);
+        setUserRole('CASHIER');
+        setLoading(false);
+        return;
+      }
+
       setUser(authUser);
-      if (authUser) {
+      setLoading(true);
+
+      try {
         const isAdmin = 
           authUser.email === 'superadmin@foodpos.app' || 
           authUser.email === 'admin@foodpos.app' || 
@@ -165,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserRole('SUPER_ADMIN');
           setCanCollectPayment(true);
           setProfile(null);
+          setIsMemberDeactivated(false);
           setLoading(false);
           return;
         }
@@ -174,45 +218,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (staffMetaRaw) {
           try {
             const staffMeta = JSON.parse(staffMetaRaw);
-            setUserRole(staffMeta.role || 'CASHIER');
-            setCanCollectPayment(staffMeta.canCollectPayment ?? (staffMeta.role !== 'KITCHEN'));
-            if (staffMeta.member) {
-              setCurrentMember(staffMeta.member);
+            if (staffMeta.businessId) {
+              await loadShopContext(staffMeta.businessId);
+
+              // Live verification of member account status from Firestore
+              let liveMember: BusinessMember | null = null;
+              try {
+                const memberDocId = staffMeta.member?.id || authUser.uid;
+                const mSnap = await getDoc(doc(db, 'businesses', staffMeta.businessId, 'members', memberDocId));
+                if (mSnap.exists()) {
+                  liveMember = { id: mSnap.id, ...(mSnap.data() as any) };
+                }
+              } catch {}
+
+              const activeMember = liveMember || staffMeta.member;
+              if (activeMember) {
+                const isDeactivated = activeMember.status === 'DEACTIVATED' || activeMember.status === 'SUSPENDED';
+                setIsMemberDeactivated(isDeactivated);
+                setCurrentMember(activeMember);
+                setUserRole(activeMember.role || staffMeta.role || 'CASHIER');
+                setCanCollectPayment(activeMember.canCollectPayment ?? (activeMember.role !== 'KITCHEN'));
+              } else {
+                setUserRole(staffMeta.role || 'CASHIER');
+                setCanCollectPayment(staffMeta.canCollectPayment ?? true);
+              }
+              setLoading(false);
+              return;
             }
-            await loadShopContext(staffMeta.businessId);
-            setLoading(false);
-            return;
-          } catch {}
+          } catch (e) {
+            console.warn('Error reading staff session:', e);
+          }
         }
 
-        // 2. Discover business for authenticated user
+        // 2. Discover business for authenticated user (Owner check)
         const biz = await findBusinessForUser(authUser.uid, authUser.email || '');
         if (biz) {
           setUserRole('OWNER');
           setCanCollectPayment(true);
+          setIsMemberDeactivated(false);
           await loadShopContext(biz.id);
-        } else {
-          // Fallback to active shop ID if stored
-          const storedShop = localStorage.getItem('food_pos_active_shop_id');
-          if (storedShop) {
-            await loadShopContext(storedShop);
-          }
+          setLoading(false);
+          return;
         }
-      } else {
-        const adminFlag = localStorage.getItem('food_pos_is_super_admin') === 'true';
-        setIsSuperAdmin(adminFlag);
-        setProfile(null);
-        setUserRole('CASHIER');
+
+        // 3. Check if UID belongs to a registered staff member in Firestore
+        try {
+          const uidSnap = await getDoc(doc(db, 'members_by_uid', authUser.uid));
+          if (uidSnap.exists()) {
+            const uidData = uidSnap.data();
+            const bId = uidData.businessId;
+            if (bId) {
+              await loadShopContext(bId);
+              const mSnap = await getDoc(doc(db, 'businesses', bId, 'members', authUser.uid));
+              if (mSnap.exists()) {
+                const mData = { id: mSnap.id, ...(mSnap.data() as any) } as BusinessMember;
+                const isDeactivated = (mData as any).status === 'DEACTIVATED' || (mData as any).status === 'SUSPENDED';
+                setIsMemberDeactivated(isDeactivated);
+                setCurrentMember(mData);
+                setUserRole(mData.role);
+                setCanCollectPayment(mData.canCollectPayment ?? (mData.role !== 'KITCHEN'));
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch {}
+
+        // 4. Fallback to active shop ID if stored
+        const storedShop = localStorage.getItem('food_pos_active_shop_id');
+        if (storedShop) {
+          await loadShopContext(storedShop);
+          try {
+            const mSnap = await getDoc(doc(db, 'businesses', storedShop, 'members', authUser.uid));
+            if (mSnap.exists()) {
+              const mData = { id: mSnap.id, ...(mSnap.data() as any) } as BusinessMember;
+              const isDeactivated = (mData as any).status === 'DEACTIVATED' || (mData as any).status === 'SUSPENDED';
+              setIsMemberDeactivated(isDeactivated);
+              setCurrentMember(mData);
+              setUserRole(mData.role);
+              setCanCollectPayment(mData.canCollectPayment ?? (mData.role !== 'KITCHEN'));
+            }
+          } catch {}
+        }
+      } catch (err) {
+        console.warn('Error during auth initialization:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   /**
-   * Universal Login: Supports Super Admin, Shop Owner, Manager, and Cashier
-   * via Login ID (e.g. superadmin, princeowner, shopowner01, cashier01) or Email + Password.
+   * Universal Login: Supports Super Admin, Shop Owner, Manager, Cashier, and Cook
+   * via Login ID (e.g. superadmin, princeowner, princecook, cashier01) or Email + Password.
    * Resolves identity, verifies status & role from database, sets session, and returns UserRole.
    */
   const login = async (identifier: string, pass: string): Promise<UserRole> => {
@@ -228,20 +328,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let targetEmail = '';
       let resolvedIdentity: ResolvedStaffIdentity | null = null;
 
-      // 1. Determine target email
+      // 1. Determine target email and staff identity
       if (cleanIdentifier.includes('@')) {
         targetEmail = cleanIdentifier.toLowerCase();
+        try {
+          const staticList = Object.values(STATIC_LOGIN_IDENTITIES as Record<string, ResolvedStaffIdentity>);
+          const staticMatch = staticList.find(
+            (s: ResolvedStaffIdentity) => s.email.toLowerCase() === targetEmail
+          );
+          if (staticMatch) resolvedIdentity = staticMatch;
+        } catch {}
       } else {
         resolvedIdentity = await resolveStaffLoginId(cleanIdentifier);
         if (!resolvedIdentity) {
-          throw new Error('Account not found. Contact your Super Admin.');
+          throw new Error('Account not found. Please verify your Login ID or contact your Shop Owner.');
         }
 
-        if (resolvedIdentity.status === 'DEACTIVATED' || resolvedIdentity.status === 'SUSPENDED') {
-          throw new Error('Your account has been suspended. Contact support.');
+        if (resolvedIdentity.status === 'DEACTIVATED' || (resolvedIdentity.status as any) === 'SUSPENDED') {
+          throw new Error('Your staff account has been deactivated. Please contact your restaurant owner.');
         }
 
         targetEmail = resolvedIdentity.email.toLowerCase();
+      }
+
+      // If staff identity is known, pre-initialize session and load shop context BEFORE auth trigger
+      if (resolvedIdentity && (
+        resolvedIdentity.role === 'CASHIER' || 
+        resolvedIdentity.role === 'MANAGER' || 
+        resolvedIdentity.role === 'KITCHEN' || 
+        resolvedIdentity.role === 'CUSTOM'
+      )) {
+        const staffBizId = resolvedIdentity.businessId || 'biz_prince_pavbhaji_01';
+        localStorage.removeItem('food_pos_is_super_admin');
+
+        const activeMemberObj: BusinessMember = {
+          id: resolvedIdentity.memberId || `mem_${resolvedIdentity.loginId}`,
+          businessId: staffBizId,
+          name: resolvedIdentity.name || resolvedIdentity.loginId,
+          loginId: resolvedIdentity.loginId,
+          email: targetEmail,
+          position: resolvedIdentity.position || (resolvedIdentity.role === 'KITCHEN' ? 'Cook' : resolvedIdentity.role === 'CASHIER' ? 'Cashier' : 'Staff'),
+          role: resolvedIdentity.role,
+          canCollectPayment: resolvedIdentity.role === 'KITCHEN' ? false : (resolvedIdentity.canCollectPayment ?? true),
+          status: ((resolvedIdentity.status as any) === 'SUSPENDED' ? 'DEACTIVATED' : resolvedIdentity.status) as any,
+          permissions: resolvedIdentity.permissions || getDefaultPermissionsForRole(resolvedIdentity.role),
+          navigationVisibility: resolvedIdentity.navigationVisibility || getDefaultNavigationForRole(resolvedIdentity.role),
+          invitedAt: new Date().toISOString(),
+          joinedAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        };
+
+        localStorage.setItem(
+          'food_pos_staff_session',
+          JSON.stringify({
+            loginId: resolvedIdentity.loginId,
+            businessId: staffBizId,
+            role: resolvedIdentity.role,
+            canCollectPayment: activeMemberObj.canCollectPayment,
+            member: activeMemberObj,
+          })
+        );
+        localStorage.setItem('food_pos_active_shop_id', staffBizId);
+
+        // Pre-load shop profile & settings so they are ready immediately
+        await loadShopContext(staffBizId);
+        setCurrentMember(activeMemberObj);
+        setUserRole(resolvedIdentity.role);
+        setCanCollectPayment(activeMemberObj.canCollectPayment);
       }
 
       // 2. Authenticate with Firebase Authentication
@@ -249,17 +402,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         authUser = await loginWithEmail(targetEmail, pass);
       } catch (authErr: any) {
-        const code = authErr?.code || '';
-        if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
-          throw new Error('Incorrect email/login ID or password.');
-        } else if (code === 'auth/user-disabled') {
-          throw new Error('Your account has been suspended. Contact support.');
-        } else if (code === 'auth/too-many-requests') {
-          throw new Error('Too many login attempts. Please try again later.');
-        } else if (code === 'auth/network-request-failed') {
-          throw new Error('Authentication service temporarily unavailable.');
-        } else {
-          throw new Error('Incorrect email/login ID or password.');
+        // Fallback: Check if owner assigned a temporary/new password stored in member record
+        if (resolvedIdentity?.memberId && (authErr?.code === 'auth/invalid-credential' || authErr?.code === 'auth/wrong-password')) {
+          try {
+            const bId = resolvedIdentity.businessId || 'biz_prince_pavbhaji_01';
+            const mSnap = await getDoc(doc(db, 'businesses', bId, 'members', resolvedIdentity.memberId));
+            if (mSnap.exists()) {
+              const mData = mSnap.data() as any;
+              if (mData.temporaryPassword && mData.temporaryPassword === pass) {
+                // Password matches owner-reset password! Re-create/sync Firebase Auth user
+                try {
+                  const secondaryApp = initializeApp(firebaseConfig, `temp_sync_${Date.now()}`);
+                  try {
+                    const secondaryAuth = getAuth(secondaryApp);
+                    try {
+                      const uCred = await createUserWithEmailAndPassword(secondaryAuth, targetEmail, pass);
+                      authUser = uCred.user;
+                    } catch {
+                      // Already exists, attempt update if possible
+                    }
+                  } finally {
+                    await deleteApp(secondaryApp);
+                  }
+                  authUser = await loginWithEmail(targetEmail, pass);
+                } catch {}
+              }
+            }
+          } catch {}
+        }
+
+        if (!authUser) {
+          const code = authErr?.code || '';
+          if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+            throw new Error('Incorrect Login ID / Email or password.');
+          } else if (code === 'auth/user-disabled') {
+            throw new Error('Your account has been suspended. Contact support.');
+          } else if (code === 'auth/too-many-requests') {
+            throw new Error('Too many login attempts. Please try again later.');
+          } else if (code === 'auth/network-request-failed') {
+            throw new Error('Authentication service temporarily unavailable.');
+          } else {
+            throw new Error(authErr.message || 'Incorrect Login ID or password.');
+          }
         }
       }
 
@@ -324,50 +508,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resolvedIdentity.role === 'KITCHEN' || 
         resolvedIdentity.role === 'CUSTOM'
       )) {
-        const staffBizId = resolvedIdentity.businessId || targetBiz?.id || 'biz_prince_pavbhaji_01';
-        localStorage.removeItem('food_pos_is_super_admin');
-
-        const activeMemberObj: BusinessMember = {
-          id: resolvedIdentity.memberId || authUser.uid,
-          businessId: staffBizId,
-          name: resolvedIdentity.name || resolvedIdentity.loginId,
-          loginId: resolvedIdentity.loginId,
-          email: targetEmail,
-          position: resolvedIdentity.position || (resolvedIdentity.role === 'KITCHEN' ? 'Cook' : resolvedIdentity.role === 'CASHIER' ? 'Cashier' : 'Staff'),
-          role: resolvedIdentity.role,
-          canCollectPayment: resolvedIdentity.role === 'KITCHEN' ? false : (resolvedIdentity.canCollectPayment ?? true),
-          status: 'ACTIVE',
-          permissions: resolvedIdentity.permissions,
-          navigationVisibility: resolvedIdentity.navigationVisibility,
-          invitedAt: new Date().toISOString(),
-          joinedAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-        };
-
-        setCurrentMember(activeMemberObj);
-
-        localStorage.setItem(
-          'food_pos_staff_session',
-          JSON.stringify({
-            loginId: resolvedIdentity.loginId,
-            businessId: staffBizId,
-            role: resolvedIdentity.role,
-            canCollectPayment: activeMemberObj.canCollectPayment,
-            member: activeMemberObj,
-          })
-        );
-        localStorage.setItem('food_pos_active_shop_id', staffBizId);
         setUser({
           uid: authUser.uid,
           email: targetEmail,
-          displayName: activeMemberObj.name,
+          displayName: currentMember?.name || resolvedIdentity.name || resolvedIdentity.loginId,
           isAnonymous: false,
           emailVerified: true,
         });
         setIsSuperAdmin(false);
-        setUserRole(resolvedIdentity.role);
-        setCanCollectPayment(activeMemberObj.canCollectPayment);
-        await loadShopContext(staffBizId);
+        setIsMemberDeactivated(false);
         return resolvedIdentity.role;
       }
 
@@ -431,6 +580,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    setLoading(true);
     localStorage.removeItem('food_pos_demo_user');
     localStorage.removeItem('food_pos_is_super_admin');
     localStorage.removeItem('food_pos_staff_session');
@@ -439,9 +589,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await logoutUser();
     setUser(null);
     setProfile(null);
+    setCurrentMember(null);
     setIsSuperAdmin(false);
+    setIsMemberDeactivated(false);
     setUserRole('OWNER');
     setCanCollectPayment(true);
+    setLoading(false);
   };
 
   const demoLogin = async () => {
@@ -582,6 +735,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isOnboarded: !!profile,
         isSuperAdmin,
         isShopSuspended,
+        isMemberDeactivated,
         userRole,
         canCollectPayment,
         hasPermission,

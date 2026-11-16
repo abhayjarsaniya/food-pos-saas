@@ -76,7 +76,7 @@ export interface ResolvedStaffIdentity {
   status: 'ACTIVE' | 'DEACTIVATED' | 'INVITED' | 'SUSPENDED' | 'ARCHIVED';
 }
 
-const STATIC_LOGIN_IDENTITIES: Record<string, ResolvedStaffIdentity> = {
+export const STATIC_LOGIN_IDENTITIES: Record<string, ResolvedStaffIdentity> = {
   superadmin: {
     loginId: 'superadmin',
     email: 'superadmin@foodpos.app',
@@ -144,9 +144,19 @@ const STATIC_LOGIN_IDENTITIES: Record<string, ResolvedStaffIdentity> = {
   },
   princecashier: {
     loginId: 'princecashier',
-    email: 'cashier01@royalbistro.foodpos.app',
+    email: 'cashier01@staff.foodpos.app',
     businessId: 'biz_prince_pavbhaji_01',
     memberId: 'mem_prince_cashier_01',
+    role: 'CASHIER',
+    position: 'Billing Executive',
+    canCollectPayment: true,
+    status: 'ACTIVE',
+  },
+  cashier_raj: {
+    loginId: 'cashier_raj',
+    email: 'cashier_raj@staff.foodpos.app',
+    businessId: 'biz_prince_pavbhaji_01',
+    memberId: 'gC0dNGDbheg1AY2FNDC8WUyybCz2',
     role: 'CASHIER',
     position: 'Billing Executive',
     canCollectPayment: true,
@@ -259,8 +269,9 @@ export async function createTeamMember(
     throw new Error(`Login ID "${cleanLoginId}" is already taken. Please choose another unique ID.`);
   }
 
-  // Prepare email identity for Firebase Auth
-  const targetEmail = params.email?.trim().toLowerCase() || `${cleanLoginId}@${businessId.slice(0, 15)}.foodpos.app`;
+  // Prepare email identity for Firebase Auth (ensure domain contains NO underscores)
+  const safeShopSlug = businessId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0, 10);
+  const targetEmail = params.email?.trim().toLowerCase() || `${cleanLoginId}.${safeShopSlug}@staff.foodpos.app`;
   const targetPassword = params.password?.trim() || 'FoodPOS@2026';
   const now = new Date().toISOString();
   let memberUid = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
@@ -291,12 +302,25 @@ export async function createTeamMember(
       await deleteApp(secondaryApp);
     }
   } catch (err: any) {
-    if (!err.message?.includes('email-already-in-use')) {
+    if (err.message?.includes('email-already-in-use') || err.code === 'auth/email-already-in-use') {
+      try {
+        const secondaryApp = initializeApp(firebaseConfig, `temp_auth_reuse_${Date.now()}`);
+        try {
+          const secondaryAuth = getAuth(secondaryApp);
+          const cred = await signInWithEmailAndPassword(secondaryAuth, targetEmail, targetPassword);
+          if (cred.user.uid) {
+            memberUid = cred.user.uid;
+          }
+        } catch {} finally {
+          await deleteApp(secondaryApp);
+        }
+      } catch {}
+    } else {
       console.warn('Firebase Auth user creation notice:', err.message);
     }
   }
 
-  const newMember: BusinessMember = {
+  const newMember: BusinessMember & { temporaryPassword?: string } = {
     id: memberUid,
     businessId,
     name: cleanName,
@@ -307,6 +331,7 @@ export async function createTeamMember(
     role: params.role,
     canCollectPayment: canCollect,
     status: 'ACTIVE',
+    temporaryPassword: targetPassword,
     permissions: {
       ...permissions,
       pendingPayments: {
@@ -336,6 +361,9 @@ export async function createTeamMember(
     status: 'ACTIVE',
   };
 
+  // Add to in-memory static map for instant resolution in same session
+  STATIC_LOGIN_IDENTITIES[cleanLoginId] = resolvedIdentity;
+
   // 1. Local caching
   const local = getLocalMembers(businessId);
   saveLocalMembers(businessId, [...local, newMember]);
@@ -343,15 +371,25 @@ export async function createTeamMember(
     localStorage.setItem(`food_pos_login_id_${cleanLoginId}`, JSON.stringify(resolvedIdentity));
   } catch {}
 
-  // 2. Save in Firestore: businesses/{businessId}/members/{memberId} and loginIds/{cleanLoginId}
+  // 2. Save in Firestore: businesses/{businessId}/members/{memberId}, loginIds/{cleanLoginId}, and members_by_uid/{memberUid}
   try {
     const memberDocRef = doc(db, 'businesses', businessId, 'members', memberUid);
     const loginIdDocRef = doc(db, 'loginIds', cleanLoginId);
+    const uidDocRef = doc(db, 'members_by_uid', memberUid);
 
     await withTimeout(
       Promise.all([
         setDoc(memberDocRef, newMember),
         setDoc(loginIdDocRef, resolvedIdentity),
+        setDoc(uidDocRef, {
+          uid: memberUid,
+          loginId: cleanLoginId,
+          businessId,
+          role: params.role,
+          status: 'ACTIVE',
+          email: targetEmail,
+          updatedAt: now,
+        }),
       ]),
       2500
     );

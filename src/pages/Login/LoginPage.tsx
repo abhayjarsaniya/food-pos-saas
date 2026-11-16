@@ -5,7 +5,7 @@ import { Utensils, Eye, EyeOff, KeyRound, Mail, CheckCircle2, AlertCircle } from
 import { sendPasswordReset } from '../../services/auth/authService';
 
 export const LoginPage: React.FC = () => {
-  const { login, user, loading, isSuperAdmin, userRole } = useAuth();
+  const { login, user, profile, loading, isSuperAdmin, userRole } = useAuth();
   const navigate = useNavigate();
 
   const [identifier, setIdentifier] = useState('');
@@ -22,16 +22,18 @@ export const LoginPage: React.FC = () => {
 
   // Auto-redirect if already authenticated
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && (profile || isSuperAdmin)) {
       if (isSuperAdmin) {
         navigate('/admin', { replace: true });
+      } else if (userRole === 'KITCHEN') {
+        navigate('/kitchen', { replace: true });
       } else if (userRole === 'CASHIER') {
         navigate('/billing', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
     }
-  }, [user, loading, isSuperAdmin, userRole, navigate]);
+  }, [user, loading, profile, isSuperAdmin, userRole, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +45,8 @@ export const LoginPage: React.FC = () => {
       // Automatic Role-Based Redirection
       if (detectedRole === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
+      } else if (detectedRole === 'KITCHEN') {
+        navigate('/kitchen', { replace: true });
       } else if (detectedRole === 'CASHIER') {
         navigate('/billing', { replace: true });
       } else {

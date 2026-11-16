@@ -43,7 +43,7 @@ import { AdminSettingsPage } from './pages/Admin/AdminSettingsPage';
 
 // Protected Route Guard for Shop Owners & Staff
 const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile, loading, isSuperAdmin, isShopSuspended, logout } = useAuth();
+  const { user, profile, loading, isSuperAdmin, isShopSuspended, isMemberDeactivated, logout } = useAuth();
 
   if (loading) {
     return (
@@ -62,20 +62,43 @@ const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children 
     return <Navigate to="/admin" replace />;
   }
 
-  if (isShopSuspended) {
+  // If staff member account has been deactivated by owner
+  if (isMemberDeactivated) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col justify-center items-center px-4">
+      <div className="min-h-screen bg-[#F7F9F7] flex flex-col justify-center items-center px-4">
         <div className="bg-white border border-rose-200 p-8 rounded-2xl max-w-md w-full text-center shadow-sm">
           <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 font-bold text-lg">
             !
           </div>
-          <h2 className="text-xl font-bold text-zinc-900 mb-2">Shop Suspended</h2>
-          <p className="text-sm text-zinc-600 mb-6">
+          <h2 className="text-xl font-bold text-[#202923] mb-2">Account Deactivated</h2>
+          <p className="text-sm text-[#68736D] mb-6 leading-relaxed">
+            Your staff account has been deactivated by the shop owner. Please contact your restaurant manager or administrator.
+          </p>
+          <button
+            onClick={() => logout()}
+            className="w-full py-3 bg-[#145C43] text-white font-semibold rounded-xl hover:bg-[#0F4935] transition-colors cursor-pointer"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isShopSuspended) {
+    return (
+      <div className="min-h-screen bg-[#F7F9F7] flex flex-col justify-center items-center px-4">
+        <div className="bg-white border border-rose-200 p-8 rounded-2xl max-w-md w-full text-center shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 font-bold text-lg">
+            !
+          </div>
+          <h2 className="text-xl font-bold text-[#202923] mb-2">Shop Suspended</h2>
+          <p className="text-sm text-[#68736D] mb-6">
             Your shop account has been suspended or archived. Please contact platform support or your Super Admin.
           </p>
           <button
             onClick={() => logout()}
-            className="w-full py-3 bg-[#145C43] text-white font-semibold rounded-xl hover:bg-[#0F4935] transition-colors"
+            className="w-full py-3 bg-[#145C43] text-white font-semibold rounded-xl hover:bg-[#0F4935] transition-colors cursor-pointer"
           >
             Sign Out
           </button>
@@ -85,7 +108,11 @@ const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   if (!profile) {
-    return <Navigate to="/login" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-[#145C43] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return <>{children}</>;
@@ -151,11 +178,18 @@ export const AppContent: React.FC = () => {
           }
         >
           <Route path="/" element={<HomePage />} />
-          <Route path="/kitchen" element={<KitchenOrdersPage />} />
+          <Route 
+            path="/kitchen" 
+            element={
+              <FeatureGuard navKey="kitchen">
+                <KitchenOrdersPage />
+              </FeatureGuard>
+            } 
+          />
           <Route 
             path="/billing" 
             element={
-              <FeatureGuard feature="billing">
+              <FeatureGuard feature="billing" navKey="billing">
                 <BillingPage />
               </FeatureGuard>
             } 
@@ -163,7 +197,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/pending-payments" 
             element={
-              <FeatureGuard feature="pendingPayments">
+              <FeatureGuard feature="pendingPayments" navKey="pendingPayments">
                 <PendingPaymentsPage />
               </FeatureGuard>
             } 
@@ -171,7 +205,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/orders" 
             element={
-              <FeatureGuard feature="orders">
+              <FeatureGuard feature="orders" navKey="orders">
                 <OrdersPage />
               </FeatureGuard>
             } 
@@ -180,7 +214,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/menu" 
             element={
-              <FeatureGuard feature="menuManagement">
+              <FeatureGuard feature="menuManagement" navKey="menu">
                 <MenuPage />
               </FeatureGuard>
             } 
@@ -188,7 +222,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/inventory" 
             element={
-              <FeatureGuard feature="inventory">
+              <FeatureGuard feature="inventory" navKey="inventory">
                 <InventoryPage />
               </FeatureGuard>
             } 
@@ -196,7 +230,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/suppliers" 
             element={
-              <FeatureGuard feature="suppliers">
+              <FeatureGuard feature="suppliers" navKey="suppliers">
                 <SuppliersPage />
               </FeatureGuard>
             } 
@@ -204,7 +238,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/purchases" 
             element={
-              <FeatureGuard feature="purchaseOrders">
+              <FeatureGuard feature="purchaseOrders" navKey="purchases">
                 <PurchaseOrdersPage />
               </FeatureGuard>
             } 
@@ -212,7 +246,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/tables" 
             element={
-              <FeatureGuard feature="tableManagement">
+              <FeatureGuard feature="tableManagement" navKey="tables">
                 <TableManagementPage />
               </FeatureGuard>
             } 
@@ -220,7 +254,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/reports" 
             element={
-              <FeatureGuard feature="reports">
+              <FeatureGuard feature="reports" navKey="reports">
                 <ReportsPage />
               </FeatureGuard>
             } 
@@ -228,7 +262,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/members" 
             element={
-              <FeatureGuard feature="memberManagement">
+              <FeatureGuard feature="memberManagement" navKey="members">
                 <MembersPage />
               </FeatureGuard>
             } 
@@ -236,7 +270,7 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/customers" 
             element={
-              <FeatureGuard feature="customerManagement">
+              <FeatureGuard feature="customerManagement" navKey="customers">
                 <CustomersPage />
               </FeatureGuard>
             } 
@@ -244,12 +278,19 @@ export const AppContent: React.FC = () => {
           <Route 
             path="/expenses" 
             element={
-              <FeatureGuard feature="expenses">
+              <FeatureGuard feature="expenses" navKey="expenses">
                 <ExpensesPage />
               </FeatureGuard>
             } 
           />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route 
+            path="/settings" 
+            element={
+              <FeatureGuard navKey="settings">
+                <SettingsPage />
+              </FeatureGuard>
+            } 
+          />
         </Route>
 
         {/* Fallback */}
