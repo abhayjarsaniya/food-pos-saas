@@ -378,7 +378,7 @@ export async function createTeamMember(
     const uidDocRef = doc(db, 'members_by_uid', memberUid);
 
     await withTimeout(
-      Promise.all([
+      Promise.allSettled([
         setDoc(memberDocRef, newMember),
         setDoc(loginIdDocRef, resolvedIdentity),
         setDoc(uidDocRef, {
@@ -391,7 +391,7 @@ export async function createTeamMember(
           updatedAt: now,
         }),
       ]),
-      2500
+      6000
     );
   } catch (err) {
     console.warn('Could not persist member to cloud Firestore immediately, saved locally:', err);

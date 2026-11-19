@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SyncProvider } from './contexts/SyncContext';
@@ -8,38 +8,41 @@ import { AppLayout } from './components/navigation/AppLayout';
 import { FeatureGuard } from './components/common/FeatureGuard';
 import { HomePage } from './pages/Home/HomePage';
 import { BillingPage } from './pages/Billing/BillingPage';
-import { OrdersPage } from './pages/Orders/OrdersPage';
-import { MorePage } from './pages/More/MorePage';
-import { MenuPage } from './pages/Menu/MenuPage';
-import { InventoryPage } from './pages/Inventory/InventoryPage';
-import { SuppliersPage } from './pages/Suppliers/SuppliersPage';
-import { PurchaseOrdersPage } from './pages/Purchases/PurchaseOrdersPage';
-import { ReportsPage } from './pages/Reports/ReportsPage';
-import { SettingsPage } from './pages/Settings/SettingsPage';
-import { PendingPaymentsPage } from './pages/Payments/PendingPaymentsPage';
-import { MembersPage } from './pages/Members/MembersPage';
-import { TableManagementPage } from './pages/Tables/TableManagementPage';
-import { CustomersPage } from './pages/Customers/CustomersPage';
-import { ExpensesPage } from './pages/Expenses/ExpensesPage';
 import { LoginPage } from './pages/Login/LoginPage';
-import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
-import { KitchenOrdersPage } from './pages/Kitchen/KitchenOrdersPage';
 
-// Multi-Portal Login Components
-import { SuperAdminLoginPage } from './pages/Auth/SuperAdminLoginPage';
-import { ShopOwnerLoginPage } from './pages/Auth/ShopOwnerLoginPage';
-import { MemberLoginPage } from './pages/Auth/MemberLoginPage';
+// Code-split modules for optimal initial load time and mobile bundle performance
+const KitchenOrdersPage = React.lazy(() => import('./pages/Kitchen/KitchenOrdersPage').then(m => ({ default: m.KitchenOrdersPage })));
+const OrdersPage = React.lazy(() => import('./pages/Orders/OrdersPage').then(m => ({ default: m.OrdersPage })));
+const PendingPaymentsPage = React.lazy(() => import('./pages/Payments/PendingPaymentsPage').then(m => ({ default: m.PendingPaymentsPage })));
+const MorePage = React.lazy(() => import('./pages/More/MorePage').then(m => ({ default: m.MorePage })));
+const MenuPage = React.lazy(() => import('./pages/Menu/MenuPage').then(m => ({ default: m.MenuPage })));
+const InventoryPage = React.lazy(() => import('./pages/Inventory/InventoryPage').then(m => ({ default: m.InventoryPage })));
+const SuppliersPage = React.lazy(() => import('./pages/Suppliers/SuppliersPage').then(m => ({ default: m.SuppliersPage })));
+const PurchaseOrdersPage = React.lazy(() => import('./pages/Purchases/PurchaseOrdersPage').then(m => ({ default: m.PurchaseOrdersPage })));
+const TableManagementPage = React.lazy(() => import('./pages/Tables/TableManagementPage').then(m => ({ default: m.TableManagementPage })));
+const ReportsPage = React.lazy(() => import('./pages/Reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const MembersPage = React.lazy(() => import('./pages/Members/MembersPage').then(m => ({ default: m.MembersPage })));
+const CustomersPage = React.lazy(() => import('./pages/Customers/CustomersPage').then(m => ({ default: m.CustomersPage })));
+const ExpensesPage = React.lazy(() => import('./pages/Expenses/ExpensesPage').then(m => ({ default: m.ExpensesPage })));
+const SettingsPage = React.lazy(() => import('./pages/Settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
-// Super Admin Components
-import { AdminLayout } from './pages/Admin/AdminLayout';
-import { AdminOverviewPage } from './pages/Admin/AdminOverviewPage';
-import { AdminShopsPage } from './pages/Admin/AdminShopsPage';
-import { AdminCreateShopPage } from './pages/Admin/AdminCreateShopPage';
-import { AdminOrdersPage } from './pages/Admin/AdminOrdersPage';
-import { AdminAnalyticsPage } from './pages/Admin/AdminAnalyticsPage';
-import { AdminSubscriptionsPage } from './pages/Admin/AdminSubscriptionsPage';
-import { AdminDemoDataPage } from './pages/Admin/AdminDemoDataPage';
-import { AdminSettingsPage } from './pages/Admin/AdminSettingsPage';
+// Super Admin Components (Lazy loaded)
+const AdminLayout = React.lazy(() => import('./pages/Admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
+const AdminOverviewPage = React.lazy(() => import('./pages/Admin/AdminOverviewPage').then(m => ({ default: m.AdminOverviewPage })));
+const AdminShopsPage = React.lazy(() => import('./pages/Admin/AdminShopsPage').then(m => ({ default: m.AdminShopsPage })));
+const AdminCreateShopPage = React.lazy(() => import('./pages/Admin/AdminCreateShopPage').then(m => ({ default: m.AdminCreateShopPage })));
+const AdminOrdersPage = React.lazy(() => import('./pages/Admin/AdminOrdersPage').then(m => ({ default: m.AdminOrdersPage })));
+const AdminAnalyticsPage = React.lazy(() => import('./pages/Admin/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })));
+const AdminSubscriptionsPage = React.lazy(() => import('./pages/Admin/AdminSubscriptionsPage').then(m => ({ default: m.AdminSubscriptionsPage })));
+const AdminDemoDataPage = React.lazy(() => import('./pages/Admin/AdminDemoDataPage').then(m => ({ default: m.AdminDemoDataPage })));
+const AdminSettingsPage = React.lazy(() => import('./pages/Admin/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
+
+const PageLoader: React.FC = () => (
+  <div className="flex-1 w-full min-h-[50vh] flex flex-col items-center justify-center p-8">
+    <div className="w-8 h-8 border-3 border-[#145C43] border-t-transparent rounded-full animate-spin"></div>
+    <span className="mt-3 text-xs font-semibold text-[#68736D]">Loading...</span>
+  </div>
+);
 
 // Protected Route Guard for Shop Owners & Staff
 const ProtectedShopRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {

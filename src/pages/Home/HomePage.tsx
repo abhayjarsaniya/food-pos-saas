@@ -5,6 +5,7 @@ import { useOrders } from '../../contexts/OrdersContext';
 import { Order } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import { formatDateTime } from '../../services/pdf/receiptGenerator';
+import { filterOrdersByDate } from '../../services/reports/reportService';
 import { 
   PlusCircle, 
   Receipt, 
@@ -40,11 +41,7 @@ export const HomePage: React.FC = () => {
 
   // Compute Today's Stats from actual orders
   const todayStats = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todaysOrders = orders.filter((o) => {
-      if (o.status === 'VOIDED') return false;
-      return o.createdAt.startsWith(todayStr);
-    });
+    const todaysOrders = filterOrdersByDate(orders, 'today').filter((o) => o.status !== 'VOIDED');
 
     let revenue = 0;
     let cash = 0;
